@@ -1,0 +1,17 @@
+name: ⚒️ Build - 🧹 Lint
+
+on: workflow_call
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Install
+        uses: remileduc/vcards-io/.github/actions/package-install@${{ github.ref_name }}
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
