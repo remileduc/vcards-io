@@ -1,0 +1,16 @@
+# config
+.clang-format
+.editorconfig
+.eslintrc.json
+.gitignore
+jest.config.json
+tsconfig.json
+# sources
+lib/
+tests/
+# generated
+coverage/
+dist/**/*.js.map
+docs/
+# others
+.vscode/

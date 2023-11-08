@@ -1,0 +1,67 @@
+{
+	"root": true,
+	"plugins": [
+		"@typescript-eslint"
+	],
+	"parser": "@typescript-eslint/parser",
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/strict-type-checked",
+		"plugin:@typescript-eslint/stylistic-type-checked"
+	],
+	"env": {
+		"browser": true,
+		"node": true
+	},
+	"parserOptions": {
+		"ecmaVersion": 2022,
+		"sourceType": "module",
+		"project": true,
+		"tsconfigRootDir": "."
+	},
+	"rules": {
+		"array-callback-return": [
+			"error",
+			{
+				"checkForEach": true
+			}
+		],
+		"no-await-in-loop": "error",
+		"no-constant-binary-expression": "error",
+		"no-constructor-return": "error",
+		"no-duplicate-imports": [
+			"error",
+			{
+				"includeExports": true
+			}
+		],
+		"no-new-native-nonconstructor": "error",
+		"no-promise-executor-return": "error",
+		"no-self-compare": "error",
+		"no-template-curly-in-string": "error",
+		"no-unmodified-loop-condition": "error",
+		"no-unused-private-class-members": "error",
+		"class-methods-use-this": "error",
+		"consistent-this": [
+			"error",
+			"seld"
+		],
+		"default-param-last": "error",
+		"dot-notation": "error",
+		"eqeqeq": [
+			"error",
+			"smart"
+		],
+		"no-alert": "error",
+		"no-else-return": [
+			"error",
+			{
+				"allowElseIf": false
+			}
+		],
+		"no-var": "error",
+		"radix": "error",
+		"sort-imports": "error",
+		"@typescript-eslint/no-non-null-assertion": "warn"
+	}
+}

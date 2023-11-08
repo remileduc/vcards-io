@@ -1,0 +1,665 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "vcard.schema.json",
+	"title": "vCard",
+	"description": "Content of a vCard represented as a JSON object",
+	"type": "object",
+	"$defs": {
+		"mediaContent": {
+			"description": "Any media content represented by a URI or a embedded base64 string.",
+			"oneOf": [
+				{
+					"description": "URI to a media",
+					"type": "object",
+					"required": [
+						"uri"
+					],
+					"properties": {
+						"mediaType": {
+							"type": "string"
+						},
+						"uri": {
+							"type": "string",
+							"format": "uri"
+						}
+					}
+				},
+				{
+					"description": "Embedded base64 media",
+					"type": "object",
+					"properties": {
+						"mediaType": {
+							"type": "string"
+						},
+						"data": {
+							"type": "string",
+							"contentEncoding": "base64",
+							"$comment": "contentMediaType: ${mediaType}"
+						}
+					}
+				}
+			]
+		},
+
+		"$comment": "Supported property parameters as defined by the section 5 of RCC 6350",
+		"GEO": {
+			"description": "To indicate global positioning information that is specific to an address.",
+			"type": "object",
+			"properties": {
+				"latitude": {
+					"type": "number",
+					"minimum": -90,
+					"maximum": 90
+				},
+				"longitude": {
+					"type": "number",
+					"minimum": -180,
+					"maximum": 180
+				}
+			}
+		},
+		"PREF": {
+			"description":
+			  "An integer between 1 and 100 that quantifies the level of preference. Lower values correspond to a higher level of preference, with 1 being most preferred.",
+			"type": "integer",
+			"minimum": 1,
+			"maximum": 100
+		},
+		"SORTAS": {
+			"description": "When this property is present in a vCard, then the given strings are used for sorting the vCard.",
+			"type": "string"
+		},
+		"TYPE": {
+			"description": "The TYPE parameter has multiple, different uses.  In general, it is a way of specifying class characteristics of the associated property.",
+			"$comment": "This module version only supports 'home' and 'work'. Free-text is not supported",
+			"enum": [
+				"home",
+				"work",
+				"cell",
+				"other",
+				"custom"
+			]
+		}
+	},
+	"$comment": "The properties below are listed in the same order as they can be found in the RFC 6350 (vCard v4)",
+	"required": [
+		"fn",
+		"version"
+	],
+	"properties": {
+		"source": {
+			"description": "List or URIs that identify the source of directory information contained in the content type.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"uri"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"uri": {
+						"type": "string",
+						"format": "uri"
+					}
+				}
+			}
+		},
+		"kind": {
+			"description": "To specify the kind of object the vCard represents.",
+			"enum": [
+				"individual",
+				"group",
+				"org",
+				"location"
+			]
+		},
+		"xml": {
+			"description": "To include extended XML-encoded vCard data in a plainvCard.",
+			"type": "string",
+			"$comment": "This is not supported in this module version"
+		},
+
+		"fn": {
+			"description": "To specify the formatted text corresponding to the name of the object the vCard represents.",
+			"type": "object",
+			"required": [
+				"name"
+			],
+			"properties": {
+				"PREF": {
+					"$ref": "#/$defs/PREF"
+				},
+				"TYPE": {
+					"$ref": "#/$defs/TYPE"
+				},
+				"name": {
+					"type": "string"
+				}
+			}
+		},
+		"n": {
+			"description": "To specify the components of the name of the object the vCard represents.",
+			"type": "object",
+			"properties": {
+				"SORTAS": {
+					"$ref": "#/$defs/SORTAS"
+				},
+				"familyNames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"givenNames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"additionalNames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"honorificPrefixes": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"honorificSuffixes": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"nickname": {
+			"description": "To specify the text corresponding to the nickname of the object the vCard represents.",
+			"type": "object",
+			"required": [
+				"nickname"
+			],
+			"properties": {
+				"PREF": {
+					"$ref": "#/$defs/PREF"
+				},
+				"TYPE": {
+					"$ref": "#/$defs/TYPE"
+				},
+				"nickname": {
+					"type": "string"
+				}
+			}
+		},
+		"photo": {
+			"description": "To specify an image or photograph information that annotates some aspect of the object the vCard represents.",
+			"$comment": "Only one photo is supported in this module version",
+			"$ref": "#/$defs/mediaContent"
+		},
+		"bday": {
+			"description": "To specify the birth date of the object the vCard represents.",
+			"$comment": "This module version only supports dates in ISO 8601",
+			"oneOf": [
+				{
+					"type": "string",
+					"format": "date"
+				},
+				{
+					"type": "string",
+					"format": "time"
+				},
+				{
+					"type": "string",
+					"format": "date-time"
+				}
+			]
+		},
+		"anniversary": {
+			"description": "The date of marriage, or equivalent, of the object the vCard represents.",
+			"$comment": "This module version only supports dates in ISO 8601",
+			"oneOf": [
+				{
+					"type": "string",
+					"format": "date"
+				},
+				{
+					"type": "string",
+					"format": "time"
+				},
+				{
+					"type": "string",
+					"format": "date-time"
+				}
+			]
+		},
+		"gender": {
+			"description": "To specify the components of the sex and gender identity of the object the vCard represents.",
+			"type": "object",
+			"properties": {
+				"sex": {
+					"$comment": "M stands for 'male', F stands for 'female', O stands for 'other', N stands for 'none or not applicable', U stands for 'unknown'.",
+					"enum": [
+						"",
+						"M",
+						"F",
+						"O",
+						"N",
+						"U"
+					]
+				},
+				"gender": {
+					"$comment": "Free-form text",
+					"type": "string"
+				}
+			}
+		},
+
+		"adr": {
+			"description": "To specify the components of the delivery address for the vCard object.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"GEO": {
+						"$ref": "#/$defs/GEO"
+					},
+					"label": {
+						"description": "Plain-text string representing the formatted address.",
+						"type": "string"
+					},
+					"postOfficeBox": {
+						"$comment": "Per RFC 6350, should be empty",
+						"type": "string"
+					},
+					"extendedAddress": {
+						"description": "Apartment or suite number",
+						"type": "string"
+					},
+					"streetAddress": {
+						"type": "string"
+					},
+					"locality": {
+						"description": "City",
+						"type": "string"
+					},
+					"region": {
+						"description": "State or province",
+						"type": "string"
+					},
+					"postalCode": {
+						"type": "string"
+					},
+					"countryName": {
+						"type": "string"
+					}
+				}
+			}
+		},
+
+		"tel": {
+			"description": "To specify the telephone number for telephony communication with the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"number"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"number": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"email": {
+			"description": "To specify the electronic mail address for communication with the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"address"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"address": {
+						"type": "string",
+						"format": "idn-email"
+					}
+				}
+			}
+		},
+		"impp": {
+			"description": "To specify the URI for instant messaging and presence protocol communications with the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"uri"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"uri": {
+						"type": "string",
+						"format": "uri"
+					}
+				}
+			}
+		},
+		"lang": {
+			"description": "To specify the language(s) that may be used for contacting the entity associated with the vCard.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"language"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"language": {
+						"type": "string"
+					}
+				}
+			}
+		},
+
+		"tz": {
+			"description": "To specify information related to the time zone of the object the vCard represents.",
+			"$comment": "This module evrsion only supports free text.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"timezone"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"timezone": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"geo": {
+			"description": "To specify information related to the global positioning of the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"required": [
+					"latitude",
+					"longitude"
+				],
+				"allOf": [
+					{
+						"$ref": "#/$defs/GEO"
+					}
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					}
+				}
+			}
+		},
+
+		"title": {
+			"description": "To specify the position or job of the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"titleName"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"titleName": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"role": {
+			"description": "To specify the function or part played in a particular situation by the object the vCard represents.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"roleName"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"roleName": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"logo": {
+			"description": "To specify a graphic image of a logo associated with the object the vCard represents.",
+			"$comment": "Only one logo is supported in this module version",
+			"$ref": "#/$defs/mediaContent"
+		},
+		"org": {
+			"description": "To specify the organizational name and units associated with the vCard.",
+			"$comment": "This module version supports only 1 org",
+			"type": "object",
+			"required": [
+				"organization"
+			],
+			"properties": {
+				"PREF": {
+					"$ref": "#/$defs/PREF"
+				},
+				"SORTAS": {
+					"$ref": "#/$defs/SORTAS"
+				},
+				"TYPE": {
+					"$ref": "#/$defs/TYPE"
+				},
+				"organization": {
+					"type": "string"
+				}
+			}
+		},
+		"member": {
+			"description": "To include a member in the group this vCard represents.",
+			"$comment": "This property MUST NOT be present unless the value of the KIND property is 'group'.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"uri"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"uri": {
+						"type": "string",
+						"format": "uri"
+					}
+				}
+			}
+		},
+		"related": {
+			"description": "To specify a relationship between another entity and the entity represented by this vCard.",
+			"$comment": "Only free-text is supported in this module version",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"related"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"type": {
+						"enum": [
+							"home",
+							"work",
+							"agent",
+							"emergency",
+							"contact",
+							"acquaintance",
+							"friend",
+							"met",
+							"co-worker",
+							"colleague",
+							"co-resident",
+							"neighbor",
+							"child",
+							"parent",
+							"sibling",
+							"spouse",
+							"kin",
+							"muse",
+							"crush",
+							"date",
+							"sweetheart",
+							"me"
+						]
+					},
+					"related": {
+						"type": "string"
+					}
+				}
+			}
+		},
+
+		"categories": {
+			"description": "To specify application category information about the vCard, also known as 'tags'.",
+			"$comment": "Prefs and types not supported. This generates only 1 field filled with CSV",
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"note": {
+			"description": "To specify supplemental information or a comment that is associated with the vCard.",
+			"type": "string"
+		},
+		"prodid": {
+			"description": "To specify the identifier for the product that created the vCard object.",
+			"type": "string"
+		},
+		"rev": {
+			"description": "To specify revision information about the current vCard.",
+			"$comment": "Timestamp format must be 'AAAAMMDDTHHMMSSZ' in UTC",
+			"type": "string",
+			"pattern": "^[0-9]{4}[01][0-9][0-3][0-9]T[0-2][0-9]([0-5][0-9]){2}Z$"
+		},
+		"sound": {
+			"description": "To specify a digital sound content information that annotates some aspect of the vCard.",
+			"$comment": "Only one sound is supported in this module version",
+			"$ref": "#/$defs/mediaContent"
+		},
+		"uid": {
+			"description": "To specify a value that represents a globally unique identifier corresponding to the entity associated with the vCard.",
+			"type": "string",
+			"format": "uri"
+		},
+		"clientPIDMap": {
+			"description": "To give a global meaning to a local PID source identifier.",
+			"$comment": "Not supported"
+		},
+		"url": {
+			"description": "To specify a uniform resource locator associated with the object to which the vCard refers.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"url"
+				],
+				"properties": {
+					"PREF": {
+						"$ref": "#/$defs/PREF"
+					},
+					"TYPE": {
+						"$ref": "#/$defs/TYPE"
+					},
+					"url": {
+						"type": "string",
+						"format": "uri"
+					}
+				}
+			}
+		},
+		"version": {
+			"description": "To specify the version of the vCard specification used to format this vCard.",
+			"enum": [
+				"2.1",
+				"3.0",
+				"4.0"
+			]
+		},
+
+		"key": {
+			"description": "To specify a public key or authentication certificate associated with the object that the vCard represents.",
+			"$comment": "Only one key is supported in this module version",
+			"$ref": "#/$defs/mediaContent"
+		},
+
+		"fburl": {
+			"description": "To specify the URI for the busy time associated with the object that the vCard represents.",
+			"$comment": "Not supported"
+		},
+		"caladruri": {
+			"description":
+			  "To specify the calendar user address [RFC5545] to which a scheduling request [RFC5546] should be sent for the object represented by the vCard.",
+			"$comment": "Not supported"
+		},
+		"calauri": {
+			"description": "To specify the URI for a calendar associated with the object represented by the vCard.",
+			"$comment": "Not supported"
+		}
+	}
+}
