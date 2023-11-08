@@ -1,0 +1,8 @@
+# node
+node_modules/
+# generated
+coverage/
+dist/
+docs/
+# others
+.vscode/
