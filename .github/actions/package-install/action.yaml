@@ -4,6 +4,9 @@ description: Install Node.js, NPM, and the package's NPM dependencies, and cache
 runs:
   using: composite
   steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:

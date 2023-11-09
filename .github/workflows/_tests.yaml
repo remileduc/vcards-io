@@ -7,11 +7,8 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: 📥 Install
-        uses: ./.github/actions/package-install
+        uses: remileduc/vcards-io/.github/actions/package-install@main
 
       - name: Run tests
         run: npm run testci

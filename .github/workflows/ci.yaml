@@ -7,13 +7,10 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  actions: read
-  checks: write
+permissions: {}
 
 jobs:
   call-build-lint:
@@ -23,6 +20,10 @@ jobs:
   call-tests:
     name: 📝 Tests
     uses: ./.github/workflows/_tests.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
 
   call-docs:
     name: 📙 Documentation
