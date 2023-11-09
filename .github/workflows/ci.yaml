@@ -1,0 +1,29 @@
+name: ⚙️ CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  call-build-lint:
+    name: ⚒️ Build - 🧹 Lint
+    uses: ./.github/workflows/_build-lint.yaml
+
+  call-tests:
+    name: 📝 Tests
+    uses: ./.github/workflows/_tests.yaml
+
+  call-docs:
+    name: 📙 Documentation
+    uses: ./.github/workflows/_docs.yaml

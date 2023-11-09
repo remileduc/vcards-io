@@ -1,4 +1,5 @@
 # config
+.github/
 .clang-format
 .editorconfig
 .eslintrc.json

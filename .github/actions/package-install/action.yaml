@@ -1,0 +1,22 @@
+name: 📥 Install Package
+description: Install Node.js, NPM, and the package's NPM dependencies, and cache it.
+
+runs:
+  using: composite
+  steps:
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "latest"
+        cache: "npm"
+
+    - name: Output versions
+      shell: bash
+      run: |
+        echo Node and NPM versions
+        node --version
+        npm --version
+
+    - name: Install NPM dependencies
+      shell: bash
+      run: npm install

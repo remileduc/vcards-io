@@ -1,0 +1,17 @@
+name: 📙 Documentation
+
+on: workflow_call
+
+jobs:
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Install
+        uses: ./.github/actions/package-install
+
+      - name: Biuld documentation
+        run: npm run doc
