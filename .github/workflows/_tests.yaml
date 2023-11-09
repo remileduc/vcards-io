@@ -14,4 +14,24 @@ jobs:
         uses: ./.github/actions/package-install
 
       - name: Run tests
-        run: npm test
+        run: npm run testci
+        env:
+          JEST_JUNIT_OUTPUT_DIR: coverage/reports
+          JEST_JUNIT_OUTPUT_NAME: jest-junit.xml
+          JEST_JUNIT_ANCESTOR_SEPARATOR: " > "
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: false
+          JEST_JUNIT_SUITE_NAME: "{filepath}"
+          JEST_JUNIT_CLASSNAME: "{classname}"
+          JEST_JUNIT_TITLE: "{title}"
+
+      - name: Report test results
+        if: success() || failure()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Jest Tests Report
+          path: coverage/reports/jest-*.xml
+          reporter: jest-junit
+          list-suites: failed
+          list-tests: failed
+          fail-on-error: false
+          token: ${{ github.token  }}

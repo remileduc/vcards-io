@@ -7,8 +7,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: 📥 Install
-        uses: remileduc/vcards-io/.github/actions/package-install@${{ github.ref_name }}
+        uses: ./.github/actions/package-install
 
       - name: Build
         run: npm run build
