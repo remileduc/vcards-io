@@ -173,7 +173,7 @@ describe("Field", () => {
 		});
 
 		it("should throw if bad parameters", () => {
-			field.addParam("param2", "");
+			field.addParam("", "");
 			field.addValue("value1");
 			expect(() => field.toString()).toThrow();
 			// static method should behave the same
@@ -183,7 +183,7 @@ describe("Field", () => {
 
 	describe("fromString", () => {
 		it("should return a valid Field", () => {
-			const input = "NAME;PARAM1=p1\\,p11;PARAM2=p2:value1;value2\\;value2"
+			const input = "NAME;PARAM1=p1\\,p11;PARAM2=p2;PARAM3:value1;value2\\;value2"
 			field.fromString(input);
 			const sfield = PropertyIO.fromString(input);
 
@@ -193,6 +193,8 @@ describe("Field", () => {
 			expect(sfield.getParam("param1")).toBe("p1,p11");
 			expect(field.getParam("param2")).toBe("p2");
 			expect(sfield.getParam("param2")).toBe("p2");
+			expect(field.getParam("param3")).toBe("");
+			expect(sfield.getParam("param3")).toBe("");
 			expect(field.getValue(0)).toBe("value1");
 			expect(sfield.getValue(0)).toBe("value1");
 			expect(field.getValue(1)).toBe("value2;value2");
@@ -223,7 +225,7 @@ describe("Field", () => {
 		});
 
 		it("should throw if bad parameters", () => {
-			const input = "NAME;param:value"
+			const input = "NAME;=param:value"
 			expect(() => field.fromString(input)).toThrow();
 		});
 	});

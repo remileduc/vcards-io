@@ -175,9 +175,11 @@ export class PropertyIO
 
 		for (const [key, param] of this.params)
 		{
-			if (!key || !param)
+			if (!key)
 				throw new Error("Invalid property: empty parameter key");
-			result += `;${key.toUpperCase()}=${stringutils.escape(param)}`;
+			result += `;${key.toUpperCase()}`;
+			if (param)
+				result += `=${stringutils.escape(param)}`;
 		}
 		result += ":" + this.values.map((v) => stringutils.escape(v)).join(";");
 
@@ -207,9 +209,9 @@ export class PropertyIO
 		for (const p of parameters)
 		{
 			const param = stringutils.split(p, "=");
-			if (param.length !== 2)
+			if (!param[0] || param.length > 2)
 				throw new Error("Invalid property: invalid parameter");
-			this.addParam(param[0].toUpperCase(), stringutils.unescape(param[1]));
+			this.addParam(param[0].toUpperCase(), param.length < 2 ? "" : stringutils.unescape(param[1]));
 		}
 		this.values = values.map((v) => stringutils.unescape(v));
 	}
