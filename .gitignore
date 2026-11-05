@@ -1,0 +1,12 @@
+# javascript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+test-results/
+playwright-report/
+
+# claude
+.claude/
+CLAUDE.md

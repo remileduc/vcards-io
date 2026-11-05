@@ -1,0 +1,3 @@
+# vCard files must keep their original line endings byte for byte.
+fixtures/** -text
+*.vcf -text

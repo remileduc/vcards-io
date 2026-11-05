@@ -1,0 +1,38 @@
+{
+  "name": "@vcards-io/jscontact",
+  "version": "0.1.0",
+  "description": "JSContact 2.0 (RFC 9553/9982) types, validator, JSON Pointer/PatchObject utilities and structured diff",
+  "license": "MIT",
+  "author": "Rémi Ducceschi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remileduc/vcards-io.git",
+    "directory": "packages/jscontact"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --root ../.. --project jscontact"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "vcards-io-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Offline vCard backup, editor and diff tool built on JSContact",
+  "license": "MIT",
+  "author": "Rémi Ducceschi",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "dev": "pnpm --filter web run dev",
+    "preview": "pnpm --filter web run preview",
+    "build": "pnpm -r --filter './packages/**' run build && pnpm --filter web run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "publint": "pnpm -r --filter './packages/**' exec publint && pnpm -r --filter './packages/**' exec attw --pack --profile esm-only",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@biomejs/biome": "^2.6.4",
+    "@vitest/coverage-v8": "^5.1.0",
+    "publint": "^0.3.25",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
