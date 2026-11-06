@@ -207,16 +207,32 @@ type VValue =
   | { kind: 'unknown'; raw: string }                          // unparsed, escapes kept
 
 interface Issue { severity: 'error' | 'warning' | 'info'; code: string; message: string; line?: number; property?: string }
+
+// Every part optional: a date has no hour, a time has no date part, a date-time has both.
+interface DateAndOrTime { year?: number; month?: number; day?: number; hour?: number; minute?: number; second?: number; zone?: UtcOffset | 'utc' }
+interface Timestamp     { year: number; month: number; day: number; hour: number; minute: number; second: number; zone?: UtcOffset | 'utc' }  // no zone = floating
+interface UtcOffset     { sign: 1 | -1; hours: number; minutes: number }
 ```
 
-Also exported: `escapeText`, `unescapeText`, `foldLine`, `unfoldLines`,
+Also exported: `escapeText`, `unescapeText`, `splitEscaped` (split on an
+unescaped separator, escapes kept), `foldLine`, `unfoldLines`,
 `caretEncode`/`caretDecode` (RFC 6868), `decodeQuotedPrintable`,
 `encodeQuotedPrintable` (only for tests of 2.1 reading),
-`encodeBase64`/`decodeBase64` (`Uint8Array.fromBase64` with fallback),
-`parseDateAndOrTime`/`formatDateAndOrTime`, `parseDataUri`/`buildDataUri`,
-`parseTelUri`, `parseGeoUri`, `guessImageType` (magic bytes: JPEG/PNG/GIF/
-WebP), and `PROPERTY_REGISTRY` (default value type, structure, cardinality,
-allowed params, per version).
+`encodeBase64`/`decodeBase64` (`Uint8Array.fromBase64` with fallback;
+whitespace ignored, missing padding accepted, anything else throws
+`SyntaxError`), `parseDateAndOrTime`/`formatDateAndOrTime`,
+`parseTimestamp`/`formatTimestamp` (a date without a time is rejected: the
+caller types it as date-and-or-time and reports), `parseUtcOffset`/
+`formatUtcOffset`, `parseDataUri`/`buildDataUri`, `parseTelUri`,
+`parseGeoUri`, `guessImageType` (magic bytes: JPEG/PNG/GIF/WebP),
+`PROPERTY_REGISTRY` (default value type, structure, cardinality, allowed
+params, per version), `defaultValueKind(name, version)` and
+`COMMON_PARAMS` (parameters any property may carry; property-specific ones
+are only in `PropertySpec.params`, the two never overlap). Parsers return
+`null` on bad input, including mixed basic/extended forms such as
+`1985-0412`; formatters throw `RangeError` for a field out of range or a
+shape the grammar cannot express, so hostile JSContact never reaches the
+writer as unparseable text.
 
 ### Internal pipeline
 
@@ -231,9 +247,10 @@ allowed params, per version).
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:
    - previous logical line has `ENCODING=QUOTED-PRINTABLE` (or bare
-     `QUOTED-PRINTABLE`) and ends with `=` → append the next physical line
-     even without leading whitespace (AOSP writes `=\r\n` soft breaks with
-     no indentation);
+     `QUOTED-PRINTABLE`) and ends with `=` → drop that `=` and append the
+     next physical line even without leading whitespace (AOSP writes
+     `=\r\n` soft breaks with no indentation). The soft break is consumed
+     here, so `decodeQuotedPrintable` never sees one inside a logical line;
    - previous line has `ENCODING=BASE64|B` and the next non-empty physical
      line has no `:` and matches `[A-Za-z0-9+/=]+` → append (Outlook writes
      unindented base64). A blank line ends a base64 block (AOSP writes one).

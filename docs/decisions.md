@@ -77,3 +77,37 @@ else without a standard equivalent stays in `vCardProps`.
 Node 24 LTS (host install via apt), pnpm 12, TypeScript 7, Vite 8,
 Vitest 5, Biome 2.6, Lit 3.3, Playwright for e2e from milestone 7. CI uses
 `node-version: latest` on purpose, so that a new Node release that breaks the build shows up in CI early; `engines` still states the minimum.
+
+2026-11-06 Encoding globals typed locally, libraries stay off lib.dom
+---------------------------------------------------------------------
+
+`TextEncoder`/`TextDecoder` are WHATWG Encoding globals available in every
+browser and in Node, but TypeScript only types them in `lib.dom`. The
+libraries keep `lib: ["ES2025"]` and declare the subset they use in
+`packages/vcard/src/whatwg-encoding.d.ts`, so an accidental `document` or
+`fetch` in library code still fails to typecheck. The app keeps the DOM lib.
+
+2026-11-06 Date values are partial-field objects, timestamps are complete
+-------------------------------------------------------------------------
+
+`DateAndOrTime` has every part optional; the `VValue` variant that carries
+it keeps the original string in `raw` beside it. A date has no hour, a time
+has no date part, a date-time has both, and both parts use the same form
+(basic or extended), so a mixed `1985-0412` is rejected rather than silently
+normalised. Formatters range-check every field and throw `RangeError`.
+`Timestamp` (REV, CREATED) requires a full date-time and a date-only REV is
+rejected by `parseTimestamp`, so the reader types it as date-and-or-time
+with a warning instead of inventing a midnight. Fractional seconds are
+accepted and dropped. The Apple placeholder year 1604 and Android's
+`--MM-DD` parse as written; rewriting them is the normaliser's job.
+
+2026-11-06 TEL defaults to text in 4.0, common and specific params never overlap
+-------------------------------------------------------------------------------
+
+RFC 6350 6.4.1 keeps TEL as free-form text unless `VALUE=uri` is present,
+for 3.0 compatibility, and that is what Android and Apple write; the registry
+follows the RFC rather than the SHOULD. `COMMON_PARAMS` holds only the
+parameters any property may carry (LANGUAGE, VALUE, PREF, ALTID, PID, TYPE,
+plus CREATED, DERIVED, PROP-ID from RFC 9554); everything else, MEDIATYPE
+included, lives on the property in `PropertySpec.params`, and a test keeps the
+two tables disjoint so an allowed-parameter check is the plain union.
