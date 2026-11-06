@@ -2,6 +2,7 @@
 // but typed only in lib.dom. Declaring the subset used here keeps the library off the DOM lib.
 declare class TextEncoder {
 	encode(input?: string): Uint8Array;
+	encodeInto(source: string, destination: Uint8Array): { read: number; written: number };
 }
 
 interface TextDecoderOptions {

@@ -111,3 +111,48 @@ parameters any property may carry (LANGUAGE, VALUE, PREF, ALTID, PID, TYPE,
 plus CREATED, DERIVED, PROP-ID from RFC 9554); everything else, MEDIATYPE
 included, lives on the property in `PropertySpec.params`, and a test keeps the
 two tables disjoint so an allowed-parameter check is the plain union.
+
+2026-11-06 Parser front end is internal and works on bytes end to end
+----------------------------------------------------------------------
+
+The byte reader, unfolder, content-line lexer and card grouper live in
+`packages/vcard/src/parse/` and are not exported: the public surface is
+`parseVCards` only, so the raw shapes can change without a breaking release.
+Their tests import the modules directly, the one exception to "tests import
+from `src/index.js`". Parameter values stay `Uint8Array` until the version
+and charset are known; the lexer only decodes names (ASCII) and the few
+tokens the unfolder needs (ENCODING, the property name for the AOSP N/ADR/ORG
+join). Tolerances beyond the plan that fixtures forced: an unindented line
+without `:` continues N/ADR/ORG with a warning (Google export), empty
+parameters are silent because AOSP writes `TEL;:` for untyped phones, a
+quoted-printable soft break followed by `BEGIN:`/`END:` is never joined so a
+truncated value cannot eat a card delimiter, and `#` lines are comments.
+Hostile-input review added two caps the plan did not have: issues are
+limited to 1000 per code (`IssueCollector`), and the unfolder builds each
+logical line in one growable buffer, so a million one-space continuation
+lines cost a megabyte rather than a view per line. Fixture tests need
+`node:fs`, so `@types/node` is a root dev dependency, but
+`tsconfig.base.json` sets `"types": []` and only `test/env.d.ts` references
+it: the build program (src alone) still rejects a `node:` import, keeping
+the libraries browser-only by construction.
+
+2026-11-06 The unfolder reads line headers through the lexer
+------------------------------------------------------------
+
+The unfolder needs the property name and `ENCODING` of the line being built
+to apply the quoted-printable, base64 and N/ADR/ORG join rules, before the
+lexer runs on the finished logical line. A first version kept its own
+simplified header reader (toggle on every `"`, split on `;` and `,`), which
+disagreed with the lexer on unbalanced quotes and on quoted values containing
+`,QUOTED-PRINTABLE`, so a line could be joined or not on grounds the lexer
+would then contradict. The unfolder now only locates the first unquoted `:`,
+with a small state machine that applies the lexer's quote rule (a quote opens
+only at a value start and must be followed by `,`, `;` or `:`; otherwise it
+is plain text, and a quote still open when an unindented line arrives is
+unbalanced), then hands the header bytes to `lexContentLine` with a discarded
+issue sink and takes name and encoding from the result. The scan resumes
+from where it stopped on every fold, and a re-read after a rejected quote is
+bounded by that quote's span, so a hostile header folded a hundred thousand
+times stays linear. Diagnostics for the header come from the real lexer
+pass alone, hence the `discardIssues` sink, also used for the lines kept
+verbatim inside a 2.1 AGENT.

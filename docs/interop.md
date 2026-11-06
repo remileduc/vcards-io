@@ -136,7 +136,7 @@ One card per raw contact, CRLF, no separator between cards.
 | TEL          | bare params: HOME, WORK, `HOME;FAX`, CELL, PAGER, VOICE (other), CAR,       |
 |              | `WORK;PREF` (company main), ISDN, `PREF` (main), FAX, TLX, `WORK;CELL`,     |
 |              | MSG (mms); custom → `X-<label>`; primary appends PREF. Numbers keep digits  |
-|              | and `+` only. Duplicates dropped.                                           |
+|              | and `+` only. Duplicates dropped. No type at all → `TEL;:` (empty param).   |
 | EMAIL        | PREF, HOME, WORK, CELL, `X-<label>`; none for OTHER. Never INTERNET.        |
 | ADR          | `PREF`, HOME, WORK, `X-<label>`, `X-OTHER`; 7 components, ext slot empty    |
 | ORG / TITLE  | `ORG:company;department`, `TITLE:`                                          |

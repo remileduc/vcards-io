@@ -239,26 +239,52 @@ writer as unparseable text.
 1. **Bytes in.** A `string` input is encoded to UTF-8 bytes so there is one
    code path. BOM sniffing: `EF BB BF` → UTF-8 (strip; we never write one);
    `FF FE`/`FE FF` → transcode UTF-16 to UTF-8 bytes; BOM-less UTF-16
-   heuristic: `bytes[0]=='B' && bytes[1]==0`.
+   heuristic: `bytes[0]` is `B` or `b` and `bytes[1]==0` (or the reverse for
+   big-endian), the same case-insensitivity as `BEGIN:VCARD` itself.
+   `maxInputBytes` applies to the UTF-8 result, so a string or a UTF-16 file
+   that only grows past the cap once transcoded is rejected too, and never
+   fully encoded first.
 2. **Physical lines.** Split on CRLF, LF or CR at byte level. Track line
    numbers. Enforce `maxLineLength` (default 1 MiB) and `maxInputBytes`
-   (default 64 MiB) as `error` issues, not exceptions.
+   (default 64 MiB) as `error` issues, not exceptions. Issues themselves are
+   capped at 1000 per code (then one `issues-truncated` warning per code),
+   since a file that warns on every line would otherwise cost gigabytes.
 3. **Logical lines (unfold), version-agnostic.** Join a line starting with SP
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:
    - previous logical line has `ENCODING=QUOTED-PRINTABLE` (or bare
      `QUOTED-PRINTABLE`) and ends with `=` → drop that `=` and append the
-     next physical line even without leading whitespace (AOSP writes
-     `=\r\n` soft breaks with no indentation). The soft break is consumed
-     here, so `decodeQuotedPrintable` never sees one inside a logical line;
+     next physical line verbatim, indented or not (AOSP writes `=\r\n` soft
+     breaks with no indentation and, like RFC 2045 6.7, keeps a leading
+     space on the next line as content). The soft break is consumed here,
+     so `decodeQuotedPrintable` never sees one inside a logical line;
    - previous line has `ENCODING=BASE64|B` and the next non-empty physical
      line has no `:` and matches `[A-Za-z0-9+/=]+` → append (Outlook writes
-     unindented base64). A blank line ends a base64 block (AOSP writes one).
-     Unfolding on bytes reassembles multi-byte UTF-8 split by careless writers.
+     unindented base64). A blank line ends a base64 block (AOSP writes one);
+   - previous line is `N`, `ADR` or `ORG` and the next physical line has no
+     `:` at all and does not start with `#` → append with a warning (AOSP
+     does this; Google exports have such breaks). Any other unindented line
+     without `:` is reported and skipped by the lexer.
+   The header these rules key on (property name, `ENCODING`) is read by the
+   lexer of step 4 itself once the unfolder has found the first unquoted
+   `:`, with the lexer's own quote rule, so the two never disagree on what a
+   line is encoded as.
+   A soft break directly followed by `BEGIN:`/`END:` is not joined (warning),
+   so a truncated value cannot swallow a card delimiter.
+   Unfolding on bytes reassembles multi-byte UTF-8 split by careless writers.
+   Physical lines over `maxLineLength` are dropped with an `error`, and so
+   are the indented continuations that follow them. When the over-long line
+   continues a logical line (a fold, a soft break, unindented base64), that
+   logical line is dropped with it rather than passed on truncated.
 4. **Content-line lexing on bytes.** Group/name up to `;` or `:`; parameters
    up to the first **unquoted** `:`; never look at `:` in the value (URIs,
    `tel:`, Google's `http\://` escapes). Produce `RawLine { group, name,
-   params: RawParam[] {name, rawValues}, valueBytes, line }`. Quoted param
+   params: RawParam[] {name, values: Uint8Array[], bare}, value: Uint8Array,
+   line }`; parameter values stay bytes because their charset is only known
+   in step 6, and `bare` marks 2.1 words promoted to a named parameter. The
+   value bytes are never trimmed (`VERSION: 3.0` is tolerated by the version
+   check, not by the lexer). Empty parameters (`TEL;:`, AOSP's untyped
+   phone) are skipped silently. Quoted param
    values kept whole; unquoted ones split on `,`. A bare parameter (no `=`)
    becomes `ENCODING` if `QUOTED-PRINTABLE|BASE64|B|8BIT|7BIT`, `CHARSET` if
    it looks like one, else `TYPE` (2.1 `knowntype` list, `PREF`, and
@@ -266,8 +292,12 @@ writer as unparseable text.
    used as separator in 2.1 (`LABEL;INTL;PARCEL,ENCODING=...`), lowercase
    `type=`, repeated `type=` (Apple), and `TYPE="a,b"`.
 5. **Card grouping.** `BEGIN:VCARD`…`END:VCARD` case-insensitive. Missing
-   END → close at EOF with a warning. Nested `BEGIN:VCARD` inside AGENT
-   (2.1) → raw text value with a warning. Lines outside cards → warning.
+   END → close at EOF with a warning. Nested `BEGIN:VCARD` right after an
+   empty `AGENT:` (2.1) → the nested lines become the AGENT's raw text value
+   (LF-joined) with a warning, and only their BEGIN/END are looked at, so the
+   nested text raises no lexer diagnostics; any other nested BEGIN closes the
+   current card with a warning. Lines outside cards → warning. Lines
+   starting with `#` → skipped with an `info` (AOSP treats them as comments).
    VERSION anywhere in the card (2.1/3.0); missing → 2.1 if bare params or
    QP seen, else 3.0, warning. Mixed versions in one file are fine for us.
 6. **Version-aware value decoding.** With the version known:

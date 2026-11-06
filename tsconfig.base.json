@@ -19,6 +19,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
+    // No ambient @types: library code must not see Node; tests opt in via a reference directive.
+    "types": [],
     "forceConsistentCasingInFileNames": true,
     // Typecheck and tests resolve workspace packages from source, so no build is needed first.
     // tsconfig.build.json files reset this: emitted declarations must resolve siblings via dist.
