@@ -119,7 +119,7 @@ Target standards
 
 | Standard             | Role                                                         |
 | -------------------- | ------------------------------------------------------------ |
-| vCard 2.1 (IMC 1996) | read (Android/Samsung/Outlook exports)                       |
+| vCard 2.1 (versit)   | read (Android/Samsung/Outlook exports)                       |
 | RFC 2425/2426 (3.0)  | read + write (profiles `android`, `apple`)                   |
 | RFC 6350 (4.0)       | read + write (profile `rfc`)                                 |
 | RFC 6868             | caret escaping in parameter values (4.0)                     |
@@ -262,9 +262,12 @@ writer as unparseable text.
      line has no `:` and matches `[A-Za-z0-9+/=]+` → append (Outlook writes
      unindented base64). A blank line ends a base64 block (AOSP writes one);
    - previous line is `N`, `ADR` or `ORG` and the next physical line has no
-     `:` at all and does not start with `#` → append with a warning (AOSP
-     does this; Google exports have such breaks). Any other unindented line
-     without `:` is reported and skipped by the lexer.
+     `:` at all, does not start with `#` and does not read as a property
+     header (`NAME;` or `group.NAME;` then a `=` somewhere) → append with a
+     warning (AOSP does this; Google exports have such breaks, `834;;;;`).
+     A line that reads as a header is one folded inside its parameter list
+     (RFC 9554 examples), so it starts a new property. Any other unindented
+     line without `:` is reported and skipped by the lexer.
    The header these rules key on (property name, `ENCODING`) is read by the
    lexer of step 4 itself once the unfolder has found the first unquoted
    `:`, with the lexer's own quote rule, so the two never disagree on what a
@@ -286,37 +289,63 @@ writer as unparseable text.
    check, not by the lexer). Empty parameters (`TEL;:`, AOSP's untyped
    phone) are skipped silently. Quoted param
    values kept whole; unquoted ones split on `,`. A bare parameter (no `=`)
-   becomes `ENCODING` if `QUOTED-PRINTABLE|BASE64|B|8BIT|7BIT`, `CHARSET` if
-   it looks like one, else `TYPE` (2.1 `knowntype` list, `PREF`, and
-   `X-<label>` custom labels). Tolerate `[ws]` around `=` and `:`, a `,`
-   used as separator in 2.1 (`LABEL;INTL;PARCEL,ENCODING=...`), lowercase
-   `type=`, repeated `type=` (Apple), and `TYPE="a,b"`.
+   becomes `ENCODING` if `QUOTED-PRINTABLE|BASE64|8BIT|7BIT` (the versit
+   `pencodingval` list; RFC 2426's `B` only counts as `ENCODING=b`, so a
+   stray bare `B` cannot turn a value into base64), `CHARSET` if it looks
+   like one, else `TYPE` (2.1 `knowntype` list, `PREF`, and `X-<label>`
+   custom labels). Tolerate `[ws]` around `=` and `:`, a `,` used as
+   separator in 2.1 (`LABEL;INTL;PARCEL,ENCODING=...`, the versit 2.3.2
+   example), lowercase `type=`, repeated `type=` (Apple), and `TYPE="a,b"`.
 5. **Card grouping.** `BEGIN:VCARD`…`END:VCARD` case-insensitive. Missing
-   END → close at EOF with a warning. Nested `BEGIN:VCARD` right after an
-   empty `AGENT:` (2.1) → the nested lines become the AGENT's raw text value
-   (LF-joined) with a warning, and only their BEGIN/END are looked at, so the
+   END → close at EOF with a warning. A 2.1 AGENT's nested vCard, either
+   `BEGIN:VCARD` on the line after an empty `AGENT:` (the versit 2.5.4
+   example) or `AGENT:BEGIN:VCARD` with the card continuing on the next
+   lines (the versit 2.9 grammar) → the nested lines become the AGENT's raw
+   text value (LF-joined) with an `info` (it is valid 2.1; the `android`
+   profile reports the loss), and only their BEGIN/END are looked at, so the
    nested text raises no lexer diagnostics; any other nested BEGIN closes the
    current card with a warning. Lines outside cards → warning. Lines
    starting with `#` → skipped with an `info` (AOSP treats them as comments).
    VERSION anywhere in the card (2.1/3.0); missing → 2.1 if bare params or
    QP seen, else 3.0, warning. Mixed versions in one file are fine for us.
 6. **Version-aware value decoding.** With the version known:
-   - params: 4.0 caret-decode; TYPE values lowercased; param names
-     uppercased;
+   - params: decoded with the line's charset, 4.0 caret-decode; TYPE
+     values split on `,` even when quoted (RFC 6350 section 8 writes
+     `TYPE="work,voice"`) and lowercased except `X-` custom labels (Android
+     shows their case); param names uppercased; repeated params merged;
+     empty values dropped;
    - value bytes: QP → bytes (accept QP in 3.0 too, AOSP does); base64 →
-     `binary` with mediaType from `TYPE`/`MEDIATYPE`/magic bytes; then
-     `TextDecoder(CHARSET ?? defaultCharset)`; on a fatal UTF-8 error retry
-     with `windows-1252` and warn (Outlook);
-   - typing: `VALUE` param, else registry default for property+version,
-     else `unknown`. TEXT values unescaped once (`\\ \, \; \n \N`; lenient
-     `\x`→`x`, so `\:` works). Structured values split on unescaped `;`,
-     list components on unescaped `,` (ORG components are not lists; 2.1
-     escapes only `\;`, the registry flag `commaIsLiteral` handles it).
-     URI values never split or unescaped, except Google's `http\://` which
-     is repaired with a warning.
+     bytes, which are the value itself (`binary`, mediaType from magic
+     bytes, else `MEDIATYPE`, else the `TYPE` media name `JPEG`) for media
+     properties, `VALUE=binary` and unknown properties, and a transfer
+     encoding (versit 2.1) for everything else; then
+     `TextDecoder(CHARSET ?? defaultCharset, {fatal})`; on a decode error
+     retry with `windows-1252` and warn (Outlook); unknown CHARSET →
+     default + warning. CHARSET and `defaultCharset` are ignored with an
+     `info` when the input was text or UTF-16 (already UTF-8 by then) and
+     CHARSET is ignored on 4.0 lines (RFC 6350 removed it);
+   - typing: `VALUE` param, else registry default for property+version
+     (a property outside its versions is read as in its last version, with
+     an `info`), else `unknown` (raw text, escapes kept). `VALUE=text` never
+     flattens a structured or list property. 3.0/4.0 TEXT values unescaped
+     once (`\\ \, \; \n \N`; lenient `\x`→`x`, so `\:` works). 2.1 text is
+     kept as written and only list splitting unescapes `\\ \; \, \:`, as
+     AOSP does. Structured values split on unescaped `;`, list components
+     on unescaped `,` (never in 2.1; ORG components are not lists, the
+     registry flag `commaIsLiteral` handles it). URI values never split or
+     unescaped, except Google's `http\://` which is repaired with a warning.
+     Scalars (dates, offsets, numbers, booleans, language tags) that do not
+     parse fall back to `unknown` with a warning, never an exception. A 2.1
+     / 3.0 media property without ENCODING is read as `uri` when the text
+     has a scheme (Thunderbird) with an `info`, else kept `unknown` with a
+     warning. `CHARSET`, `ENCODING` and `VALUE` values are always ASCII.
    - dates: basic and extended ISO, `--MMDD`, `--MM-DD` (Android yearless),
-     `--MM`, `---DD`, `YYYY-MM`, `YYYY`, times with zones; a bare year 1604
-     or `X-APPLE-OMIT-YEAR` → yearless; original string kept.
+     `--MM`, `---DD`, `YYYY-MM`, `YYYY`, times with zones; original string
+     kept. Apple's 1604 placeholder year and `X-APPLE-OMIT-YEAR` parse as
+     written, the normaliser rewrites them. A date-only `REV` becomes
+     date-and-or-time with a warning in 4.0 and an `info` before (RFC 2426
+     allows a date there); a non-gregorian `CALSCALE` keeps the value
+     `unknown` with an `info`.
 7. **Output** `VCard` with `version` as read. Unknown properties are kept as
    `text` or `unknown` values, never dropped.
 

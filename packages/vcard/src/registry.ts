@@ -23,6 +23,8 @@ const LEGACY: readonly VCardVersion[] = ["2.1", "3.0"];
 
 /** Media properties: inline binary before 4.0, URI from 4.0 on. */
 const MEDIA = { "2.1": "binary", "3.0": "binary", "4.0": "uri" } as const;
+// versit 2.7.1: a KEY is clear text unless ENCODING says otherwise; RFC 2426 made it binary.
+const KEY_KIND = { "2.1": "text", "3.0": "binary", "4.0": "uri" } as const;
 const URI_FROM_40 = { "2.1": "text", "3.0": "text", "4.0": "uri" } as const;
 const INDEXED = ["LEVEL", "INDEX"];
 
@@ -59,7 +61,7 @@ const uri = (
 /**
  * Known properties, uppercased, with their defaults per version. Vendor entries cover what
  * the Android, Apple and Google exporters write (docs/interop.md). Unknown properties are
- * not an error: the parser types them as text.
+ * not an error: the parser keeps their value raw as `unknown`.
  */
 export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<string, PropertySpec>([
 	// RFC 6350 section 6, with the 2.1 / 3.0 differences
@@ -150,7 +152,16 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 	["NOTE", text(ALL, "*", ["AUTHOR", "AUTHOR-NAME"])],
 	["PRODID", text(V3_UP, "*1")],
 	["REV", { kind: "timestamp", versions: ALL, cardinality: "*1", params: [] }],
-	["SOUND", { kind: MEDIA, versions: ALL, cardinality: "*", params: MEDIATYPE }],
+	// versit 2.1 2.6.3: SOUND is a pronunciation string unless ENCODING or VALUE says otherwise.
+	[
+		"SOUND",
+		{
+			kind: { "2.1": "text", "3.0": "binary", "4.0": "uri" },
+			versions: ALL,
+			cardinality: "*",
+			params: MEDIATYPE,
+		},
+	],
 	["UID", { kind: URI_FROM_40, versions: ALL, cardinality: "*1", params: [] }],
 	[
 		"CLIENTPIDMAP",
@@ -164,7 +175,7 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 		},
 	],
 	["URL", uri(ALL)],
-	["KEY", { kind: MEDIA, versions: ALL, cardinality: "*", params: MEDIATYPE }],
+	["KEY", { kind: KEY_KIND, versions: ALL, cardinality: "*", params: MEDIATYPE }],
 	["FBURL", uri(V3_UP)],
 	["CALADRURI", uri(V3_UP)],
 	["CALURI", uri(V3_UP)],

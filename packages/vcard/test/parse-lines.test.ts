@@ -224,6 +224,41 @@ describe("readLogicalLines", () => {
 		expect(lines("item1.N:a;b\r\nc;d")).toEqual([[1, "item1.N:a;bc;d"]]);
 	});
 
+	test("a header folded inside its parameters starts a new property (RFC 9554 example)", () => {
+		const issues: Issue[] = [];
+		expect(
+			lines("N;ALTID=1:a;b\r\nN;ALTID=1;PHONETIC=jyut;\r\n  SCRIPT=Latn:c;d\r\nFN:x", issues),
+		).toEqual([
+			[1, "N;ALTID=1:a;b"],
+			[2, "N;ALTID=1;PHONETIC=jyut; SCRIPT=Latn:c;d"],
+			[4, "FN:x"],
+		]);
+		expect(issues).toEqual([]);
+		expect(lines("ORG:a\r\nitem1.ADR;TYPE=home;\r\n LABEL=x:;;1\r\nFN:x")).toEqual([
+			[1, "ORG:a"],
+			[2, "item1.ADR;TYPE=home;LABEL=x:;;1"],
+			[4, "FN:x"],
+		]);
+	});
+
+	test("a broken N/ADR/ORG value is joined even when it is folded itself", () => {
+		const issues: Issue[] = [];
+		expect(
+			lines("N:Doe;John\r\nsecond line of name that is long\r\n  and folded\r\nFN:x", issues),
+		).toEqual([
+			[1, "N:Doe;Johnsecond line of name that is long and folded"],
+			[4, "FN:x"],
+		]);
+		expect(issues).toEqual([
+			expect.objectContaining({ code: "unindented-continuation", line: 2 }),
+		]);
+		// Google's ADR break starts with digits and has no "=": a value, not a header.
+		expect(lines("ADR:;;678 Plain\r\n834;;;;\r\n St\r\nFN:x", [])).toEqual([
+			[1, "ADR:;;678 Plain834;;;;St"],
+			[4, "FN:x"],
+		]);
+	});
+
 	test("leaves a # comment after N, ADR or ORG alone", () => {
 		const issues: Issue[] = [];
 		expect(lines("N:a;b\r\n# comment\r\nFN:x", issues)).toEqual([

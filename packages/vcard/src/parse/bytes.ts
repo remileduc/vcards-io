@@ -6,6 +6,8 @@ const encoder = new TextEncoder();
 
 export interface ByteInput {
 	bytes: Uint8Array;
+	/** True when the bytes were produced here from text, so their charset is known to be UTF-8. */
+	transcoded: boolean;
 	issues: Issue[];
 }
 
@@ -22,13 +24,15 @@ export function toUtf8Bytes(
 	}
 	const issues: Issue[] = [];
 	let bytes: Uint8Array | null;
+	let transcoded = false;
 	if (typeof input === "string") {
 		bytes = encodeCapped(input, maxInputBytes);
+		transcoded = true;
 	} else {
 		bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
 	}
 	if (bytes === null || bytes.length > maxInputBytes) {
-		return { bytes: new Uint8Array(0), issues: [tooLarge()] };
+		return { bytes: new Uint8Array(0), transcoded, issues: [tooLarge()] };
 	}
 
 	const b0 = bytes[0] ?? 0;
@@ -36,7 +40,7 @@ export function toUtf8Bytes(
 	if (b0 === 0xef && b1 === 0xbb && bytes[2] === 0xbf) {
 		bytes = bytes.subarray(3);
 		issues.push({ severity: "info", code: "bom-stripped", message: "UTF-8 BOM removed" });
-		return { bytes, issues };
+		return { bytes, transcoded, issues };
 	}
 	// A BOM-less file is recognised by the "B" of BEGIN, in either case like the delimiter itself.
 	const utf16 =
@@ -48,14 +52,15 @@ export function toUtf8Bytes(
 	if (utf16) {
 		// The decoder drops its own BOM. Transcoding can grow the input by half: cap it again.
 		bytes = encodeCapped(new TextDecoder(utf16).decode(bytes), maxInputBytes);
-		if (bytes === null) return { bytes: new Uint8Array(0), issues: [tooLarge()] };
+		transcoded = true;
+		if (bytes === null) return { bytes: new Uint8Array(0), transcoded, issues: [tooLarge()] };
 		issues.push({
 			severity: "info",
 			code: "utf16-transcoded",
 			message: `Input was ${utf16}, transcoded to UTF-8`,
 		});
 	}
-	return { bytes, issues };
+	return { bytes, transcoded, issues };
 
 	function tooLarge(): Issue {
 		return {

@@ -11,6 +11,8 @@ const SP = 0x20;
 const DQUOTE = 0x22;
 const HASH = 0x23;
 const COMMA = 0x2c;
+const HYPHEN = 0x2d;
+const DOT = 0x2e;
 const COLON = 0x3a;
 const SEMICOLON = 0x3b;
 const EQUALS = 0x3d;
@@ -196,7 +198,8 @@ class Pending {
 			JOINABLE.has(this.name) &&
 			segment.length > 0 &&
 			segment[0] !== HASH &&
-			!segment.includes(COLON)
+			!segment.includes(COLON) &&
+			!isHeaderStart(segment)
 		) {
 			return "unindented";
 		}
@@ -299,6 +302,36 @@ function isBase64Line(segment: Uint8Array): boolean {
 		if (!ok) return false;
 	}
 	return true;
+}
+
+/**
+ * `NAME;PARAM=...` without a ":": a property header folded inside its parameter list (RFC
+ * 9554 examples), not a broken N/ADR/ORG value, which has no name token before its first ";".
+ */
+function isHeaderStart(segment: Uint8Array): boolean {
+	let i = nameEnd(segment, 0);
+	if (i > 0 && segment[i] === DOT) {
+		const start = i + 1;
+		i = nameEnd(segment, start);
+		if (i === start) return false;
+	}
+	return i > 0 && segment[i] === SEMICOLON && segment.includes(EQUALS, i);
+}
+
+/** End of the run of property-name bytes (letters, digits, "-") starting at `from`. */
+function nameEnd(segment: Uint8Array, from: number): number {
+	let i = from;
+	while (i < segment.length) {
+		const b = segment[i] ?? 0;
+		const ok =
+			(b >= 0x41 && b <= 0x5a) ||
+			(b >= 0x61 && b <= 0x7a) ||
+			(b >= 0x30 && b <= 0x39) ||
+			b === HYPHEN;
+		if (!ok) break;
+		i++;
+	}
+	return i;
 }
 
 function isCardDelimiter(segment: Uint8Array): boolean {

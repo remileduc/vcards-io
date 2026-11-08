@@ -9,6 +9,11 @@ describe("PROPERTY_REGISTRY", () => {
 		expect(defaultValueKind("UID", "4.0")).toBe("uri");
 		expect(defaultValueKind("PHOTO", "2.1")).toBe("binary");
 		expect(defaultValueKind("PHOTO", "4.0")).toBe("uri");
+		expect(defaultValueKind("SOUND", "2.1")).toBe("text");
+		expect(defaultValueKind("SOUND", "3.0")).toBe("binary");
+		// versit 2.7.1: clear text by default; RFC 2426 3.7.2 made it binary
+		expect(defaultValueKind("KEY", "2.1")).toBe("text");
+		expect(defaultValueKind("KEY", "3.0")).toBe("binary");
 		expect(defaultValueKind("TZ", "3.0")).toBe("utc-offset");
 		expect(defaultValueKind("TZ", "4.0")).toBe("text");
 		expect(defaultValueKind("fn", "2.1")).toBe("text");

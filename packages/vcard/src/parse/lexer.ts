@@ -1,4 +1,4 @@
-import { latin1, warn } from "./issues.js";
+import { excerpt, latin1, warn } from "./issues.js";
 import type { IssueSink, LogicalLine } from "./lines.js";
 
 const HTAB = 0x09;
@@ -9,7 +9,8 @@ const COLON = 0x3a;
 const SEMICOLON = 0x3b;
 const EQUALS = 0x3d;
 
-const ENCODINGS = new Set(["QUOTED-PRINTABLE", "BASE64", "B", "8BIT", "7BIT"]);
+// versit 2.9 `pencodingval`; RFC 2426's "B" only exists as `ENCODING=b`, never as a bare word.
+const ENCODINGS = new Set(["QUOTED-PRINTABLE", "BASE64", "8BIT", "7BIT"]);
 const CHARSET_RE =
 	/^(?:UTF-?(?:8|16|32)(?:LE|BE)?|ISO-?8859-\d{1,2}|WINDOWS-\d{3,4}|CP\d{3,5}|US-ASCII|ASCII|LATIN-?\d|SHIFT[-_]JIS|EUC-[A-Z]{2}|GB\d{4,5}|GBK|BIG5(?:-HKSCS)?|KOI8-?[RU]?|MAC(?:INTOSH|-?ROMAN))$/i;
 const NAME_RE = /^[A-Z0-9-]+$/;
@@ -80,7 +81,7 @@ export function lexContentLine(logical: LogicalLine, issues: IssueSink): RawLine
 		let start = i;
 		while (i < n && bytes[i] !== EQUALS && bytes[i] !== SEMICOLON && bytes[i] !== COLON) i++;
 		let token = trimBytes(bytes.subarray(start, i));
-		// Outlook 2.1: "LABEL;INTL;PARCEL,ENCODING=QUOTED-PRINTABLE" uses "," between bare words.
+		// versit 2.3.2's own example "LABEL;INTL;PARCEL,ENCODING=QUOTED-PRINTABLE" uses "," here.
 		const comma = token.lastIndexOf(COMMA);
 		if (comma !== -1 && bytes[i] === EQUALS) {
 			for (const word of splitBytes(token.subarray(0, comma), COMMA))
@@ -178,9 +179,4 @@ function trimBytes(bytes: Uint8Array): Uint8Array {
 	while (start < end && (bytes[start] === SP || bytes[start] === HTAB)) start++;
 	while (end > start && (bytes[end - 1] === SP || bytes[end - 1] === HTAB)) end--;
 	return bytes.subarray(start, end);
-}
-
-function excerpt(bytes: Uint8Array): string {
-	const text = latin1.decode(bytes.subarray(0, 40));
-	return JSON.stringify(bytes.length > 40 ? `${text}…` : text);
 }

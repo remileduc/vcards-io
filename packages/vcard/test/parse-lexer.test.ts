@@ -88,6 +88,9 @@ describe("lexContentLine", () => {
 			["CHARSET", ["utf-8"], true],
 			["CHARSET", ["iso-8859-1"], true],
 		]);
+		// RFC 2426's "b" is never a bare word: a stray one must not base64-decode the value.
+		expect(lex("TEL;B:+2")?.params).toEqual([["TYPE", ["B"], true]]);
+		expect(lex("PHOTO;ENCODING=b:/9j/")?.params).toEqual([["ENCODING", ["b"]]]);
 	});
 
 	test("keeps non-ASCII bare 2.1 words as the bytes written (AOSP X-<label> types)", () => {
@@ -102,7 +105,7 @@ describe("lexContentLine", () => {
 		]);
 	});
 
-	test("accepts a comma as a 2.1 parameter separator (Outlook) with an info", () => {
+	test("accepts a comma as a 2.1 parameter separator (versit 2.3.2 example) with an info", () => {
 		const issues: Issue[] = [];
 		expect(lex("LABEL;INTL;PARCEL,ENCODING=QUOTED-PRINTABLE:x", issues)?.params).toEqual([
 			["TYPE", ["INTL"], true],

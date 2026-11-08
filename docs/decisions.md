@@ -97,7 +97,8 @@ has no date part, a date-time has both, and both parts use the same form
 normalised. Formatters range-check every field and throw `RangeError`.
 `Timestamp` (REV, CREATED) requires a full date-time and a date-only REV is
 rejected by `parseTimestamp`, so the reader types it as date-and-or-time
-with a warning instead of inventing a midnight. Fractional seconds are
+with a warning instead of inventing a midnight (an `info` in 2.1/3.0, where
+RFC 2426 explicitly allows a date-only REV, as its own example shows). Fractional seconds are
 accepted and dropped. The Apple placeholder year 1604 and Android's
 `--MM-DD` parse as written; rewriting them is the normaliser's job.
 
@@ -123,7 +124,11 @@ from `src/index.js`". Parameter values stay `Uint8Array` until the version
 and charset are known; the lexer only decodes names (ASCII) and the few
 tokens the unfolder needs (ENCODING, the property name for the AOSP N/ADR/ORG
 join). Tolerances beyond the plan that fixtures forced: an unindented line
-without `:` continues N/ADR/ORG with a warning (Google export), empty
+without `:` continues N/ADR/ORG with a warning (Google export) unless it
+reads as a property header folded inside its parameter list (`NAME;` with a
+`=` after it) as in the RFC 9554 examples (added 2026-11-08 when those
+became fixtures; a first version looked at whether a fold followed instead,
+which lost a Google break long enough to be folded itself), empty
 parameters are silent because AOSP writes `TEL;:` for untyped phones, a
 quoted-printable soft break followed by `BEGIN:`/`END:` is never joined so a
 truncated value cannot eat a card delimiter, and `#` lines are comments.
@@ -156,3 +161,80 @@ bounded by that quote's span, so a hostile header folded a hundred thousand
 times stays linear. Diagnostics for the header come from the real lexer
 pass alone, hence the `discardIssues` sink, also used for the lines kept
 verbatim inside a 2.1 AGENT.
+
+2026-11-08 Value decoding follows the version's escaping, unknown stays raw
+---------------------------------------------------------------------------
+
+`parseVCards` types values in `parse/properties.ts` after the card's version
+is known. vCard 2.1 text is kept exactly as written and only list splitting
+unescapes `\\ \; \, \:`, which is what the AOSP 2.1 parser does; 3.0 and
+4.0 use the lenient `unescapeText`. TYPE values are lowercased except `X-`
+custom labels, whose case Android displays. A property missing from the
+registry becomes `unknown` with its raw, still-escaped text, so the writer
+can re-emit it byte for byte and JSContact `vCardProps` gets the RFC 9555
+`unknown` type; a registry property used outside its versions (NICKNAME in
+2.1, LABEL in 4.0) is read with the kind of its last version plus an `info`.
+`VALUE=text` never flattens N, ADR or CATEGORIES. Inline binaries take their
+media type from the magic bytes first, because exporters label every photo
+JPEG, then `MEDIATYPE`, then the `TYPE` media name. A scalar that does not
+parse (date, offset, number, boolean, language tag) is kept `unknown` with an
+`invalid-value` warning; a non-gregorian `CALSCALE` (Apple's lunar
+`X-ALTBDAY`) is not attempted and gets an `info`. Charset decoding is strict
+(`fatal`) with a windows-1252 retry and warning, and `ignoreBOM` keeps a
+U+FEFF inside a value. `CHARSET` only means something on bytes: when the
+input was a string or UTF-16 the parser made the UTF-8 itself, so a legacy
+`CHARSET=ISO-8859-1` (Outlook, Nokia) or a `defaultCharset` option would
+only turn correct text into mojibake, and both are ignored with a
+`charset-ignored` info; the same info covers `CHARSET` on a 4.0 line, which
+RFC 6350 removed. `ENCODING=BASE64` is the value itself only for media
+properties, `VALUE=binary` and unknown properties; for text kinds it is the
+transfer encoding versit 2.1 made it, so `NOTE;ENCODING=BASE64;CHARSET=UTF-8`
+decodes to text through its charset instead of becoming a blob. A
+PHOTO/LOGO/SOUND/KEY without ENCODING in 2.1/3.0 is read as a URI when it
+has a scheme (Thunderbird writes `PHOTO:http://`), with an `info`, otherwise
+kept `unknown` with a warning. Lookup tables keyed by input (`VALUE`, `TYPE`
+media names) are `Map`s, so `VALUE=constructor` finds nothing rather than
+`Object`. Every fixture has a `.model.json` beside it, the parse result with
+parameter maps as objects and binary data as base64, checked with Vitest's
+`toMatchFileSnapshot` and rewritten by `vitest -u` for review in the diff.
+The fuzz tests (`fast-check`) assert that no input, text or bytes, makes
+`parseVCards` throw; the review of this checkpoint also found that spreading
+a repeated parameter's values into `push` overflowed the stack on a line
+with a few hundred thousand values, hence the plain loop.
+
+2026-11-08 The versit 2.1 examples are fixtures too, and adjusted two defaults
+------------------------------------------------------------------------------
+
+vCard 2.1 has no RFC; the versit Consortium specification (the RTF linked
+from the main README, converted to text for the extraction) provides the
+examples in `fixtures/rfc/versit21-*.vcf`. Two readings changed because of
+them: `SOUND` defaults to text in 2.1 (the spec's own example is
+`SOUND:JON Q PUBLIK`, a pronunciation string; 3.0 keeps binary, 4.0 uri),
+and the nested vCard inside an empty `AGENT:` is reported as an `info`
+instead of a warning, since the spec documents exactly that form; the
+Android importer rejects it, which is for the `android` profile to report.
+The spec's hypothetical `X-DL` example nests vCards outside AGENT and is not
+a fixture: no importer reads that, and the parser closes the outer card on
+such a BEGIN by design.
+
+2026-11-08 Review against the versit text: KEY, bare `B`, one-line AGENT
+-------------------------------------------------------------------------
+
+Reading the parser against the full versit 2.1 text found three places
+where valid 2.1 input was read wrong. `KEY` defaults to text in 2.1
+(section 2.7.1: "The default format is clear-text"; RFC 2426 3.7.2 made it
+binary, RFC 6350 a URI), so a clear-text key no longer gets a
+`binary-without-encoding` warning, while `KEY;ENCODING=BASE64` still
+decodes to binary because the media check looks at every version's kind.
+The bare-word promotion to `ENCODING` now follows the versit
+`pencodingval` list exactly: `B` is RFC 2426 named-parameter syntax and
+never a 2.1 bare word, and promoting it meant a stray `;B` base64-decoded a
+phone number. The AGENT grammar is `"AGENT" [params] ":" vcard`, so
+`AGENT:BEGIN:VCARD` with the nested card on the following lines is as valid
+as the prose example with an empty `AGENT:`; the grouper now nests both
+forms, keyed on the AGENT value being exactly `BEGIN:VCARD`, which the 3.0
+escaped one-line form never is. Not changed, on purpose: `\;` inside a
+parameter value (section 2.1.2) is not honoured, nested groups `A.B.TEL`
+and `X-` names with characters outside `[A-Z0-9-]` are read but warned
+about, and unfolding drops one whitespace byte where RFC 822 would keep it;
+all three match what AOSP does with 2.1 input.

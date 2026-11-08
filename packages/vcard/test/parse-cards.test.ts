@@ -131,6 +131,36 @@ describe("groupCards", () => {
 			]);
 		});
 
+		test("the grammar form AGENT:BEGIN:VCARD nests the card after the colon", () => {
+			const input = [
+				"BEGIN:VCARD",
+				"VERSION:2.1",
+				"N:Public;John",
+				"AGENT:BEGIN:VCARD",
+				"VERSION:2.1",
+				"N:Friday;Fred",
+				"TEL;WORK;VOICE:+1-213-555-1234",
+				"END:VCARD",
+				"TEL;HOME:+1",
+				"END:VCARD",
+			].join("\r\n");
+			const issues: Issue[] = [];
+			const result = groupCards(readLogicalLines(utf8(input), issues), issues);
+			expect(result).toHaveLength(1);
+			expect(result[0]?.lines.map((l) => l.name)).toEqual(["VERSION", "N", "AGENT", "TEL"]);
+			expect(text(result[0]?.lines[2]?.value ?? new Uint8Array())).toBe(
+				"BEGIN:VCARD\nVERSION:2.1\nN:Friday;Fred\nTEL;WORK;VOICE:+1-213-555-1234\nEND:VCARD",
+			);
+			expect(issues).toEqual([
+				expect.objectContaining({ code: "agent-inline-vcard", line: 4 }),
+			]);
+			// The 3.0 escaped form is one logical line and is not a nested card.
+			expect(
+				cards("BEGIN:VCARD\nAGENT:BEGIN:VCARD\\nFN:a\\nEND:VCARD\\n\nTEL:1\nEND:VCARD")[0]
+					?.names,
+			).toEqual(["AGENT", "TEL"]);
+		});
+
 		test("the nested card's VERSION and lowercase end:vcard stay inside the AGENT", () => {
 			const input =
 				"BEGIN:VCARD\nAGENT:\nbegin:vcard\nVERSION:2.1\nFN:a\nend:vcard\nTEL;TYPE=cell:1\nEND:VCARD";

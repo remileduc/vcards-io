@@ -4,6 +4,7 @@
  */
 export const VERSION = "0.1.0";
 
+export { parseVCards } from "./parse/parser.js";
 export {
 	type Cardinality,
 	COMMON_PARAMS,

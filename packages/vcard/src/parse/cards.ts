@@ -1,5 +1,5 @@
 import type { VCardVersion } from "../types.js";
-import { discardIssues, latin1, warn } from "./issues.js";
+import { discardIssues, info, latin1, warn } from "./issues.js";
 import { lexContentLine, type RawLine } from "./lexer.js";
 import type { IssueSink, LogicalLine } from "./lines.js";
 
@@ -32,10 +32,11 @@ interface OpenAgent {
 
 /**
  * Groups logical lines into cards. BEGIN/END are matched case-insensitively; a missing END
- * closes the card at EOF, a nested BEGIN right after an empty 2.1 AGENT becomes that AGENT's
- * raw text value, any other nested BEGIN closes the current card. VERSION may sit anywhere
- * in the card; without one, 2.1 is assumed when 2.1 syntax was seen, 3.0 otherwise. Lines
- * starting with "#" are comments to AOSP and skipped here too.
+ * closes the card at EOF, a 2.1 AGENT's nested vCard (after an empty `AGENT:` as in the
+ * versit example, or right after the colon as in its grammar) becomes that AGENT's raw text
+ * value, any other nested BEGIN closes the current card. VERSION may sit anywhere in the
+ * card; without one, 2.1 is assumed when 2.1 syntax was seen, 3.0 otherwise. Lines starting
+ * with "#" are comments to AOSP and skipped here too.
  */
 export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 	const cards: RawCard[] = [];
@@ -52,6 +53,11 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 		cards.push(finish(card, issues));
 		card = null;
 	};
+	const openAgent = (target: RawLine, first: Uint8Array, line: number): OpenAgent => {
+		// Valid 2.1 (versit 2.5.4); the android profile reports the loss later.
+		issues.push(info("agent-inline-vcard", "Nested vCard in AGENT kept as text", line));
+		return { target, depth: 1, chunks: [first] };
+	};
 	const closeAgent = (): void => {
 		if (agent === null) return;
 		agent.target.value = join(agent.chunks);
@@ -60,12 +66,7 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 
 	for (const logical of lines) {
 		if (logical.bytes[0] === HASH) {
-			issues.push({
-				severity: "info",
-				code: "comment-skipped",
-				message: "Line starting with # skipped",
-				line: logical.line,
-			});
+			issues.push(info("comment-skipped", "Line starting with # skipped", logical.line));
 			continue;
 		}
 		// Nested AGENT lines are kept verbatim, only BEGIN/END matter: their diagnostics would mislead.
@@ -81,10 +82,7 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 			if (card !== null) {
 				const previous = card.lines.at(-1);
 				if (previous?.name === "AGENT" && latin1.decode(previous.value).trim() === "") {
-					issues.push(
-						warn("agent-inline-vcard", "Nested vCard in AGENT kept as text", raw.line),
-					);
-					agent = { target: previous, depth: 1, chunks: [logical.bytes] };
+					agent = openAgent(previous, logical.bytes, raw.line);
 					continue;
 				}
 				issues.push(
@@ -111,6 +109,10 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 			card.lines.push(raw);
 			if (raw.name === "VERSION") card.versions.push(raw);
 			if (!card.legacy) card.legacy = hasLegacySyntax(raw);
+			// versit 2.9: `"AGENT" [params] ":" vcard`, the nested card starts after the colon.
+			if (raw.name === "AGENT" && isBeginVCard(raw.value)) {
+				agent = openAgent(raw, raw.value, raw.line);
+			}
 		}
 	}
 	if (agent !== null) {
@@ -144,6 +146,10 @@ function finish(card: OpenCard, issues: IssueSink): RawCard {
 
 function isDelimiter(raw: RawLine, name: "BEGIN" | "END"): boolean {
 	return raw.name === name && latin1.decode(raw.value).trim().toUpperCase() === "VCARD";
+}
+
+function isBeginVCard(value: Uint8Array): boolean {
+	return latin1.decode(value).trim().toUpperCase() === "BEGIN:VCARD";
 }
 
 function hasLegacySyntax(raw: RawLine): boolean {

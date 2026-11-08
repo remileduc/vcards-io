@@ -1,4 +1,4 @@
-import type { Issue } from "../types.js";
+import type { Issue, IssueSeverity } from "../types.js";
 import type { IssueSink } from "./lines.js";
 
 export const DEFAULT_MAX_ISSUES_PER_CODE = 1000;
@@ -9,8 +9,32 @@ export const latin1 = new TextDecoder("windows-1252");
 /** For lexing runs whose diagnostics are repeated or irrelevant elsewhere. */
 export const discardIssues: IssueSink = { push() {} };
 
-export function warn(code: string, message: string, line: number): Issue {
-	return { severity: "warning", code, message, line };
+/** `line` and `property` are only set when given, so issues compare equal by content. */
+export function issue(
+	severity: IssueSeverity,
+	code: string,
+	message: string,
+	line?: number,
+	property?: string,
+): Issue {
+	const out: Issue = { severity, code, message };
+	if (line !== undefined) out.line = line;
+	if (property !== undefined) out.property = property;
+	return out;
+}
+
+export function warn(code: string, message: string, line?: number): Issue {
+	return issue("warning", code, message, line);
+}
+
+export function info(code: string, message: string, line?: number): Issue {
+	return issue("info", code, message, line);
+}
+
+/** The start of a value for a message, quoted; bytes are shown as windows-1252. */
+export function excerpt(value: string | Uint8Array): string {
+	const text = typeof value === "string" ? value : latin1.decode(value.subarray(0, 40));
+	return JSON.stringify(value.length > 40 ? `${text.slice(0, 40)}…` : text);
 }
 
 /**
