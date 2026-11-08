@@ -1,0 +1,1610 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//Apple Inc.//iOS 8.1.1//EN"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Contact"
+							],
+							[
+								"Full"
+							],
+							[
+								"Middle"
+							],
+							[
+								"Dr."
+							],
+							[
+								"Suffix"
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Dr. Full Middle Contact Suffix"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Pseudo"
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "My note"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-FIRST-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Phonetic First Name"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-MIDDLE-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Phonetic Middle Name"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-LAST-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Phonetic Last Name"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"SuperCorp"
+							],
+							[
+								"Department"
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Chairman"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"home",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test@cozy.io"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test2@cozy.io"
+					},
+					"line": 14
+				},
+				{
+					"group": "item1",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test3@cozy.io"
+					},
+					"line": 15
+				},
+				{
+					"group": "item1",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "iCloud"
+					},
+					"line": 16
+				},
+				{
+					"group": "item2",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test4@cozy.io"
+					},
+					"line": 17
+				},
+				{
+					"group": "item2",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Other>!$_"
+					},
+					"line": 18
+				},
+				{
+					"group": "item3",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test5@cozy.io"
+					},
+					"line": 19
+				},
+				{
+					"group": "item3",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Customemail"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "gelnior@free.fr"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"voice",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030400"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030401"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"iphone",
+							"cell",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030402"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030403"
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"main"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "010203040Nickname4"
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030405"
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030406"
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pager"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030407"
+					},
+					"line": 29
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"other",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0102030408"
+					},
+					"line": 30
+				},
+				{
+					"group": "item4",
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "0102030409"
+					},
+					"line": 31
+				},
+				{
+					"group": "item4",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Customphone"
+					},
+					"line": 32
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0867 45346"
+					},
+					"line": 33
+				},
+				{
+					"group": "item5",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"52\nRue Bonsergent"
+							],
+							[
+								"Paris"
+							],
+							[
+								"Ile De France"
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 34
+				},
+				{
+					"group": "item5",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 35
+				},
+				{
+					"group": "item6",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"53\nRue Bonsergent"
+							],
+							[
+								"Paris"
+							],
+							[
+								"Ile De France"
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 36
+				},
+				{
+					"group": "item6",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 37
+				},
+				{
+					"group": "item7",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"other"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"54\nRue Bonsergent"
+							],
+							[
+								"Paris"
+							],
+							[
+								"Ile De France"
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 38
+				},
+				{
+					"group": "item7",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 39
+				},
+				{
+					"group": "item8",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"55\nRue Bonsergent"
+							],
+							[
+								"75010"
+							],
+							[
+								"Ile De France"
+							],
+							[
+								"Paris"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 40
+				},
+				{
+					"group": "item8",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Customaddress"
+					},
+					"line": 41
+				},
+				{
+					"group": "item8",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 42
+				},
+				{
+					"group": "item9",
+					"name": "URL",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://homepage.fr"
+					},
+					"line": 43
+				},
+				{
+					"group": "item9",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<HomePage>!$_"
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://home.fr"
+					},
+					"line": 45
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://work.fr"
+					},
+					"line": 46
+				},
+				{
+					"group": "item10",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://other.fr"
+					},
+					"line": 47
+				},
+				{
+					"group": "item10",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Other>!$_"
+					},
+					"line": 48
+				},
+				{
+					"group": "item11",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://custom.fr"
+					},
+					"line": 49
+				},
+				{
+					"group": "item11",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Custom"
+					},
+					"line": 50
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {
+						"VALUE": [
+							"date"
+						]
+					},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2015,
+							"month": 3,
+							"day": 3
+						},
+						"raw": "2015-03-03"
+					},
+					"line": 51
+				},
+				{
+					"group": "item12",
+					"name": "X-MSN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "msn"
+					},
+					"line": 52
+				},
+				{
+					"group": "item12",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "MSN"
+					},
+					"line": 53
+				},
+				{
+					"group": "item13",
+					"name": "X-AIM",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "aim"
+					},
+					"line": 54
+				},
+				{
+					"group": "item13",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "AIM"
+					},
+					"line": 55
+				},
+				{
+					"group": "item14",
+					"name": "X-YAHOO",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "yahoo"
+					},
+					"line": 56
+				},
+				{
+					"group": "item14",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Yahoo"
+					},
+					"line": 57
+				},
+				{
+					"group": "item15",
+					"name": "X-ICQ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "icq"
+					},
+					"line": 58
+				},
+				{
+					"group": "item15",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "ICQ"
+					},
+					"line": 59
+				},
+				{
+					"group": "item16",
+					"name": "X-JABBER",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "jabber"
+					},
+					"line": 60
+				},
+				{
+					"group": "item16",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jabber"
+					},
+					"line": 61
+				},
+				{
+					"group": "item17",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"Skype"
+						],
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "skype:skype"
+					},
+					"line": 62
+				},
+				{
+					"group": "item17",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Skype"
+					},
+					"line": 63
+				},
+				{
+					"group": "item18",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"MSN"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "msnim:msn"
+					},
+					"line": 64
+				},
+				{
+					"group": "item18",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "MSN"
+					},
+					"line": 65
+				},
+				{
+					"group": "item19",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"GoogleTalk"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "xmpp:gtalk"
+					},
+					"line": 66
+				},
+				{
+					"group": "item19",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "GoogleTalk"
+					},
+					"line": 67
+				},
+				{
+					"group": "item20",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"Facebook"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "xmpp:facebook"
+					},
+					"line": 68
+				},
+				{
+					"group": "item20",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Facebook"
+					},
+					"line": 69
+				},
+				{
+					"group": "item21",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"AIM"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "aim:aim"
+					},
+					"line": 70
+				},
+				{
+					"group": "item21",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "AIM"
+					},
+					"line": 71
+				},
+				{
+					"group": "item22",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"Yahoo"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "ymsgr:yahoo"
+					},
+					"line": 72
+				},
+				{
+					"group": "item22",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Yahoo"
+					},
+					"line": 73
+				},
+				{
+					"group": "item23",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"ICQ"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "aim:icq"
+					},
+					"line": 74
+				},
+				{
+					"group": "item23",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "ICQ"
+					},
+					"line": 75
+				},
+				{
+					"group": "item24",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"Jabber"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "xmpp:jabber"
+					},
+					"line": 76
+				},
+				{
+					"group": "item24",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jabber"
+					},
+					"line": 77
+				},
+				{
+					"group": "item25",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"QQ"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "x-apple:qq"
+					},
+					"line": 78
+				},
+				{
+					"group": "item25",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "QQ"
+					},
+					"line": 79
+				},
+				{
+					"group": "item26",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"GaduGadu"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "x-apple:gad"
+					},
+					"line": 80
+				},
+				{
+					"group": "item26",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "GaduGadu"
+					},
+					"line": 81
+				},
+				{
+					"group": "item27",
+					"name": "IMPP",
+					"params": {
+						"X-SERVICE-TYPE": [
+							"Customim"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "x-apple:custom%20im"
+					},
+					"line": 82
+				},
+				{
+					"group": "item27",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Skype"
+					},
+					"line": 83
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"twitter"
+						],
+						"X-USER": [
+							"twitteruser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://twitter.com/twitteruser"
+					},
+					"line": 84
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"facebook"
+						],
+						"X-USER": [
+							"facebookuser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.facebook.com/facebookuser"
+					},
+					"line": 85
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"flickr"
+						],
+						"X-USER": [
+							"flickruser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.flickr.com/photos/flickruser"
+					},
+					"line": 86
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"linkedin"
+						],
+						"X-USER": [
+							"linkedinuser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.linkedin.com/in/linkedinuser"
+					},
+					"line": 87
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"myspace"
+						],
+						"X-USER": [
+							"myspaceuser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.myspace.com/myspaceuser"
+					},
+					"line": 88
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"sinaweibo"
+						],
+						"X-USER": [
+							"sinauser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://weibo.com/n/sinauser"
+					},
+					"line": 89
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"customsocial"
+						],
+						"X-USER": [
+							"custom socialuser"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "x-apple:custom%20socialuser"
+					},
+					"line": 90
+				},
+				{
+					"group": "item28",
+					"name": "X-ABDATE",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2013,
+							"month": 3,
+							"day": 12
+						},
+						"raw": "2013-03-12"
+					},
+					"line": 91
+				},
+				{
+					"group": "item28",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Anniversary>!$_"
+					},
+					"line": 92
+				},
+				{
+					"group": "item29",
+					"name": "X-ABDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2012,
+							"month": 3,
+							"day": 12
+						},
+						"raw": "2012-03-12"
+					},
+					"line": 93
+				},
+				{
+					"group": "item29",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Other>!$_"
+					},
+					"line": 94
+				},
+				{
+					"group": "item30",
+					"name": "X-ABDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2006,
+							"month": 3,
+							"day": 12
+						},
+						"raw": "2006-03-12"
+					},
+					"line": 95
+				},
+				{
+					"group": "item30",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Customdate"
+					},
+					"line": 96
+				},
+				{
+					"group": "item31",
+					"name": "X-ABRELATEDNAMES",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Mother"
+					},
+					"line": 97
+				},
+				{
+					"group": "item31",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Mother>!$_"
+					},
+					"line": 98
+				},
+				{
+					"group": "item32",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Father"
+					},
+					"line": 99
+				},
+				{
+					"group": "item32",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Father>!$_"
+					},
+					"line": 100
+				},
+				{
+					"group": "item33",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Parent"
+					},
+					"line": 101
+				},
+				{
+					"group": "item33",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Parent>!$_"
+					},
+					"line": 102
+				},
+				{
+					"group": "item34",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Brother"
+					},
+					"line": 103
+				},
+				{
+					"group": "item34",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Brother>!$_"
+					},
+					"line": 104
+				},
+				{
+					"group": "item35",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Sister"
+					},
+					"line": 105
+				},
+				{
+					"group": "item35",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Sister>!$_"
+					},
+					"line": 106
+				},
+				{
+					"group": "item36",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Child"
+					},
+					"line": 107
+				},
+				{
+					"group": "item36",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Child>!$_"
+					},
+					"line": 108
+				},
+				{
+					"group": "item37",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Friend"
+					},
+					"line": 109
+				},
+				{
+					"group": "item37",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Friend>!$_"
+					},
+					"line": 110
+				},
+				{
+					"group": "item38",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Spouse"
+					},
+					"line": 111
+				},
+				{
+					"group": "item38",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Spouse>!$_"
+					},
+					"line": 112
+				},
+				{
+					"group": "item39",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Partner"
+					},
+					"line": 113
+				},
+				{
+					"group": "item39",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Partner>!$_"
+					},
+					"line": 114
+				},
+				{
+					"group": "item40",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Assistant"
+					},
+					"line": 115
+				},
+				{
+					"group": "item40",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Assistant>!$_"
+					},
+					"line": 116
+				},
+				{
+					"group": "item41",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Manager"
+					},
+					"line": 117
+				},
+				{
+					"group": "item41",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Manager>!$_"
+					},
+					"line": 118
+				},
+				{
+					"group": "item42",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Other"
+					},
+					"line": 119
+				},
+				{
+					"group": "item42",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Other>!$_"
+					},
+					"line": 120
+				},
+				{
+					"group": "item43",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Custom Relation"
+					},
+					"line": 121
+				},
+				{
+					"group": "item43",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Customrelation"
+					},
+					"line": 122
+				},
+				{
+					"group": null,
+					"name": "X-ACTIVITY-ALERT",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "type=call,snd=system:Bulletin,vib=Alert"
+					},
+					"line": 123
+				},
+				{
+					"group": null,
+					"name": "X-ACTIVITY-ALERT",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "type=text,snd=<none>"
+					},
+					"line": 124
+				},
+				{
+					"group": null,
+					"name": "X-ALTBDAY",
+					"params": {
+						"CALSCALE": [
+							"chinese"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "007800301201"
+					},
+					"line": 125
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "info",
+			"code": "calscale-unsupported",
+			"message": "CALSCALE=chinese date kept as written",
+			"line": 125,
+			"property": "X-ALTBDAY"
+		}
+	]
+}

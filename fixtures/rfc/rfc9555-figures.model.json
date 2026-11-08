@@ -1,0 +1,481 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": "item1",
+					"name": "TEL",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 3
+				},
+				{
+					"group": "item2",
+					"name": "X-FOO",
+					"params": {},
+					"value": {
+						"kind": "unknown",
+						"raw": "bar"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"LANGUAGE": [
+							"EN"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "John Doe"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"LANGUAGE": [
+							"EN"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Boss"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"LANGUAGE": [
+							"fr"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Patron"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"LANGUAGE": [
+							"zh-Hant"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"孫"
+							],
+							[
+								"中山"
+							],
+							[
+								"文",
+								"逸仙"
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"PHONETIC": [
+							"jyut"
+						],
+						"SCRIPT": [
+							"Latn"
+						],
+						"LANGUAGE": [
+							"yue"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"syun1"
+							],
+							[
+								"zung1saan1"
+							],
+							[
+								"man4",
+								"jat6sin1"
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PROP-ID": [
+							"PHONE-A"
+						],
+						"VALUE": [
+							"uri"
+						],
+						"PREF": [
+							"1"
+						],
+						"TYPE": [
+							"voice",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555;ext=5555"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PROP-ID": [
+							"PHONE-B"
+						],
+						"VALUE": [
+							"uri"
+						],
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+33-01-23-45-67"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"CREATED": [
+							"20221123T150132Z"
+						],
+						"AUTHOR-NAME": [
+							"John"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Office hours are from 0800 to 1715 EST, Mon-Fri."
+					},
+					"line": 15
+				},
+				{
+					"group": "item1",
+					"name": "X-FOO",
+					"params": {
+						"X-BAR": [
+							"Hello"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "World!"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"X-FOO": [
+							"Bar"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jane_doe@example.com"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "JSPROP",
+					"params": {
+						"JSPTR": [
+							"someUnknownProperty"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "true"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "JSPROP",
+					"params": {
+						"JSPTR": [
+							"example.com:foo"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "{\"bar\":1234}"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "tel:+33-01-23-45-67"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "JSPROP",
+					"params": {
+						"JSPTR": [
+							"phones/phone1/example.com:foo~1bar"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "\"tux hux\""
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"JSCOMPS": [
+							";1;0"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"Jane"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"DERIVED": [
+							"TRUE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Jane Doe"
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"JSCOMPS": [
+							";1;2;2,1;0;6;4,1"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Stevenson"
+							],
+							[
+								"John"
+							],
+							[
+								"Philip",
+								"Paul"
+							],
+							[
+								""
+							],
+							[
+								"Jr.",
+								"M.D."
+							],
+							[
+								""
+							],
+							[
+								"Jr."
+							]
+						]
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"JSCOMPS": [
+							"s,\\, ;11;s, ;10;3"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"54321 Oak St"
+							],
+							[
+								"Reston"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"Oak St"
+							],
+							[
+								"54321"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "JSPROP",
+					"params": {
+						"JSPTR": [
+							"example.com:foo"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "\"bar\""
+					},
+					"line": 30
+				}
+			]
+		}
+	],
+	"issues": []
+}

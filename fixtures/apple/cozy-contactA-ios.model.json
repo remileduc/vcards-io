@@ -1,0 +1,289 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//Apple Inc.//iOS 8.1.2//EN"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"de Cozy"
+							],
+							[
+								"Testé"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Testé de Cozy"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Société Cozycloud"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "testcozy@cozycloud.cc"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test.decozy@cozycloud.cc"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+33 6 12 34 56 78"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "01 23 45 67 89"
+					},
+					"line": 10
+				},
+				{
+					"group": "item1",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"12, rue René Boulanger"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": "item1",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 12
+				},
+				{
+					"group": "item2",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"4, rue Léon Jouhaux"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 13
+				},
+				{
+					"group": "item2",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "46b12,\n3ème étage droite."
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {
+						"VALUE": [
+							"date"
+						]
+					},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1604,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1604-02-02"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 2015,
+							"month": 1,
+							"day": 19,
+							"hour": 9,
+							"minute": 25,
+							"second": 56,
+							"zone": "utc"
+						},
+						"raw": "2015-01-19T09:25:56Z"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "8925F4AF-9773-4030-ACDE-F12D78627DBD"
+					},
+					"line": 18
+				}
+			]
+		}
+	],
+	"issues": []
+}

@@ -1,0 +1,205 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "KIND",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "group"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "The Doe family"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519"
+					},
+					"line": 6
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "John Doe"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af"
+					},
+					"line": 11
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jane Doe"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519"
+					},
+					"line": 16
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "KIND",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "group"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Funky distribution list"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "mailto:subscriber1@example.com"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "xmpp:subscriber2@example.com"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "sip:subscriber3@example.com"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "MEMBER",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-418-555-5555"
+					},
+					"line": 25
+				}
+			]
+		}
+	],
+	"issues": []
+}

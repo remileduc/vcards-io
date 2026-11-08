@@ -1,0 +1,342 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Test"
+							],
+							[
+								"Cozy"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Cozy Test"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest@cozycloud.cc"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest2@cozycloud.cc"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0600000000"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0610000000"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"1 Sample Adress"
+							],
+							[
+								"PARIS"
+							],
+							[
+								""
+							],
+							[
+								"75001"
+							],
+							[
+								"FRANCE"
+							]
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"2 Sample Address"
+							],
+							[
+								"PARIS"
+							],
+							[
+								""
+							],
+							[
+								"75002"
+							],
+							[
+								"FRANCE"
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Cozycloud"
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Testeur Fou"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1989-02-02"
+					},
+					"line": 13
+				},
+				{
+					"group": "item1",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http\\://test.example.com"
+					},
+					"line": 14
+				},
+				{
+					"group": "item1",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "PROFILE"
+					},
+					"line": 15
+				},
+				{
+					"group": "item2",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test3@example.com"
+					},
+					"line": 16
+				},
+				{
+					"group": "item2",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "truc"
+					},
+					"line": 17
+				},
+				{
+					"group": "item3",
+					"name": "X-ABDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2013,
+							"month": 1,
+							"day": 1
+						},
+						"raw": "2013-01-01"
+					},
+					"line": 18
+				},
+				{
+					"group": "item3",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Anniversary>!$_"
+					},
+					"line": 19
+				},
+				{
+					"group": "item4",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Cozypouet"
+					},
+					"line": 20
+				},
+				{
+					"group": "item4",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Friend>!$_"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Something"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "CEO"
+					},
+					"line": 23
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 14,
+			"property": "item1.URL"
+		}
+	]
+}

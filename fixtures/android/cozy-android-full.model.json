@@ -1,0 +1,1641 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Smith"
+							],
+							[
+								"Jhon"
+							],
+							[
+								"Middle"
+							],
+							[
+								"Dr."
+							],
+							[
+								"Suffix"
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Dr. Jhon middle 2, Suffix"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-FIRST-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jon"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-MIDDLE-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Middle"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "X-PHONETIC-LAST-NAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Smiss"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/nickname"
+							],
+							[
+								"Pseudo"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2015,
+							"month": 3,
+							"day": 3
+						},
+						"raw": "2015-03-03"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"SuperCorp"
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Chairman"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://cozy.io"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Notes"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "mail@supercorp.com"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "mail2@supercorp.com"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "mail3@supercorp.cpm"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "mail4@supercorp.com"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"678 Plain Home Address\\nAll one field 354\\nBridgeport CT 06"
+							]
+						]
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0001"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0002"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0003"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0004"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0005"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pager"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "06 00 00 00 06"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0007"
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0008"
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"car"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0009"
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0010"
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"isdn"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0011"
+					},
+					"line": 29
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0012"
+					},
+					"line": 30
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0013"
+					},
+					"line": 31
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0014"
+					},
+					"line": 32
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"tlx"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0015"
+					},
+					"line": 33
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0016"
+					},
+					"line": 34
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0017"
+					},
+					"line": 35
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"pager"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0018"
+					},
+					"line": 36
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0019"
+					},
+					"line": 37
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"msg"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0020"
+					},
+					"line": 38
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2015-03-04"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 39
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2015-03-05"
+							],
+							[
+								"2"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 40
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2015-03-06"
+							],
+							[
+								"0"
+							],
+							[
+								"Date Personnalisé"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 41
+				},
+				{
+					"group": null,
+					"name": "X-SKYPE-USERNAME",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "skypeaccount"
+					},
+					"line": 42
+				},
+				{
+					"group": null,
+					"name": "X-AIM",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "aimaccount"
+					},
+					"line": 43
+				},
+				{
+					"group": null,
+					"name": "X-MSN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "winaccount"
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "X-YAHOO",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "yahooaccount"
+					},
+					"line": 45
+				},
+				{
+					"group": null,
+					"name": "X-QQ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "qqaccount"
+					},
+					"line": 46
+				},
+				{
+					"group": null,
+					"name": "X-GOOGLE-TALK",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "account"
+					},
+					"line": 47
+				},
+				{
+					"group": null,
+					"name": "X-ICQ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "account"
+					},
+					"line": 48
+				},
+				{
+					"group": null,
+					"name": "X-JABBER",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "account"
+					},
+					"line": 49
+				},
+				{
+					"group": null,
+					"name": "X-SIP",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "appel-internet"
+					},
+					"line": 50
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Assistant"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 51
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Brother"
+							],
+							[
+								"2"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 52
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Child"
+							],
+							[
+								"3"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 53
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Domestic Partner"
+							],
+							[
+								"4"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 54
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Father"
+							],
+							[
+								"5"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 55
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Friend"
+							],
+							[
+								"6"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 56
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Manager"
+							],
+							[
+								"7"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 57
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Mother"
+							],
+							[
+								"8"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 58
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Parent"
+							],
+							[
+								"9"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 59
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Partner"
+							],
+							[
+								"10"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 60
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Referred by"
+							],
+							[
+								"11"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 61
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Relative"
+							],
+							[
+								"12"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 62
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Sister"
+							],
+							[
+								"13"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 63
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Spouse"
+							],
+							[
+								"14"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 64
+				}
+			]
+		}
+	],
+	"issues": []
+}

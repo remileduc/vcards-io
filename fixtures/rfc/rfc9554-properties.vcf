@@ -1,0 +1,29 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:John Quinlan Public
+ADR;GEO="geo:12.3457,78.910":
+ ;;123 Main Street;Any Town;CA;91921-1234;U.S.A
+ ;;;;123;Main Street;;;;;;
+N:Public;John;Quinlan;Mr.;Esq.
+N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P.;;Jr.
+CREATED:20220705T093412Z
+CREATED;VALUE=TIMESTAMP:20211022T140000-05
+GRAMGENDER;LANGUAGE=de:feminine
+LANGUAGE:de-AT
+PRONOUNS;LANGUAGE=en;PREF=1:xe/xir
+PRONOUNS;LANGUAGE=en;PREF=2:they/them
+SOCIALPROFILE;SERVICE-TYPE=Mastodon:https://example.com/@foo
+SOCIALPROFILE:https://example.com/ietf
+SOCIALPROFILE;SERVICE-TYPE=SomeSite;VALUE=text:peter94
+SOCIALPROFILE;USERNAME="The Foo":https://example.com/@foo
+NOTE;AUTHOR="mailto:john@example.com":This is some note.
+NOTE;AUTHOR-NAME="_:l33tHckr:_":A note by an unusual author name.
+NOTE;CREATED=20221122T151823Z:This is some note.
+N:;John;Quinlan;Mr.;
+FN;DERIVED=TRUE:Mr. John Quinlan
+N;ALTID=1;LANGUAGE=zh-Hant:孫;中山;文,逸仙;;;;
+N;ALTID=1;PHONETIC=jyut;
+  SCRIPT=Latn;LANGUAGE=yue:syun1;zung1saan1;man4,jat6sin1;;;;
+ADR;TYPE=billing:;;123 Main Street;Any Town;CA;91921-1234;U.S.A.
+ADR;TYPE=delivery:;;123 Main Street;Any Town;CA;91921-1234;U.S.A.
+END:VCARD

@@ -1,0 +1,975 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Mr AAAgoogleFirst Middleone Middletwo von AAALast Jr"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"von AAALast"
+							],
+							[
+								"AAAgoogleFirst"
+							],
+							[
+								"Middleone Middletwo"
+							],
+							[
+								"Mr"
+							],
+							[
+								"Jr"
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "homeEmail@example.com"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "workEmail@example.com"
+					},
+					"line": 6
+				},
+				{
+					"group": "item1",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "customEmail@example.com"
+					},
+					"line": 7
+				},
+				{
+					"group": "item1",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Arbitrary String"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "X-AIM",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "AIM"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "X-GTALK",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "gTalk"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "X-YAHOO",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Yahoo"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "X-JABBER",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jabber"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "X-MSN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "MSN"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "X-SKYPE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Skype"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "X-QQ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "QQ"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "X-ICQ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "ICQ"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 860 355 3887"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 860 350 0301"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 203 207 1047"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"main"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 212 555 1234"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 212 555 2345"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 212 555 3456"
+					},
+					"line": 22
+				},
+				{
+					"group": "item2",
+					"name": "TEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "+1 212 555 4567"
+					},
+					"line": 23
+				},
+				{
+					"group": "item2",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "GRAND_CENTRAL"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pager"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 212 555 0000"
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"678 Plain Home Address\nAll one field 354\nBridgeport CT 06834"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"POB 999"
+							],
+							[
+								"Northville"
+							],
+							[
+								"80 Maple Road"
+							],
+							[
+								"Danbury"
+							],
+							[
+								"CT"
+							],
+							[
+								"06810"
+							],
+							[
+								"USA"
+							]
+						]
+					},
+					"line": 28
+				},
+				{
+					"group": "item3",
+					"name": "ADR",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"678 Elm Street\nApt 354\n"
+							],
+							[
+								"Bridgeport"
+							],
+							[
+								"CT"
+							],
+							[
+								"06834"
+							],
+							[
+								"USA"
+							]
+						]
+					},
+					"line": 29
+				},
+				{
+					"group": "item3",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Weekends"
+					},
+					"line": 30
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1961,
+							"month": 4,
+							"day": 5
+						},
+						"raw": "1961-04-05"
+					},
+					"line": 31
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"SuperCorp"
+							]
+						]
+					},
+					"line": 32
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Chairman"
+					},
+					"line": 33
+				},
+				{
+					"group": "item4",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://profile.example.com/"
+					},
+					"line": 34
+				},
+				{
+					"group": "item4",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "PROFILE"
+					},
+					"line": 35
+				},
+				{
+					"group": "item5",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://blog.example.com/"
+					},
+					"line": 36
+				},
+				{
+					"group": "item5",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "BLOG"
+					},
+					"line": 37
+				},
+				{
+					"group": "item6",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://home.example.com/"
+					},
+					"line": 38
+				},
+				{
+					"group": "item6",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<HomePage>!$_"
+					},
+					"line": 39
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://work.example.com/"
+					},
+					"line": 40
+				},
+				{
+					"group": "item7",
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://custom.example.com/"
+					},
+					"line": 41
+				},
+				{
+					"group": "item7",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "arbitraryString"
+					},
+					"line": 42
+				},
+				{
+					"group": "item8",
+					"name": "X-ABDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2014,
+							"month": 12,
+							"day": 31
+						},
+						"raw": "2014-12-31"
+					},
+					"line": 43
+				},
+				{
+					"group": "item8",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Died"
+					},
+					"line": 44
+				},
+				{
+					"group": "item9",
+					"name": "X-ABDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2001,
+							"month": 1,
+							"day": 1
+						},
+						"raw": "2001-01-01"
+					},
+					"line": 45
+				},
+				{
+					"group": "item9",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Anniversary>!$_"
+					},
+					"line": 46
+				},
+				{
+					"group": "item10",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Spouse"
+					},
+					"line": 47
+				},
+				{
+					"group": "item10",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Spouse>!$_"
+					},
+					"line": 48
+				},
+				{
+					"group": "item11",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Child One"
+					},
+					"line": 49
+				},
+				{
+					"group": "item11",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Child>!$_"
+					},
+					"line": 50
+				},
+				{
+					"group": "item12",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Mom"
+					},
+					"line": 51
+				},
+				{
+					"group": "item12",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Mother>!$_"
+					},
+					"line": 52
+				},
+				{
+					"group": "item13",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Dad"
+					},
+					"line": 53
+				},
+				{
+					"group": "item13",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Father>!$_"
+					},
+					"line": 54
+				},
+				{
+					"group": "item14",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Step-parent"
+					},
+					"line": 55
+				},
+				{
+					"group": "item14",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Parent>!$_"
+					},
+					"line": 56
+				},
+				{
+					"group": "item15",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Big Bro"
+					},
+					"line": 57
+				},
+				{
+					"group": "item15",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Brother>!$_"
+					},
+					"line": 58
+				},
+				{
+					"group": "item16",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Lil Sis"
+					},
+					"line": 59
+				},
+				{
+					"group": "item16",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Sister>!$_"
+					},
+					"line": 60
+				},
+				{
+					"group": "item17",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Good Friend"
+					},
+					"line": 61
+				},
+				{
+					"group": "item17",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Friend>!$_"
+					},
+					"line": 62
+				},
+				{
+					"group": "item18",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Some Relative"
+					},
+					"line": 63
+				},
+				{
+					"group": "item18",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "RELATIVE"
+					},
+					"line": 64
+				},
+				{
+					"group": "item19",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Big Boss"
+					},
+					"line": 65
+				},
+				{
+					"group": "item19",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Manager>!$_"
+					},
+					"line": 66
+				},
+				{
+					"group": "item20",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Personal Assistant"
+					},
+					"line": 67
+				},
+				{
+					"group": "item20",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Assistant>!$_"
+					},
+					"line": 68
+				},
+				{
+					"group": "item21",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Referred By"
+					},
+					"line": 69
+				},
+				{
+					"group": "item21",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "REFERRED_BY"
+					},
+					"line": 70
+				},
+				{
+					"group": "item22",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Partner"
+					},
+					"line": 71
+				},
+				{
+					"group": "item22",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Partner>!$_"
+					},
+					"line": 72
+				},
+				{
+					"group": "item23",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Domestic Partner"
+					},
+					"line": 73
+				},
+				{
+					"group": "item23",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "DOMESTIC_PARTNER"
+					},
+					"line": 74
+				},
+				{
+					"group": "item24",
+					"name": "X-ABRELATEDNAMES",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Custom"
+					},
+					"line": 75
+				},
+				{
+					"group": "item24",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Arbitrary-string"
+					},
+					"line": 76
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Blah, blah\n\nblah blah blah.\n\nblahblah\nCustom: Custom field data"
+					},
+					"line": 77
+				},
+				{
+					"group": null,
+					"name": "\\NARBITRARY_STRING",
+					"params": {},
+					"value": {
+						"kind": "unknown",
+						"raw": " Another custom field"
+					},
+					"line": 78
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "warning",
+			"code": "unindented-continuation",
+			"message": "Line without \":\" joined to the ADR above it",
+			"line": 27
+		},
+		{
+			"severity": "warning",
+			"code": "invalid-property-name",
+			"message": "Property name \"\\NARBITRARY_STRING\" is not valid vCard syntax",
+			"line": 78
+		},
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 34,
+			"property": "item4.URL"
+		},
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 36,
+			"property": "item5.URL"
+		},
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 38,
+			"property": "item6.URL"
+		},
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 40,
+			"property": "URL"
+		},
+		{
+			"severity": "warning",
+			"code": "uri-escaped-colon",
+			"message": "Escaped colon in URI repaired",
+			"line": 41,
+			"property": "item7.URL"
+		}
+	]
+}

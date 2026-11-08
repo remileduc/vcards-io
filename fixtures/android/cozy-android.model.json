@@ -1,0 +1,455 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Test"
+							],
+							[
+								"Cozy"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Cozy Test"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Something"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/nickname"
+							],
+							[
+								"Cozypseudo"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0000"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest@cozycloud.cc"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest2@cozycloud.cc"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"1 Sample Adress 75001 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home2"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"2 Sample Adress 75001 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Cozycloud"
+							]
+						]
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Testeur Fou"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2013-01-01"
+							],
+							[
+								"0"
+							],
+							[
+								"Date Perso"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2013-01-01"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1989-02-02"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Cozypouet"
+							],
+							[
+								"6"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 17
+				}
+			]
+		}
+	],
+	"issues": []
+}

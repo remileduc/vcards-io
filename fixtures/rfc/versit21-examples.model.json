@@ -1,0 +1,344 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Smith"
+							],
+							[
+								"John"
+							],
+							[
+								"M."
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"voice",
+							"msg"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (919) 555-1234"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (919) 555-9876"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work",
+							"parcel",
+							"postal",
+							"dom"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Suite 101"
+							],
+							[
+								"1 Central St."
+							],
+							[
+								"Any Town"
+							],
+							[
+								"NC"
+							],
+							[
+								"27654"
+							]
+						]
+					},
+					"line": 6
+				}
+			]
+		},
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Martin"
+							],
+							[
+								"Stephen"
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"voice"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (210) 555-1357"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (210) 555-0864"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work",
+							"parcel",
+							"postal",
+							"dom"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"123 Cliff Ave."
+							],
+							[
+								"Big Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"97531"
+							]
+						]
+					},
+					"line": 13
+				}
+			]
+		},
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Smith"
+							],
+							[
+								"John"
+							],
+							[
+								"M."
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"voice",
+							"msg"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (919) 555-1234"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (919) 554-6758"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1 (919) 555-9876"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {
+						"TYPE": [
+							"gif",
+							"mime"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "<<JOHNSMITH.part3.960129T083020.xyzMail@host3.com>"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work",
+							"parcel",
+							"postal",
+							"dom"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Suite 101"
+							],
+							[
+								"1 Central St."
+							],
+							[
+								"Any Town"
+							],
+							[
+								"NC"
+							],
+							[
+								"27654"
+							]
+						]
+					},
+					"line": 22
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "warning",
+			"code": "binary-without-encoding",
+			"message": "PHOTO has neither ENCODING nor a URI, kept as written",
+			"line": 21,
+			"property": "PHOTO"
+		}
+	]
+}

@@ -1,0 +1,67 @@
+BEGIN:VCARD
+VERSION:4.0
+SOURCE:ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US
+FN:Mr. John Q. Public\, Esq.
+N:Public;John;Quinlan;Mr.;Esq.
+N:Stevenson;John;Philip,Paul;Dr.;Jr.,M.D.,A.C.P.
+FN:Rene van der Harten
+N;SORT-AS="Harten,Rene":van der Harten;Rene,J.;Sir;R.D.O.N.
+NICKNAME:Robbie
+NICKNAME:Jim,Jimmie
+NICKNAME;TYPE=work:Boss
+PHOTO:http://www.example.com/pub/photos/jqpublic.gif
+BDAY:19960415
+BDAY:--0415
+BDAY:19531015T231000Z
+BDAY;VALUE=text:circa 1800
+ANNIVERSARY:19960415
+GENDER:M
+GENDER:F
+GENDER:M;Fellow
+GENDER:F;grrrl
+GENDER:O;intersex
+GENDER:;it's complicated
+ADR;GEO="geo:12.3457,78.910";LABEL="Mr. John Q. Public, Esq.\n
+ Mail Drop: TNE QB\n123 Main Street\nAny Town, CA  91921-1234\n
+ U.S.A.":;;123 Main Street;Any Town;CA;91921-1234;U.S.A.
+TEL;VALUE=uri;PREF=1;TYPE="voice,home":tel:+1-555-555-5555;ext=5555
+TEL;VALUE=uri;TYPE=home:tel:+33-01-23-45-67
+EMAIL;TYPE=work:jqpublic@xyz.example.com
+IMPP;PREF=1:xmpp:alice@example.com
+LANG;TYPE=work;PREF=1:en
+LANG;TYPE=work;PREF=2:fr
+LANG;TYPE=home:fr
+ROLE;LANGUAGE=tr:hoca
+TZ:Raleigh/North America
+TZ;VALUE=utc-offset:-0500
+GEO:geo:37.386013,-122.082932
+TITLE:Research Scientist
+ROLE:Project Leader
+LOGO:http://www.example.com/pub/logos/abccorp.jpg
+ORG:ABC\, Inc.;North American Division;Marketing
+RELATED;TYPE=friend:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+RELATED;TYPE=contact:http://example.com/directory/jdoe.vcf
+RELATED;TYPE=co-worker;VALUE=text:Please contact my assistant Jane
+  Doe for any inquiries.
+RELATED;TYPE=supervisor:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+CATEGORIES:TRAVEL AGENT
+NOTE:This fax number is operational 0800 to 1715
+  EST\, Mon-Fri.
+PRODID:-//ONLINE DIRECTORY//NONSGML Version 1//EN
+REV:19951031T222710Z
+SOUND:CID:JOHNQPUBLIC.part8.19960229T080000.xyzMail@example.com
+UID:urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+TEL;PID=3.1,4.2;VALUE=uri:tel:+1-555-555-5555
+EMAIL;PID=4.1,5.2:jdoe@example.com
+CLIENTPIDMAP:1;urn:uuid:3df403f4-5924-4bb7-b077-3c711d9eb34b
+CLIENTPIDMAP:2;urn:uuid:d89c9c7a-2e1b-4832-82de-7e992d95faa5
+URL:http://example.org/restaurant.french/~chezchic.html
+KEY:http://www.example.com/keys/jdoe.cer
+KEY;MEDIATYPE=application/pgp-keys:ftp://example.com/keys/jdoe
+FBURL;PREF=1:http://www.example.com/busy/janedoe
+FBURL;MEDIATYPE=text/calendar:ftp://example.com/busy/project-a.ifb
+CALADRURI;PREF=1:mailto:janedoe@example.com
+CALADRURI:http://example.com/calendar/jdoe
+CALURI;PREF=1:http://cal.example.com/calA
+CALURI;MEDIATYPE=text/calendar:ftp://ftp.example.com/calA.ics
+END:VCARD

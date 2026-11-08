@@ -1,0 +1,291 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//Apple Inc.//iOS 8.4//EN"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Zohar"
+							],
+							[
+								"Dana"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Dana Zohar"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell",
+							"voice",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0544333834"
+					},
+					"line": 6
+				},
+				{
+					"group": "item1",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"Tel Aviv"
+							],
+							[
+								"Tel Aviv"
+							],
+							[
+								""
+							],
+							[
+								"Israel"
+							]
+						]
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {
+						"VALUE": [
+							"date"
+						]
+					},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1604,
+							"month": 7,
+							"day": 30
+						},
+						"raw": "1604-07-30"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "X-SOCIALPROFILE",
+					"params": {
+						"TYPE": [
+							"facebook"
+						],
+						"X-USER": [
+							"dana.zohar.14"
+						],
+						"X-USERID": [
+							"1349217247"
+						],
+						"X-DISPLAYNAME": [
+							"Dana Zohar"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.facebook.com/dana.zohar.14"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "599"
+					},
+					"line": 10
+				}
+			]
+		},
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//Apple Inc.//iOS 8.4//EN"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								"Daniel"
+							],
+							[
+								"Ben Moshe"
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Daniel"
+					},
+					"line": 16
+				},
+				{
+					"group": "item1",
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "daniel14bm@gmail.com"
+					},
+					"line": 17
+				},
+				{
+					"group": "item1",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "בית"
+					},
+					"line": 18
+				},
+				{
+					"group": "item2",
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0524657162"
+					},
+					"line": 19
+				},
+				{
+					"group": "item2",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "בית"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2733"
+					},
+					"line": 21
+				}
+			]
+		}
+	],
+	"issues": []
+}

@@ -1,0 +1,31 @@
+BEGIN:VCARD
+VERSION:4.0
+item1.TEL;VALUE=uri:tel:+1-555-555-5555
+item2.X-FOO:bar
+FN;LANGUAGE=EN:John Doe
+TITLE;ALTID=1;LANGUAGE=EN:Boss
+TITLE;ALTID=1;LANGUAGE=fr:Patron
+N;ALTID=1;LANGUAGE=zh-Hant:孫;中山;文,逸仙;;
+N;ALTID=1;PHONETIC=jyut;
+  SCRIPT=Latn;LANGUAGE=yue:syun1;zung1saan1;man4,jat6sin1;;
+TEL;PROP-ID=PHONE-A;VALUE=uri;PREF=1;TYPE="voice,home"
+ :tel:+1-555-555-5555;ext=5555
+TEL;PROP-ID=PHONE-B;VALUE=uri;TYPE=home
+ :tel:+33-01-23-45-67
+NOTE;CREATED=20221123T150132Z;AUTHOR-NAME="John":
+ Office hours are from 0800 to 1715 EST\, Mon-Fri.
+item1.X-FOO;X-BAR=Hello:World!
+EMAIL;X-FOO=Bar:jane_doe@example.com
+JSPROP;JSPTR="someUnknownProperty":true
+JSPROP;JSPTR="example.com:foo":{"bar":1234}
+TEL:tel:+33-01-23-45-67
+JSPROP;JSPTR="phones/phone1/example.com:foo~1bar":
+ "tux hux"
+N;JSCOMPS=";1;0":Doe;Jane;;;;;;
+FN;DERIVED=TRUE:Jane Doe
+N;JSCOMPS=";1;2;2,1;0;6;4,1":
+ Stevenson;John;Philip,Paul;;Jr.,M.D.;;Jr.
+ADR;JSCOMPS="s,\, ;11;s, ;10;3":
+ ;;54321 Oak St;Reston;;;;;;;Oak St;54321;;;;;;
+JSPROP;JSPTR="example.com:foo":"bar"
+END:VCARD

@@ -1,0 +1,921 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "SOURCE",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "ldap://ldap.example.com/cn=Babs%20Jensen,%20o=Babsco,%20c=US"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Mr. John Q. Public, Esq."
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Public"
+							],
+							[
+								"John"
+							],
+							[
+								"Quinlan"
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Stevenson"
+							],
+							[
+								"John"
+							],
+							[
+								"Philip",
+								"Paul"
+							],
+							[
+								"Dr."
+							],
+							[
+								"Jr.",
+								"M.D.",
+								"A.C.P."
+							]
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Rene van der Harten"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"SORT-AS": [
+							"Harten,Rene"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"van der Harten"
+							],
+							[
+								"Rene",
+								"J."
+							],
+							[
+								"Sir"
+							],
+							[
+								"R.D.O.N."
+							]
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Robbie"
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Jim",
+							"Jimmie"
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Boss"
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.example.com/pub/photos/jqpublic.gif"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1996,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "19960415"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"month": 4,
+							"day": 15
+						},
+						"raw": "--0415"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1953,
+							"month": 10,
+							"day": 15,
+							"hour": 23,
+							"minute": 10,
+							"second": 0,
+							"zone": "utc"
+						},
+						"raw": "19531015T231000Z"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {
+						"VALUE": [
+							"text"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "circa 1800"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "ANNIVERSARY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1996,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "19960415"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"M"
+							]
+						]
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"F"
+							]
+						]
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"M"
+							],
+							[
+								"Fellow"
+							]
+						]
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"F"
+							],
+							[
+								"grrrl"
+							]
+						]
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"O"
+							],
+							[
+								"intersex"
+							]
+						]
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								"it's complicated"
+							]
+						]
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"GEO": [
+							"geo:12.3457,78.910"
+						],
+						"LABEL": [
+							"Mr. John Q. Public, Esq.\\nMail Drop: TNE QB\\n123 Main Street\\nAny Town, CA  91921-1234\\nU.S.A."
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								"U.S.A."
+							]
+						]
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"VALUE": [
+							"uri"
+						],
+						"PREF": [
+							"1"
+						],
+						"TYPE": [
+							"voice",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555;ext=5555"
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"VALUE": [
+							"uri"
+						],
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+33-01-23-45-67"
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jqpublic@xyz.example.com"
+					},
+					"line": 29
+				},
+				{
+					"group": null,
+					"name": "IMPP",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "xmpp:alice@example.com"
+					},
+					"line": 30
+				},
+				{
+					"group": null,
+					"name": "LANG",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "language-tag",
+						"value": "en"
+					},
+					"line": 31
+				},
+				{
+					"group": null,
+					"name": "LANG",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"PREF": [
+							"2"
+						]
+					},
+					"value": {
+						"kind": "language-tag",
+						"value": "fr"
+					},
+					"line": 32
+				},
+				{
+					"group": null,
+					"name": "LANG",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "language-tag",
+						"value": "fr"
+					},
+					"line": 33
+				},
+				{
+					"group": null,
+					"name": "ROLE",
+					"params": {
+						"LANGUAGE": [
+							"tr"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "hoca"
+					},
+					"line": 34
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Raleigh/North America"
+					},
+					"line": 35
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {
+						"VALUE": [
+							"utc-offset"
+						]
+					},
+					"value": {
+						"kind": "utc-offset",
+						"sign": -1,
+						"hours": 5,
+						"minutes": 0
+					},
+					"line": 36
+				},
+				{
+					"group": null,
+					"name": "GEO",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "geo:37.386013,-122.082932"
+					},
+					"line": 37
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Research Scientist"
+					},
+					"line": 38
+				},
+				{
+					"group": null,
+					"name": "ROLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Project Leader"
+					},
+					"line": 39
+				},
+				{
+					"group": null,
+					"name": "LOGO",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.example.com/pub/logos/abccorp.jpg"
+					},
+					"line": 40
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"ABC, Inc."
+							],
+							[
+								"North American Division"
+							],
+							[
+								"Marketing"
+							]
+						]
+					},
+					"line": 41
+				},
+				{
+					"group": null,
+					"name": "RELATED",
+					"params": {
+						"TYPE": [
+							"friend"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+					},
+					"line": 42
+				},
+				{
+					"group": null,
+					"name": "RELATED",
+					"params": {
+						"TYPE": [
+							"contact"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://example.com/directory/jdoe.vcf"
+					},
+					"line": 43
+				},
+				{
+					"group": null,
+					"name": "RELATED",
+					"params": {
+						"TYPE": [
+							"co-worker"
+						],
+						"VALUE": [
+							"text"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Please contact my assistant Jane Doe for any inquiries."
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "RELATED",
+					"params": {
+						"TYPE": [
+							"supervisor"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+					},
+					"line": 46
+				},
+				{
+					"group": null,
+					"name": "CATEGORIES",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"TRAVEL AGENT"
+						]
+					},
+					"line": 47
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "This fax number is operational 0800 to 1715 EST, Mon-Fri."
+					},
+					"line": 48
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//ONLINE DIRECTORY//NONSGML Version 1//EN"
+					},
+					"line": 50
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 1995,
+							"month": 10,
+							"day": 31,
+							"hour": 22,
+							"minute": 27,
+							"second": 10,
+							"zone": "utc"
+						},
+						"raw": "19951031T222710Z"
+					},
+					"line": 51
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "CID:JOHNQPUBLIC.part8.19960229T080000.xyzMail@example.com"
+					},
+					"line": 52
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+					},
+					"line": 53
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"3.1",
+							"4.2"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 54
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"4.1",
+							"5.2"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 55
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:3df403f4-5924-4bb7-b077-3c711d9eb34b"
+							]
+						]
+					},
+					"line": 56
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"2"
+							],
+							[
+								"urn:uuid:d89c9c7a-2e1b-4832-82de-7e992d95faa5"
+							]
+						]
+					},
+					"line": 57
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://example.org/restaurant.french/~chezchic.html"
+					},
+					"line": 58
+				},
+				{
+					"group": null,
+					"name": "KEY",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.example.com/keys/jdoe.cer"
+					},
+					"line": 59
+				},
+				{
+					"group": null,
+					"name": "KEY",
+					"params": {
+						"MEDIATYPE": [
+							"application/pgp-keys"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "ftp://example.com/keys/jdoe"
+					},
+					"line": 60
+				},
+				{
+					"group": null,
+					"name": "FBURL",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.example.com/busy/janedoe"
+					},
+					"line": 61
+				},
+				{
+					"group": null,
+					"name": "FBURL",
+					"params": {
+						"MEDIATYPE": [
+							"text/calendar"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "ftp://example.com/busy/project-a.ifb"
+					},
+					"line": 62
+				},
+				{
+					"group": null,
+					"name": "CALADRURI",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "mailto:janedoe@example.com"
+					},
+					"line": 63
+				},
+				{
+					"group": null,
+					"name": "CALADRURI",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://example.com/calendar/jdoe"
+					},
+					"line": 64
+				},
+				{
+					"group": null,
+					"name": "CALURI",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://cal.example.com/calA"
+					},
+					"line": 65
+				},
+				{
+					"group": null,
+					"name": "CALURI",
+					"params": {
+						"MEDIATYPE": [
+							"text/calendar"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "ftp://ftp.example.com/calA.ics"
+					},
+					"line": 66
+				}
+			]
+		}
+	],
+	"issues": []
+}

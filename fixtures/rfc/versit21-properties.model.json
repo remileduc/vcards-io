@@ -1,0 +1,706 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-919-555-1234"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Don't remember to order Girl  Scout cookies from Stacey today!"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Don't remember to order Girl  Scout cookies from Stacey today!"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "This is a very long description that exists on a long line."
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "This is a very long description  that exists on a long line."
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "LABEL",
+					"params": {
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "123 Winding Way\r\n  Any Town, CA 12345\r\n  USA"
+					},
+					"line": 11
+				},
+				{
+					"group": "a",
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-213-555-1234"
+					},
+					"line": 14
+				},
+				{
+					"group": "a",
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "This is my vacation home."
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {
+						"VALUE": [
+							"URL"
+						],
+						"TYPE": [
+							"gif"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.abc.com/dir_photos/my_photo.gif"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {
+						"VALUE": [
+							"CONTENT-ID"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "<jsmith.part3.960817T083000.xyzMail@host1.com"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Mr. John Q. Public, Esq."
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Public"
+							],
+							[
+								"John"
+							],
+							[
+								"Quinlan"
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Veni, Vidi, Vici"
+							],
+							[
+								"The Restaurant."
+							]
+						]
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {
+						"VALUE": [
+							"URL"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "file:///jqpublic.gif"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {
+						"ENCODING": [
+							"BASE64"
+						],
+						"TYPE": [
+							"gif"
+						]
+					},
+					"value": {
+						"kind": "binary",
+						"data": "R0lGODdhfgA4AOYAAAAAAK+vr62trVIxa6WlpZ+fnzEpCEpzlAha/0Kc74+PjyGMSuecKRhrtX9/fzExORBSjCEYCGtra2NjYyF7nDGE50JrhAg51qWtOTl7vee1MWu150o5e3PO/3sxcwAx/4R7GBgQOcDAwFoAQt61hJyMGHuUSpRKIf8A/wAY54yMjHtz",
+						"mediaType": "image/gif"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1995,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "19950415"
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1995,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "1995-04-15"
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"dom",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"P.O. Box 101"
+							],
+							[
+								"Suite 101"
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"dom",
+							"work",
+							"home",
+							"postal"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"P.O. Box 101"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 29
+				},
+				{
+					"group": null,
+					"name": "LABEL",
+					"params": {
+						"TYPE": [
+							"dom",
+							"postal"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "P. O. Box 456\r\n123 Main Street\r\nAny Town, CA 91921-1234"
+					},
+					"line": 30
+				},
+				{
+					"group": null,
+					"name": "LABEL",
+					"params": {
+						"TYPE": [
+							"intl",
+							"parcel"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Suite 101\r\n123 Main Street\r\nAny Town, CA 91921-1234\r\nU.S.A."
+					},
+					"line": 33
+				},
+				{
+					"group": null,
+					"name": "LABEL",
+					"params": {
+						"TYPE": [
+							"dom",
+							"home"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Suite 101\r\n123 Main Street\r\nAny Town, CA 91921-1234"
+					},
+					"line": 37
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"pref",
+							"work",
+							"msg",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-800-555-1234"
+					},
+					"line": 40
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"home",
+							"voice",
+							"fax"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-800-555-1234"
+					},
+					"line": 41
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "john.public@abc.com"
+					},
+					"line": 42
+				},
+				{
+					"group": null,
+					"name": "MAILER",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "ccMail 2.2"
+					},
+					"line": 43
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {},
+					"value": {
+						"kind": "utc-offset",
+						"sign": -1,
+						"hours": 5,
+						"minutes": 0
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {},
+					"value": {
+						"kind": "utc-offset",
+						"sign": -1,
+						"hours": 8,
+						"minutes": 0
+					},
+					"line": 45
+				},
+				{
+					"group": null,
+					"name": "GEO",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"37.24,-17.87"
+							]
+						]
+					},
+					"line": 46
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "V.P., Research and Development"
+					},
+					"line": 47
+				},
+				{
+					"group": null,
+					"name": "ROLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Executive"
+					},
+					"line": 48
+				},
+				{
+					"group": null,
+					"name": "LOGO",
+					"params": {
+						"ENCODING": [
+							"BASE64"
+						],
+						"TYPE": [
+							"gif"
+						]
+					},
+					"value": {
+						"kind": "binary",
+						"data": "R0lGODdhfgA4AOYAAAAAAK+vr62trVIxa6WlpZ+fnzEpCEpzlAha/0Kc74+PjyGMSuecKRhrtX9/fzExORBSjCEYCGtra2NjYyF7nDGE50JrhAg51qWtOTl7vee1MWu150o5e3PO/3sxcwAx/4R7GBgQOcDAwFoAQt61hJyMGHuUSpRKIf8A/wAY54yMjHtz",
+						"mediaType": "image/gif"
+					},
+					"line": 49
+				},
+				{
+					"group": null,
+					"name": "AGENT",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "BEGIN:VCARD\nVERSION:2.1\nN:Friday;Fred\nTEL;WORK;VOICE:+1-213-555-1234\nTEL;WORK;FAX:+1-213-555-5678\nEND:VCARD"
+					},
+					"line": 53
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"ABC, Inc."
+							],
+							[
+								"North American Division"
+							],
+							[
+								"Marketing"
+							]
+						]
+					},
+					"line": 60
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "This facsimile machine if operational 0830 to 1715 hours\r\nMonday through Friday. Call +1-213-555-1234 if you have problems\r\nwith access to the machine."
+					},
+					"line": 61
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 1995,
+							"month": 10,
+							"day": 31,
+							"hour": 22,
+							"minute": 27,
+							"second": 10
+						},
+						"raw": "19951031T222710"
+					},
+					"line": 65
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 1995,
+							"month": 10,
+							"day": 31,
+							"hour": 22,
+							"minute": 27,
+							"second": 10,
+							"zone": "utc"
+						},
+						"raw": "1995-10-31T22:27:10Z"
+					},
+					"line": 66
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "JON Q PUBLIK"
+					},
+					"line": 67
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {
+						"VALUE": [
+							"URL"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "file///multimed/audio/jqpublic.wav"
+					},
+					"line": 68
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {
+						"TYPE": [
+							"wave"
+						],
+						"ENCODING": [
+							"BASE64"
+						]
+					},
+					"value": {
+						"kind": "binary",
+						"data": "UklGRhAsAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YesrAACAg4eCeXR4e3uAhoiIiYmKjIiDfnx5eX6CgoKEhYWDenV5fH6BhISGiIiDfHZ2eXt/hIiKjY2IhH12d3Vyc3uDiIiFf3l7fn18eXl+houFf319fnyAgHl5eoCIiISChIeAfnt2",
+						"mediaType": "audio/wav"
+					},
+					"line": 69
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://abc.com/pub/directory/northam/jpublic.ecd"
+					},
+					"line": 73
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "19950401-080045-40000F192713-0052"
+					},
+					"line": 74
+				},
+				{
+					"group": null,
+					"name": "X-ABC-VIDEO",
+					"params": {
+						"TYPE": [
+							"mpeg2"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "http://lonestar.bubbas.org/billibob.mpg"
+					},
+					"line": 75
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "info",
+			"code": "param-comma-separator",
+			"message": "Comma used as a parameter separator before \"ENCODING\"",
+			"line": 33
+		},
+		{
+			"severity": "info",
+			"code": "param-comma-separator",
+			"message": "Comma used as a parameter separator before \"ENCODING\"",
+			"line": 37
+		},
+		{
+			"severity": "info",
+			"code": "agent-inline-vcard",
+			"message": "Nested vCard in AGENT kept as text",
+			"line": 54
+		}
+	]
+}

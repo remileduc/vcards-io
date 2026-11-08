@@ -1,0 +1,668 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Mr. John Q. Public, Esq."
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Public"
+							],
+							[
+								"John"
+							],
+							[
+								"Quinlan"
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Stevenson"
+							],
+							[
+								"John"
+							],
+							[
+								"Philip",
+								"Paul"
+							],
+							[
+								"Dr."
+							],
+							[
+								"Jr.",
+								"M.D.",
+								"A.C.P."
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Robbie"
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "NICKNAME",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"Jim",
+							"Jimmie"
+						]
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "PHOTO",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.abc.com/pub/photos/jqpublic.gif"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1996,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "1996-04-15"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1953,
+							"month": 10,
+							"day": 15,
+							"hour": 23,
+							"minute": 10,
+							"second": 0,
+							"zone": "utc"
+						},
+						"raw": "1953-10-15T23:10:00Z"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1987,
+							"month": 9,
+							"day": 27,
+							"hour": 8,
+							"minute": 30,
+							"second": 0,
+							"zone": {
+								"sign": -1,
+								"hours": 6,
+								"minutes": 0
+							}
+						},
+						"raw": "1987-09-27T08:30:00-06:00"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"dom",
+							"home",
+							"postal",
+							"parcel"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							]
+						]
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "LABEL",
+					"params": {
+						"TYPE": [
+							"dom",
+							"home",
+							"postal",
+							"parcel"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Mr.John Q. Public, Esq.\nMail Drop: TNE QB\n123 Main Street\nAny Town, CA  91921-1234\nU.S.A."
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work",
+							"voice",
+							"pref",
+							"msg"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-213-555-1234"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jqpublic@xyz.dom1.com"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@isp.net"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jane_doe@abc.com"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "MAILER",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "PigeonMail 2.1"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {},
+					"value": {
+						"kind": "utc-offset",
+						"sign": -1,
+						"hours": 5,
+						"minutes": 0
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {
+						"VALUE": [
+							"text"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "-05:00; EST; Raleigh/North America"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "GEO",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"37.386013"
+							],
+							[
+								"-122.082932"
+							]
+						]
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Director, Research and Development"
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "ROLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Programmer"
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "LOGO",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.abc.com/pub/logos/abccorp.jpg"
+					},
+					"line": 28
+				},
+				{
+					"group": null,
+					"name": "AGENT",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "CID:JQPUBLIC.part3.960129T083020.xyzMail@host3.com"
+					},
+					"line": 29
+				},
+				{
+					"group": null,
+					"name": "AGENT",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "BEGIN:VCARD\nFN:Susan Thomas\nTEL:+1-919-555-1234\nEMAIL;INTERNET:sthomas@host.com\nEND:VCARD\n"
+					},
+					"line": 31
+				},
+				{
+					"group": null,
+					"name": "AGENT",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "BEGIN:VCARD\nFN:Joe Friday\nTEL:+1-919-555-7878\nTITLE:Area Administrator, Assistant\n EMAIL;TYPE=INTERN\nET:jfriday@host.com\nEND:VCARD\n"
+					},
+					"line": 33
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"ABC, Inc."
+							],
+							[
+								"North American Division"
+							],
+							[
+								"Marketing"
+							]
+						]
+					},
+					"line": 36
+				},
+				{
+					"group": null,
+					"name": "CATEGORIES",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"TRAVEL AGENT"
+						]
+					},
+					"line": 37
+				},
+				{
+					"group": null,
+					"name": "CATEGORIES",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"INTERNET",
+							"IETF",
+							"INDUSTRY",
+							"INFORMATION TECHNOLOGY"
+						]
+					},
+					"line": 38
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "This fax number is operational 0800 to 1715 EST, Mon-Fri."
+					},
+					"line": 39
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//ONLINE DIRECTORY//NONSGML Version 1//EN"
+					},
+					"line": 41
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 1995,
+							"month": 10,
+							"day": 31,
+							"hour": 22,
+							"minute": 27,
+							"second": 10,
+							"zone": "utc"
+						},
+						"raw": "1995-10-31T22:27:10Z"
+					},
+					"line": 42
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1997,
+							"month": 11,
+							"day": 15
+						},
+						"raw": "1997-11-15"
+					},
+					"line": 43
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Rene van der Harten"
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"van der Harten"
+							],
+							[
+								"Rene"
+							],
+							[
+								"J."
+							],
+							[
+								"Sir"
+							],
+							[
+								"R.D.O.N."
+							]
+						]
+					},
+					"line": 45
+				},
+				{
+					"group": null,
+					"name": "SORT-STRING",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Harten"
+					},
+					"line": 46
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Oscar del Pozo"
+					},
+					"line": 47
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"del Pozo Triscon"
+							],
+							[
+								"Oscar"
+							]
+						]
+					},
+					"line": 48
+				},
+				{
+					"group": null,
+					"name": "SORT-STRING",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Pozo"
+					},
+					"line": 49
+				},
+				{
+					"group": null,
+					"name": "SOUND",
+					"params": {
+						"TYPE": [
+							"basic"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "CID:JOHNQPUBLIC.part8.19960229T080000.xyzMail@host1.com"
+					},
+					"line": 50
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "19950401-080045-40000F192713-0052"
+					},
+					"line": 52
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.swbyps.restaurant.french/~chezchic.html"
+					},
+					"line": 53
+				},
+				{
+					"group": null,
+					"name": "CLASS",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "PUBLIC"
+					},
+					"line": 54
+				},
+				{
+					"group": null,
+					"name": "KEY",
+					"params": {
+						"ENCODING": [
+							"b"
+						]
+					},
+					"value": {
+						"kind": "binary",
+						"data": "MIICajCCAdOgAwIBAgICBEUwDQYJKoZIhvcNAQEEBQAwdzELMAkGA1UEBhMCVVMxLDAqBgNVBAoTI05ldHNjYXBlIENvbW11bmljYXRpb25zIENvcnBvcmF0aW9uMRwwGgYDVQQLExNJbmZvcm1hdGlvbiBTeXN0ZW1zMRwwGgYDVQQDExNyb290Y2EubmV0c2NhcGUuY29tMB4XDTk3MDYwNjE5NDc1OVoXDTk3MTIwMzE5NDc1OVowgYkxCzAJBgNVBAYTAlVTMSYwJAYDVQQKEx1OZXRzY2FwZSBDb21tdW5pY2F0aW9ucyBDb3JwLjEYMBYGA1UEAxMPVGltb3RoeSBBIEhvd2VzMSEwHwYJKoZIhvcNAQkBFhJob3dlc0BuZXRzY2FwZS5jb20xFTATBgoJkiaJk/IsZAEBEwVob3dlczBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC0JZf6wkg8pLMXHHCUvMfL5H6zjSk4vTTXZpYyrdN2dXcoX49LKiOmgeJSzoiFKHtLOIboyludF90CgqcxtwKnAgMBAAGjNjA0MBEGCWCGSAGG+EIBAQQEAwIAoDAfBgNVHSMEGDAWgBT84FToB/GV3jr3mcau+hUMbsQukjANBgkqhkiG9w0BAQQFAAOBgQBexv7o7mi3PLXadkmNP9LcIPmx93HGp0Kgyx1jIVMyNgsemeAwBM+MSlhMfcpbTrONwNjZYW8vJDSoi//yrZlVt9bJbs7MNYZVsyF1unsqaln4/vy6Uawfg8VUMk1U7jt8LYpo4YULU7UZHPYVUaSgVttImOHZIKi4hlPXBOhcUQ=="
+					},
+					"line": 55
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "info",
+			"code": "timestamp-incomplete",
+			"message": "REV is not a complete date-time, read as date-and-or-time",
+			"line": 43,
+			"property": "REV"
+		}
+	]
+}
