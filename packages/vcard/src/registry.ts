@@ -252,6 +252,15 @@ export const COMMON_PARAMS: Readonly<Record<VCardVersion, readonly string[]>> = 
 	"4.0": ["LANGUAGE", "VALUE", "PREF", "ALTID", "PID", "TYPE", "CREATED", "DERIVED", "PROP-ID"],
 };
 
+/** Kinds VALUE=text covers: N;VALUE=text is still structured, NICKNAME;VALUE=text still a list. */
+export const TEXT_FAMILY: ReadonlySet<VValueKind> = new Set(["text", "text-list", "structured"]);
+
+/** PHOTO, LOGO, SOUND, KEY: inline binary in some version, so a base64 payload is the media itself. */
+export function isMediaProperty(name: string): boolean {
+	const kind = PROPERTY_REGISTRY.get(name)?.kind;
+	return typeof kind === "object" && Object.values(kind).includes("binary");
+}
+
 /** Default value kind of a known property for a version, undefined when unknown or not defined in that version. */
 export function defaultValueKind(name: string, version: VCardVersion): VValueKind | undefined {
 	const spec = PROPERTY_REGISTRY.get(name.toUpperCase());

@@ -228,7 +228,11 @@ caller types it as date-and-or-time and reports), `parseUtcOffset`/
 `PROPERTY_REGISTRY` (default value type, structure, cardinality, allowed
 params, per version), `defaultValueKind(name, version)` and
 `COMMON_PARAMS` (parameters any property may carry; property-specific ones
-are only in `PropertySpec.params`, the two never overlap). Parsers return
+are only in `PropertySpec.params`, the two never overlap), `isMediaProperty`,
+`TEXT_FAMILY` (the kinds `VALUE=text` covers), `URI_SCHEME`,
+`MEDIA_TYPE_NAMES` / `mediaTypeFromName` (legacy `TYPE=JPEG` words),
+`declaredMediaType` (a `MEDIATYPE` value with its parameters), and the
+relation table `RELATION_TYPES` with its two lookups. Parsers return
 `null` on bad input, including mixed basic/extended forms such as
 `1985-0412`; formatters throw `RangeError` for a field out of range or a
 shape the grammar cannot express, so hostile JSContact never reaches the
@@ -351,87 +355,118 @@ writer as unparseable text.
 
 ### Upgrade normaliser (2.1/3.0 → 4.0 semantics)
 
-Pure function on the model, table-driven (`upgrade/rules.ts`), each rule a
-small function with a unit test. Standard rules:
+`upgradeTo40` is a pure function on the model (`upgrade/upgrade.ts`): the
+input card is cloned, the standard rules run (`upgrade/rules.ts`), then the
+vendor rules (`upgrade/vendor.ts`, on by default), then two finishing rules
+(canonical `VALUE` parameter, N/ADR padding), and the version becomes 4.0.
+Rules fire on the shape of a property, not on the card's version (the two
+exceptions are the 2.1 text unescape and Google's 8th ADR component, which
+in a 4.0 card is RFC 9554's room), so a 4.0 input with legacy shapes is
+normalised too and running the function twice changes nothing: the second
+pass reports no `info`. Each rule is a small function with unit tests.
+Standard rules:
 
-| 2.1 / 3.0 input                             | 4.0 output                                               |
-| ------------------------------------------- | -------------------------------------------------------- |
-| `TYPE=PREF` / bare `PREF`                   | `PREF=1`, value removed from TYPE                        |
-| inline binary PHOTO/LOGO/SOUND/KEY          | `uri` value `data:<mediatype>;base64,...`; TYPE media    |
-|                                             | name (`JPEG`) → `MEDIATYPE=image/jpeg`                   |
-| `VALUE=URL`/`uri`                           | `VALUE=uri`                                              |
-| LABEL property                              | `LABEL=` param on the ADR with the same group, else      |
-|                                             | the ADR with the same TYPE set, else a new ADR with only |
-|                                             | LABEL (lossless)                                         |
-| SORT-STRING                                 | `SORT-AS` on N                                           |
-| AGENT (uri)                                 | `RELATED;TYPE=agent;VALUE=uri`                           |
-| AGENT (inline vcard)                        | kept as-is for `vCardProps`                              |
-| GEO `lat;lon` / `lat,lon`                   | `geo:lat,lon` URI                                        |
-| TZ `-05:00` / `-0500`                       | `utc-offset` (kept; converter maps to Etc/GMT±n)         |
-| CHARSET / ENCODING / CONTEXT params         | dropped                                                  |
-| NAME, PROFILE, MAILER, CLASS                | kept as-is (end in `vCardProps`)                         |
-| ADR/LABEL TYPE `dom                         | intl                                                     | postal | parcel` | kept in TYPE (end in `vCardParams.type`) |
-| EMAIL TYPE `internet`                       | dropped (default); `x400` kept                           |
-| TEL TYPE `msg                               | bbs                                                      | modem  | car     | isdn                                     | pcs` | kept in TYPE (→ `vCardParams.type`) |
-| ADR with 8 comps (Google formatted address) | 8th → `LABEL=` param; 7 comps kept                       |
-| N with 5 comps, ADR with 7 comps            | padded to 7 / 18 empty components                        |
+| 2.1 / 3.0 input                                 | 4.0 output                                                            |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| 2.1 `text` with `\\ \; \, \:`                   | unescaped (AOSP's set, never `\n`); AGENT text untouched              |
+| `TYPE=PREF` / bare `PREF`                       | `PREF=1` unless a PREF exists, value removed from TYPE                |
+| inline binary PHOTO/LOGO/SOUND/KEY              | `uri` value `data:<mediatype>;base64,...`, `VALUE=binary` gone        |
+| TYPE media name (`JPEG`) on a media property    | removed; `MEDIATYPE=image/jpeg` unless a `data:` URI carries it       |
+| `VALUE=` parameter                              | canonical: absent when the value kind is the property's 4.0           |
+|                                                 | default, else set from the kind (`TZ:-0500` → `VALUE=utc-offset`,     |
+|                                                 | bare text UID → `VALUE=text`); `URL`/`CID` spellings → `uri`          |
+| UID text with a scheme (`urn:uuid:`)            | `uri` value; a bare UUID stays text                                   |
+| `VALUE=CONTENT-ID:<id>`                         | `cid:id` URI (RFC 2392)                                               |
+| LABEL property (an empty one is dropped, info)  | `LABEL=` param on the ADR with the same group, else the ADR with      |
+|                                                 | the same TYPE set, else a new ADR with only LABEL (lossless)          |
+| SORT-STRING                                     | `SORT-AS` on the first N without one; otherwise kept                  |
+| AGENT (uri, or text with a scheme)              | `RELATED;TYPE=agent`                                                  |
+| AGENT (inline vcard, free text)                 | kept as-is for `vCardProps`                                           |
+| GEO `lat;lon` / `lat,lon`                       | `geo:lat,lon` URI; non-numeric or out of range kept (warning)         |
+| TZ `-05:00` / `-0500`                           | `utc-offset` kept, `VALUE=utc-offset` (converter maps to Etc/GMT±n)   |
+| CHARSET / ENCODING params                       | dropped silently: the parser already decoded the bytes                |
+| CONTEXT param                                   | dropped (info)                                                        |
+| NAME, PROFILE, MAILER, CLASS                    | kept as-is (end in `vCardProps`)                                      |
+| ADR/LABEL TYPE `dom`/`intl`/`postal`/`parcel`   | kept in TYPE (end in `vCardParams.type`)                              |
+| EMAIL TYPE `internet`                           | dropped (default); `x400` kept                                        |
+| TEL TYPE `msg`/`bbs`/`modem`/`car`/`isdn`/`pcs` | kept in TYPE (→ `vCardParams.type`)                                   |
+| ADR with 8 comps (Google, 3.0 cards only)       | 8th → `LABEL=` param; 7 comps kept; 9+ or LABEL taken: kept (warning) |
+| N with 5 comps, ADR with 7 comps                | padded to 7 / 18 empty components (RFC 9554), silently                |
 
 Vendor rules (`upgrade/vendor.ts`, on by default, individually testable).
 This is where the "understand Android fields" requirement lives:
 
-| Vendor property                                        | 4.0 output                                                           |
-| ------------------------------------------------------ | -------------------------------------------------------------------- |
-| `X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;    | `NICKNAME;X-KIND=<default                                            | other                                          | maiden | short | initials | custom:label>` |
-| <name>;<type>;<label>;...`                             | (X-KIND consumed by convert into the vendor nickname kind)           |
-| `.../contact_event;<date>;1;...` (anniversary)         | `ANNIVERSARY:<date>`                                                 |
-| `.../contact_event;<date>;3;...` (birthday)            | `BDAY:<date>` if no BDAY yet, else kept raw                          |
-| `.../contact_event;<date>;2                            | 0;<label>;...`                                                       | kept raw (→ `vCardProps`, re-emitted verbatim) |
-| `.../relation;<name>;<type>;<label>;...`               | `RELATED;VALUE=text;TYPE=<mapped>` (table below)                     |
-| other `X-ANDROID-CUSTOM` MIME types                    | kept raw                                                             |
-| `X-AIM/X-MSN/X-YAHOO/X-ICQ/X-JABBER/X-SKYPE-USERNAME/` | `IMPP;SERVICE-TYPE=<Name>:<scheme>:<handle>` (aim:, msnim:, ymsgr:,  |
-| `X-SKYPE/X-GOOGLE-TALK/X-GTALK/"X-GOOGLE TALK"/X-QQ/`  | icq:, xmpp:, skype:, xmpp:, qq:, callto:); `X-TWITTER` →             |
-| `X-NETMEETING/X-TWITTER`                               | `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`                      |
-| `X-SIP:<addr>`                                         | `IMPP:sip:<addr>` (Android's 3.0 form)                               |
-| `X-SKYPE-PSTNNUMBER`                                   | `TEL;TYPE=x-skype`                                                   |
-| `X-PHONETIC-FIRST/MIDDLE/LAST-NAME`                    | kept raw in M2 (→ `vCardProps`); mapping to N;PHONETIC needs a       |
-|                                                        | script/system we do not know; revisit                                |
-| `X-ADDRESSBOOKSERVER-KIND` / `-MEMBER`                 | `KIND` / `MEMBER`                                                    |
-| `itemN.X-ABLabel:_$!<X>!$_`                            | built-ins → TYPE on the grouped property (`Home`→home, `Work`→work,  |
-|                                                        | `Mobile`→cell, `Main`→main-number, `HomePage`/`Other`→drop); custom  |
-|                                                        | text kept (→ `label` in convert); empty label dropped (Google)       |
-| `itemN.X-ABADR:us`                                     | `CC=US` on grouped ADR                                               |
-| `BDAY;X-APPLE-OMIT-YEAR=1604:1604-04-15` / bare 1604   | `BDAY:--0415`                                                        |
-| `itemN.X-ABDATE` + label `Anniversary`                 | `ANNIVERSARY`; other labels → kept raw                               |
-| `itemN.X-ABRELATEDNAMES` + label                       | `RELATED;VALUE=text;TYPE=<mapped>` (same table as Android relations) |
-| `X-SOCIALPROFILE;type=twitter;x-user=u:url`            | `SOCIALPROFILE;SERVICE-TYPE=Twitter;USERNAME=u:url`                  |
-| `IMPP;X-SERVICE-TYPE=Skype`                            | `IMPP;SERVICE-TYPE=Skype`                                            |
-| `X-ABShowAs:COMPANY`                                   | `KIND:org`                                                           |
-| `X-WAB-GENDER`                                         | `GENDER`                                                             |
-| `X-MS-*`, `X-ABUID`, `X-ACTIVITY-ALERT`, others        | untouched (lossless via `vCardProps`); revisit after fixtures        |
+| Vendor property                                           | 4.0 output                                                                |
+| --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;`      | `NICKNAME`, plus `X-KIND=other|maiden|short|initials|custom[:<label>]`    |
+| `<name>;<type>;<label>;...`                               | for types 2-5 and 0 (consumed by convert into the vendor Nickname kind)   |
+| `.../contact_event;<date>;1;...` (anniversary)            | `ANNIVERSARY:<date>` if none yet, else kept raw                           |
+| `.../contact_event;<date>;3;...` (birthday)               | `BDAY:<date>` if no BDAY yet, else kept raw                               |
+| `.../contact_event;<date>;2|0;<label>;...`                | kept raw (→ `vCardProps`, re-emitted verbatim); unparseable date: warning |
+| `.../relation;<name>;<type>;<label>;...`                  | `RELATED;VALUE=text;TYPE=<mapped>` (table below); type 0 adds             |
+|                                                           | `itemN.X-ABLabel:<label>` in a fresh group, the Apple shape, so the       |
+|                                                           | converter reads every relation label the same way                         |
+| other `X-ANDROID-CUSTOM` MIME types, unknown type numbers | kept raw (unknown type number: warning)                                   |
+| `X-AIM/X-MSN/X-YAHOO/X-ICQ/X-JABBER/X-SKYPE-USERNAME/`    | `IMPP;SERVICE-TYPE=<Name>:<scheme>:<handle>` (aim:, msnim:, ymsgr:,       |
+| `X-SKYPE/X-GOOGLE-TALK/X-GTALK/"X-GOOGLE TALK"/X-QQ/`     | icq:, xmpp:, skype:, xmpp:, qq:, callto:), handle percent-encoded;        |
+| `X-NETMEETING/X-TWITTER`                                  | `X-TWITTER` → `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`             |
+| `X-SIP:<addr>`                                            | `IMPP:sip:<addr>` (Android's 3.0 form)                                    |
+| `X-SKYPE-PSTNNUMBER`                                      | `TEL;TYPE=x-skype`                                                        |
+| `X-PHONETIC-FIRST/MIDDLE/LAST-NAME`                       | kept raw in M2 (→ `vCardProps`); mapping to N;PHONETIC needs a            |
+|                                                           | script/system we do not know; revisit                                     |
+| `X-ADDRESSBOOKSERVER-KIND` / `-MEMBER`                    | `KIND` (if none) / `MEMBER`                                               |
+| `itemN.X-ABLabel:_$!<X>!$_`                               | built-ins → TYPE on the grouped property (`Home`→home, `Work`→work,       |
+|                                                           | `Mobile`→cell, `Main`→main as Apple's own `type=MAIN`, `HomePage`/        |
+|                                                           | `Other`→dropped); custom text kept (→ `label` in convert); empty label    |
+|                                                           | dropped (Google); a label repeating the IMPP SERVICE-TYPE dropped; a      |
+|                                                           | label whose group holds only raw `X-` properties kept with them           |
+| `itemN.X-ABADR:us`                                        | `CC=US` on grouped ADR; not two letters: kept (warning)                   |
+| `BDAY;X-APPLE-OMIT-YEAR=1604:1604-04-15` / bare 1604      | `BDAY:--0415`; also on X-ABDATE and ANNIVERSARY; a flag whose year        |
+|                                                           | does not match the value is left alone                                    |
+| `itemN.X-ABDATE` + label `Anniversary`                    | `ANNIVERSARY` (if none yet); other labels → kept raw with the label       |
+| `itemN.X-ABRELATEDNAMES` + label                          | `RELATED;VALUE=text;TYPE=<mapped>` (same table as Android relations;      |
+|                                                           | Google's `RELATIVE`, `REFERRED_BY`, `DOMESTIC_PARTNER` words too);        |
+|                                                           | `Other` → no TYPE; custom text → `x-custom`, label kept                   |
+| `X-SOCIALPROFILE;type=twitter;x-user=u:url`               | `SOCIALPROFILE;SERVICE-TYPE=Twitter;USERNAME=u:url` (`VALUE=text`         |
+|                                                           | when the value has no scheme); `x-userid` and the like kept               |
+| `IMPP;X-SERVICE-TYPE=Skype`                               | `IMPP;SERVICE-TYPE=Skype`                                                 |
+| `X-ABShowAs:COMPANY`                                      | `KIND:org` (dropped when KIND:org exists, kept beside another KIND)       |
+| `X-WAB-GENDER` (1 female, 2 male), `X-GENDER` words       | `GENDER` (if none); `0`/empty kept silently, other values kept (warning)  |
+| `X-MS-*`, `X-ABUID`, `X-ACTIVITY-ALERT`, others           | untouched (lossless via `vCardProps`); revisit after fixtures             |
 
-Relation mapping (shared by Android numeric types, Apple labels, and the
-export profiles):
+Relation mapping (`upgrade/relations.ts`, exported as `RELATION_TYPES` with
+`relationTypeForAndroid` / `relationTypeForLabel`, shared by the Android and
+Apple rules, the converter and the export profiles):
 
-| Android type / Apple label | RELATED TYPE (4.0)   | JSContact relation key                 |
-| -------------------------- | -------------------- | -------------------------------------- |
-| 3 child / Child            | `child`              | `child`                                |
-| 6 friend / Friend          | `friend`             | `friend`                               |
-| 9 parent / Parent          | `parent`             | `parent`                               |
-| 14 spouse / Spouse         | `spouse`             | `spouse`                               |
-| 8 mother / Mother          | `x-mother`           | `remileduc.github.io:mother`           |
-| 5 father / Father          | `x-father`           | `remileduc.github.io:father`           |
-| 2 brother / Brother        | `x-brother`          | `remileduc.github.io:brother`          |
-| 13 sister / Sister         | `x-sister`           | `remileduc.github.io:sister`           |
-| 4 domestic partner         | `x-domestic-partner` | `remileduc.github.io:domestic-partner` |
-| 10 partner / Partner       | `x-partner`          | `remileduc.github.io:partner`          |
-| 1 assistant / Assistant    | `x-assistant`        | `remileduc.github.io:assistant`        |
-| 7 manager / Manager        | `x-manager`          | `remileduc.github.io:manager`          |
-| 11 referred by             | `x-referred-by`      | `remileduc.github.io:referred-by`      |
-| 12 relative                | `kin`                | `kin`                                  |
-| 0 custom / free label      | `x-custom`           | `{}` + `label`                         |
+| Android type / Apple label                     | RELATED TYPE (4.0)   | JSContact relation key                 |
+| ---------------------------------------------- | -------------------- | -------------------------------------- |
+| 3 child / Child                                | `child`              | `child`                                |
+| 6 friend / Friend                              | `friend`             | `friend`                               |
+| 9 parent / Parent                              | `parent`             | `parent`                               |
+| 14 spouse / Spouse                             | `spouse`             | `spouse`                               |
+| 8 mother / Mother                              | `x-mother`           | `remileduc.github.io:mother`           |
+| 5 father / Father                              | `x-father`           | `remileduc.github.io:father`           |
+| 2 brother / Brother                            | `x-brother`          | `remileduc.github.io:brother`          |
+| 13 sister / Sister                             | `x-sister`           | `remileduc.github.io:sister`           |
+| 4 domestic partner / DOMESTIC_PARTNER (Google) | `x-domestic-partner` | `remileduc.github.io:domestic-partner` |
+| 10 partner / Partner                           | `x-partner`          | `remileduc.github.io:partner`          |
+| 1 assistant / Assistant                        | `x-assistant`        | `remileduc.github.io:assistant`        |
+| 7 manager / Manager                            | `x-manager`          | `remileduc.github.io:manager`          |
+| 11 referred by / REFERRED_BY (Google)          | `x-referred-by`      | `remileduc.github.io:referred-by`      |
+| 12 relative / RELATIVE (Google)                | `kin`                | `kin`                                  |
+| 0 custom / free label                          | `x-custom`           | `{}` + `label`                         |
 
-Every rule records a `warning`/`info` issue so the UI can list what was
-rewritten.
+Issues: every semantic rewrite is an `info` naming the source line and
+`group.NAME`, so the UI can list what changed; a `warning` means the input
+was malformed and a rule could not apply (the property is kept as written).
+Nothing is reported for what the normaliser keeps on purpose (unmapped
+vendor properties, the second BDAY), for dead transport parameters, or for
+padding: those are not changes of meaning, and a Pixel export would
+otherwise drown the useful infos under one `CHARSET dropped` per line.
+A card with several VERSION lines keeps one `VERSION:4.0` (info per extra).
+Issues are capped per code like the parser's, and messages quote values
+through `excerpt`. Rules index groups and candidate ADRs once per card, so
+a 20 000-row card upgrades in well under a second (a test keeps it so).
 
 ### Writer
 

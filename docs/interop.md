@@ -220,6 +220,7 @@ Other producers
 | ------------------------- | ------------------------------------------------------------------- |
 | Outlook desktop           | 2.1, one contact per file, `LABEL;WORK;PREF;ENCODING=QUOTED-        |
 |                           | PRINTABLE`, `X-MS-OL-*`, Windows-1252 (unverified)                  |
+|                           | `X-WAB-GENDER:1` female, `2` male, `0` unset (unverified)           |
 | Outlook.com / new Outlook | CSV only                                                            |
 | Thunderbird 102+          | 4.0 (stores 4.0; reads 2.1/3.0, handles X-APPLE-OMIT-YEAR)          |
 | Nextcloud (sabre)         | serves 3.0 by default; `VCardConverter` 4→3 rules worth copying     |

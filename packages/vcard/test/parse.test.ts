@@ -198,6 +198,12 @@ describe("encodings and charsets", () => {
 		expect(
 			value("3.0", `PHOTO;ENCODING=b;MEDIATYPE=image/x-foo;TYPE=JPEG:${data}`),
 		).toMatchObject({ mediaType: "image/x-foo" });
+		expect(
+			value("3.0", `KEY;ENCODING=b;MEDIATYPE="Application/PGP-Keys; version=1":${data}`),
+		).toMatchObject({ mediaType: "application/pgp-keys;version=1" });
+		expect(value("3.0", `KEY;ENCODING=b;MEDIATYPE="a/b;,c";TYPE=PGP:${data}`)).toMatchObject({
+			mediaType: "application/pgp-keys",
+		});
 		expect(value("3.0", `KEY;ENCODING=b:${data}`)).toEqual({
 			kind: "binary",
 			data: new Uint8Array([1, 2, 3]),

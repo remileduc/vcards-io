@@ -1,4 +1,4 @@
-import { defaultValueKind, PROPERTY_REGISTRY } from "../registry.js";
+import { defaultValueKind, isMediaProperty, PROPERTY_REGISTRY, TEXT_FAMILY } from "../registry.js";
 import { decodeBase64 } from "../text/base64.js";
 import { caretDecode } from "../text/caret.js";
 import { splitEscaped, unescapeText, unescapeText21 } from "../text/escape.js";
@@ -13,6 +13,8 @@ import type {
 } from "../types.js";
 import { parseDateAndOrTime, parseTimestamp, parseUtcOffset } from "../values/date.js";
 import { guessImageType } from "../values/image.js";
+import { declaredMediaType, mediaTypeFromName } from "../values/media.js";
+import { URI_SCHEME } from "../values/uri.js";
 import { excerpt, info, issue, latin1 } from "./issues.js";
 import type { RawLine } from "./lexer.js";
 import type { IssueSink } from "./lines.js";
@@ -42,28 +44,10 @@ const VALUE_KINDS: ReadonlyMap<string, VValueKind | "registry"> = new Map([
 
 /** Parameters whose values are ASCII tokens by definition: never decoded with a declared charset. */
 const ASCII_PARAMS: ReadonlySet<string> = new Set(["CHARSET", "ENCODING", "VALUE"]);
-const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/;
-
-/** Kinds that VALUE=text must not flatten: N;VALUE=text is still structured. */
-const TEXT_FAMILY: ReadonlySet<VValueKind> = new Set(["text", "text-list", "structured"]);
-
-/** 2.1 / 3.0 TYPE media names on inline binaries, for a payload magic bytes do not identify. */
-const MEDIA_NAMES: ReadonlyMap<string, string> = new Map([
-	["jpeg", "image/jpeg"],
-	["jpg", "image/jpeg"],
-	["png", "image/png"],
-	["gif", "image/gif"],
-	["webp", "image/webp"],
-	["bmp", "image/bmp"],
-	["tiff", "image/tiff"],
-	["wave", "audio/wav"],
-	["wav", "audio/wav"],
-	["mp3", "audio/mpeg"],
-	["pgp", "application/pgp-keys"],
-]);
 
 const INTEGER = /^[+-]?\d+$/;
-const FLOAT = /^[+-]?\d+(?:\.\d+)?$/;
+/** A FLOAT value, also the shape of each GEO coordinate the upgrade turns into a geo: URI. */
+export const FLOAT = /^[+-]?\d+(?:\.\d+)?$/;
 const LANGUAGE_TAG = /^[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*$/;
 
 /**
@@ -277,21 +261,16 @@ function encodingOf(params: VParams, ctx: Context): "base64" | "quoted-printable
 	return null;
 }
 
-/** PHOTO, LOGO, SOUND, KEY: inline binary in some version, so a base64 payload is the media. */
-function isMediaProperty(name: string): boolean {
-	const kind = PROPERTY_REGISTRY.get(name)?.kind;
-	return typeof kind === "object" && Object.values(kind).includes("binary");
-}
-
 /** What the bytes are, then what the line claims: writers label every photo JPEG. */
 function mediaTypeOf(data: Uint8Array, params: VParams): string | undefined {
 	const sniffed = guessImageType(data);
 	if (sniffed !== undefined) return sniffed;
-	const declared = params.get("MEDIATYPE")?.[0];
-	if (declared !== undefined) return declared.toLowerCase();
+	for (const declared of params.get("MEDIATYPE") ?? []) {
+		const typed = declaredMediaType(declared);
+		if (typed !== undefined) return typed;
+	}
 	for (const type of params.get("TYPE") ?? []) {
-		if (type.includes("/")) return type.toLowerCase();
-		const named = MEDIA_NAMES.get(type.toLowerCase());
+		const named = mediaTypeFromName(type);
 		if (named !== undefined) return named;
 	}
 	return undefined;

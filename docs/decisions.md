@@ -84,8 +84,10 @@ Vitest 5, Biome 2.6, Lit 3.3, Playwright for e2e from milestone 7. CI uses
 `TextEncoder`/`TextDecoder` are WHATWG Encoding globals available in every
 browser and in Node, but TypeScript only types them in `lib.dom`. The
 libraries keep `lib: ["ES2025"]` and declare the subset they use in
-`packages/vcard/src/whatwg-encoding.d.ts`, so an accidental `document` or
-`fetch` in library code still fails to typecheck. The app keeps the DOM lib.
+`packages/vcard/src/platform-globals.d.ts` (first named
+`whatwg-encoding.d.ts`, renamed on 2026-11-09 when `structuredClone` joined
+it), so an accidental `document` or `fetch` in library code still fails to
+typecheck. The app keeps the DOM lib.
 
 2026-11-06 Date values are partial-field objects, timestamps are complete
 -------------------------------------------------------------------------
@@ -238,3 +240,44 @@ parameter value (section 2.1.2) is not honoured, nested groups `A.B.TEL`
 and `X-` names with characters outside `[A-Z0-9-]` are read but warned
 about, and unfolding drops one whitespace byte where RFC 822 would keep it;
 all three match what AOSP does with 2.1 input.
+
+2026-11-09 Upgrade normaliser: shape-driven, canonical, quiet about what it keeps
+--------------------------------------------------------------------------------
+
+`upgradeTo40` clones the card (`structuredClone`, declared in
+`platform-globals.d.ts` beside the encoding globals) and runs standard, vendor
+and finishing rules in place; rules match the shape of a property, not the
+card's version, so a 4.0 card with legacy shapes is normalised too and a
+second pass is a no-op that reports nothing, which the fixture and fuzz tests
+assert. Three things go beyond the plan's tables. First, vCard 2.1 text is
+unescaped at upgrade time (`\\ \; \, \:`, exactly AOSP's set: `\n` is not
+in it, so a Windows path such as `C:\new` survives): the parser keeps 2.1
+text as written for losslessness, but a 4.0 model holding `a\;b` would be
+re-escaped by the writer to `a\\;b`, a different value. Second, the `VALUE`
+parameter is made canonical: absent when the value kind is the property's
+4.0 default, set from the kind otherwise, so `TZ:-0500` gets
+`VALUE=utc-offset`, a bare-UUID `UID` gets `VALUE=text` (a `urn:uuid:` one
+becomes a URI), a date-only `REV` gets `VALUE=date-and-or-time`, and two
+cards with the same meaning have the same model whatever their writer
+spelled; the writer only has to emit the parameter when present. Third, the
+issue policy: an `info` per semantic rewrite, a `warning` when malformed
+input stops a rule (non-numeric GEO, unknown Android type number, orphan
+X-ABLabel), and silence for what is kept on purpose, for CHARSET/ENCODING
+(already consumed by the parser) and for N/ADR padding. Smaller choices:
+`_$!<Main>!$_` maps to TYPE `main`, the word Apple itself writes as
+`type=MAIN`, not `main-number`; Google's `RELATIVE`, `REFERRED_BY` and
+`DOMESTIC_PARTNER` labels join the relation table; an Android custom
+relation's label is emitted as an `itemN.X-ABLabel` in a fresh group so the
+converter has one label mechanism; an X-ABLabel repeating the IMPP
+SERVICE-TYPE is dropped; a label whose group holds only raw `X-` properties
+(an X-ABDATE "Other") stays with them; `X-GENDER` words are mapped beside
+`X-WAB-GENDER`; a 2.1 `VALUE=CONTENT-ID:<id>` becomes `cid:id`. Groups are
+never renamed or removed. The TYPE media-name table moved from the parser to
+`values/media.ts` so both stages share it, and a declared `MEDIATYPE` or a
+`TYPE` with a slash now has to match the RFC 2045 type/subtype shape before
+it is believed. The cold review of this checkpoint found four things worth
+recording: per-label scans made a 20 000-row card quadratic (rules now build
+one group index and drop in one pass; a test bounds the time), duplicate
+VERSION lines survived (one `VERSION:4.0` is kept), the Google 8th-component
+rule fired on genuine RFC 9554 addresses (3.0 cards only now), and the issue
+list was unbounded (same cap as the parser).

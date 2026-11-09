@@ -9,8 +9,10 @@ export {
 	type Cardinality,
 	COMMON_PARAMS,
 	defaultValueKind,
+	isMediaProperty,
 	PROPERTY_REGISTRY,
 	type PropertySpec,
+	TEXT_FAMILY,
 } from "./registry.js";
 export { decodeBase64, encodeBase64 } from "./text/base64.js";
 export { caretDecode, caretEncode } from "./text/caret.js";
@@ -23,6 +25,13 @@ export {
 } from "./text/quoted-printable.js";
 export type * from "./types.js";
 export {
+	RELATION_TYPES,
+	type RelationType,
+	relationTypeForAndroid,
+	relationTypeForLabel,
+} from "./upgrade/relations.js";
+export { type UpgradeOptions, type UpgradeResult, upgradeTo40 } from "./upgrade/upgrade.js";
+export {
 	type DateFormatOptions,
 	formatDateAndOrTime,
 	formatTimestamp,
@@ -32,6 +41,7 @@ export {
 	parseUtcOffset,
 } from "./values/date.js";
 export { guessImageType, type ImageType } from "./values/image.js";
+export { declaredMediaType, MEDIA_TYPE_NAMES, mediaTypeFromName } from "./values/media.js";
 export {
 	buildDataUri,
 	type DataUri,
@@ -40,4 +50,5 @@ export {
 	parseGeoUri,
 	parseTelUri,
 	type TelUri,
+	URI_SCHEME,
 } from "./values/uri.js";
