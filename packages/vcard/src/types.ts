@@ -77,6 +77,8 @@ export interface Issue {
 	message: string;
 	line?: number;
 	property?: string;
+	/** Index of the card in the `cards` argument, on issues raised by `serializeVCards`. */
+	card?: number;
 }
 
 export interface ParseOptions {
@@ -95,7 +97,14 @@ export interface ParseResult {
 
 export interface SerializeOptions {
 	version: "3.0" | "4.0";
-	lineEnding?: "\r\n" | "\n";
 	/** Fold lines longer than this many octets. Default 75; "none" disables folding. */
 	foldAt?: number | "none";
+	/** Empty lines between consecutive cards, 0 to 9. Default 0: Apple's tolerance is unverified. */
+	blankLinesBetweenCards?: number;
+}
+
+export interface SerializeResult {
+	text: string;
+	/** One warning per loss the version forced; nothing for 4.0. */
+	issues: Issue[];
 }

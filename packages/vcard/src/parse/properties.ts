@@ -326,8 +326,9 @@ function typeValue(text: string, kind: VValueKind, params: VParams, ctx: Context
 		}
 		case "uri":
 			if (text.includes("\\:")) {
+				// Google writes `http\://`, and some exports double it: strip the whole run.
 				ctx.report("warning", "uri-escaped-colon", "Escaped colon in URI repaired");
-				return { kind, value: text.replaceAll("\\:", ":") };
+				return { kind, value: text.replace(/\\+:/g, ":") };
 			}
 			return { kind, value: text };
 		case "date-and-or-time":

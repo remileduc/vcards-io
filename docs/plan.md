@@ -183,8 +183,10 @@ parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): Pars
 // ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number }
 
 upgradeTo40(card: VCard, opts?: { vendor?: boolean }): { card: VCard; issues: Issue[] }
-serializeVCards(cards: VCard[], opts?: SerializeOptions): string
-// SerializeOptions = { version: '3.0' | '4.0', lineEnding?: '\r\n' | '\n', foldAt?: number | 'none' /* 75 octets */ }
+serializeVCards(cards: VCard[], opts: SerializeOptions): SerializeResult
+// SerializeOptions = { version: '3.0' | '4.0', foldAt?: number | 'none' /* 75 octets */,
+//                      blankLinesBetweenCards?: number /* 0..9, default 0 */ }   // CRLF always
+// SerializeResult  = { text: string; issues: Issue[] }   // one warning per loss 3.0 forced, `card` index set
 
 interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved
 interface VProperty {
@@ -470,24 +472,73 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
 
 ### Writer
 
-- Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`). The
-  engine emits `BEGIN:VCARD`, `VERSION`, then properties in model order,
-  then `END:VCARD`, CRLF, no BOM, property names uppercased (Android
-  compares case-sensitively), parameter names uppercased (`TYPE=`, since
-  Google's own iOS export does that and Apple reads it).
+- Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`,
+  contract in `write/syntax.ts`). The engine emits `BEGIN:VCARD`, `VERSION`,
+  then properties in model order (any VERSION property in the model is
+  replaced), then `END:VCARD`, CRLF, no BOM, property and parameter names
+  uppercased (Android compares case-sensitively), `CHARSET`/`ENCODING` from
+  the model never written. The `VALUE` parameter is derived, not copied:
+  absent when the kind is the property's default in the target version
+  (unknown properties default to text), the version's token otherwise; an
+  `unknown` value keeps what was declared, `binary` needs none. It is
+  written first, so the same model gives the same text whether or not it
+  declared one.
 - **3.0 syntax**: `TYPE=a;TYPE=b` repeated (never comma-joined: AOSP 3.0
-  reads both, Apple writes repeated); `PREF` as `TYPE=PREF` (uppercase,
-  AOSP checks case-sensitively); `binary` values as `ENCODING=b;TYPE=JPEG`
-  folded at 75 with leading space and no 4.0 params (iOS drops the card
-  otherwise); escaping `\\ \, \; \n`; no CHARSET; exactly 5 N and 7 ADR
-  components (Apple drops cards when a fold lands in an empty 4.0 tail);
-  `data:` URIs are decoded back to `binary` by the engine.
-- **4.0 syntax**: caret encoding, quoted params, `PREF=n`, 7/18 components,
-  `data:` URIs, `JSCOMPS` etc.
+  reads both, Apple writes repeated) and uppercased except `X-` labels
+  (AOSP uppercases before matching, Android shows custom labels as
+  written); `PREF=1` only as a last `TYPE=PREF` (uppercase, AOSP checks
+  case-sensitively; last is where Apple puts it; any other rank is dropped
+  with a `pref-not-in-30` warning since marking every rank would make them
+  all preferred, and the profile decides which properties carry PREF);
+  `binary` values as `ENCODING=b;TYPE=JPEG`
+  (the legacy word, or the full media type when none exists) folded at 75
+  with leading space; `data:` URIs on PHOTO/LOGO/SOUND/KEY are decoded back
+  to `binary` by the table, `MEDIATYPE` on a media property becomes the
+  `TYPE` word; only `TYPE`, `VALUE`, `LANGUAGE`, `CALSCALE` (Apple writes
+  it on `X-ALTBDAY` in 3.0) and `X-` parameters are written, every other
+  4.0 parameter is dropped with a `param-not-in-30` warning (iOS hides a
+  card whose PHOTO carries one); a parameter value holding a quote or a
+  control character, which RFC 2426 cannot escape, is dropped with a
+  `param-value-not-in-30` warning; exactly 5 N and 7 ADR components (Apple
+  drops cards when a fold lands in an empty 4.0 tail; RFC 9554 says the
+  extra components repeat what the first ones hold; a non-empty extra one
+  is a `components-not-in-30` warning); extended ISO dates and
+  offsets (`1985-04-12`, `-05:00`, a bare `10:22:00` for a time), 3.0
+  `VALUE` tokens `date` / `time` / `date-time` by shape; RFC 6350-only
+  shapes (`--04-12`, truncated times) are written as our parser reads them,
+  phones read none of them and the profile must map them (Apple's
+  `X-APPLE-OMIT-YEAR`); escaping `\\ \, \; \n`; no CHARSET.
+- **4.0 syntax**: caret encoding, quoted params, comma lists, `PREF=n`,
+  components as held (the normaliser pads to 7/18), basic ISO dates,
+  `data:` URIs, `JSCOMPS` etc. passed through.
+- Parameter values are quoted when they hold `;` `:` `,` or start or end
+  with whitespace (readers trim unquoted values); a parameter with no
+  non-empty value is skipped. Names, groups and parameter keys are
+  normalised (upper, lower, upper) once before the tables see them, so a
+  hand-built lowercase key cannot bypass a table; the name grammar is the
+  lexer's. Lone surrogates become U+FFFD. `version`, `foldAt` and
+  `blankLinesBetweenCards` are validated up front (`RangeError`): they
+  come from settings at runtime.
+  Lines always end in CRLF; there is no line-ending option (decision of
+  2026-11-09). Every loss the version forces is a `warning` in `issues`,
+  with the `card` index and `group.NAME`, capped per code like the
+  parser's; 4.0 never raises one.
 - Folding at 75 **octets** via `TextEncoder`, never splitting a UTF-8
   sequence or a `\` escape; base64 valid by construction (invalid base64
-  aborts an entire Android import).
-- `SerializeError` only for programming errors (missing FN, `binary` in 4.0).
+  aborts an entire Android import). Known limit: a `foldAt` shorter than
+  `group.NAME;PARAM` lets a fold land before the first `=`, and the
+  unfolder's N/ADR/ORG tolerance then joins that first line to the
+  property above; impossible at 75 for any real name.
+- `SerializeError` only for what no version can express, always a
+  defect of the caller's model (the input is a card in 4.0 semantics; a
+  parsed 2.1 card must go through `upgradeTo40` first or its escapes are
+  doubled): `binary` in 4.0, a control character a 4.0 parameter cannot
+  caret-encode, a `TYPE` value holding a comma (readers split it even when
+  quoted), a date shape outside the grammar (the formatters' `RangeError`,
+  rethrown), a name outside `[A-Za-z0-9-]`, `BEGIN`/`END` as a property, a
+  line break escaping cannot absorb (URI, raw). It carries the card index
+  and `group.NAME`. A missing FN is not checked here: 2.1 cards legally
+  lack one, and `convert` always builds it.
 
 ### Human-readable output rules
 
@@ -505,8 +556,9 @@ The files are meant to be opened in a text editor as much as in a phone.
 | Fold only lines longer than 75 octets; when a space falls | Folding is mandatory in Apple's reader for PHOTO and expected by the RFC;    |
 | inside the window, break before it (unfold removes the    | short lines are never touched; a `foldAt: 'none'` option exists for          |
 | CRLF + one whitespace, so the text reads naturally)       | people who prefer long lines, off by default                                 |
-| No blank lines between cards                              | Apple's tolerance for garbage between cards is unverified; AOSP 2.1 is fine, |
-|                                                           | not worth the risk                                                           |
+| No blank lines between cards by default;                  | AOSP skips blank lines before `BEGIN:VCARD` in every version; Apple's        |
+| `blankLinesBetweenCards` (0..9) opts in for a reader who  | tolerance for anything between cards is unverified, so the `apple`           |
+| wants to see where one card ends                          | profile must leave it at 0                                                   |
 | `UID`/`REV` written once, at the end, not interleaved     | Easier to skim; both phones ignore or accept them anywhere                   |
 | JSON export: `JSON.stringify(cards, null, 2)` with a      | JSContact says key order is irrelevant; a stable order diffs well in git     |
 | stable key order (`@type`, `version`, `uid`, `name`, …,   | and reads top-down                                                           |
@@ -521,7 +573,9 @@ accepts in any other form.
 - Golden tests: every `fixtures/**/*.vcf` parsed; model compared to a
   reviewed `*.model.json`; `parse → serialize(4.0) → parse` stable for 4.0
   inputs; `parse → upgrade → serialize → parse → upgrade` idempotent for
-  2.1/3.0 inputs.
+  2.1/3.0 inputs (model equality modulo source lines, date spelling, the
+  derived `VALUE` parameter and CRLF inside text; text equality for both
+  versions, our own output re-reads with no new warning).
 - Hostile inputs: 100 MB line, binary garbage, truncated base64, lone
   surrogates, mixed line endings, missing END, nested BEGIN, BOM, UTF-16.
 
@@ -865,6 +919,13 @@ pnpm test && pnpm build` clean, docs updated.
 - Writer engine + 3.0 and 4.0 syntax tables, octet folding, base64
   re-encoding of `data:` for 3.0.
 - Round-trip and idempotence tests. `README.md` with usage.
+- Done 2026-11-09. Known hand-offs to M4/M5: the convert layer must drop
+  a property whose name the parser flagged invalid and a bare `END:` kept
+  as a property (the writer refuses both), surface the writer's 3.0
+  warnings in the profile's loss report, and map for 3.0 what the writer
+  leaves in 4.0 shape:
+  `GEO` as a `geo:` URI (3.0 wants `lat;lon`), `TZ` text, `UID` URIs,
+  yearless and truncated dates.
 
 ### M3. `@vcards-io/jscontact`: types, vendor, validator, utils (medium)
 

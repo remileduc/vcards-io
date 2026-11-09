@@ -281,3 +281,116 @@ one group index and drop in one pass; a test bounds the time), duplicate
 VERSION lines survived (one `VERSION:4.0` is kept), the Google 8th-component
 rule fired on genuine RFC 9554 addresses (3.0 cards only now), and the issue
 list was unbounded (same cap as the parser).
+
+2026-11-09 Writer: syntax tables only, semantics stay in the profiles
+----------------------------------------------------------------------
+
+`serializeVCards` is an engine plus one syntax table per version
+(`write/v30.ts`, `write/v40.ts`); the engine formats values, derives the
+`VALUE` parameter, assembles, validates and folds lines, and the table says
+what its version can carry. Properties are written in model order: the
+canonical readable order is the job of whoever builds the card (`convert`
+emitters, M5), so a parse-and-write round trip stays lossless. The `VALUE`
+parameter is derived from the kind against the target version's default
+rather than copied from the model, so output is canonical whatever the
+caller declared; a redundant `VALUE=uri` read from a 4.0 card is therefore
+not written back, which the round-trip tests ignore because the kind is
+still compared. The 3.0 table is deliberately strict about parameters: only
+what RFC 2426 defines plus `CALSCALE` (Apple writes `X-ALTBDAY;CALSCALE=
+chinese` in 3.0 and the date is garbage without it) and `X-` names, because
+iOS hides a card whose PHOTO carries a 4.0 parameter and AOSP ignores
+unknown names anyway; `MEDIATYPE` on a media property is turned back into
+the legacy `TYPE=JPEG` word, the inverse of the normaliser's rule, and N and
+ADR are cut or padded to 5 and 7 components since RFC 9554 says the extra
+ones repeat what the first ones hold. Every `PREF=n` becomes a last
+`TYPE=PREF`, and a `TYPE=pref` still in the model is moved there too:
+which properties carry PREF when targeting 3.0 is the profile's call, and
+last is where Apple writes it (a re-read card then writes the same text).
+A `binary` value gets no `VALUE` on a media or unknown property (ENCODING
+says it) but `VALUE=binary` on a text property such as NOTE, where readers
+take base64 as a transfer encoding. The writer has no issue channel: the profiles own
+the loss report, and the writer throws `SerializeError` only for what a
+version cannot express (binary in 4.0, a quote or control character in a
+3.0 parameter, a date shape without a form, an invalid name, `BEGIN`/`END`
+as a property, a line break escaping cannot absorb). A missing FN is not an
+error here: three versit 2.1 fixture cards have none and `convert` always
+builds one. Parameter values that start or end with whitespace are quoted
+because readers trim unquoted ones. Two things the tolerant parser keeps
+cannot be written and must be dropped by the layer building a card for
+export: a property whose name the parser flagged invalid (Google's
+`\NARBITRARY_STRING`) and a bare `END:` line kept as a property
+(DAVdroid). Found by the round-trip tests and fixed on the way: the
+parser's `http\://` repair stripped one backslash where Google's export had
+two, so the repair now removes the whole run (one fixture snapshot
+changed). The cold review of this checkpoint found: the engine uppercased
+names on output while every table lookup was case-sensitive, so a
+hand-built lowercase `charset` key leaked into 4.0 output and lowercase
+`type`/`pref` keys bypassed the 3.0 table (names, groups and parameter
+keys are now normalised once, before the tables see the property);
+`foldAt` and `version` were not validated at runtime (both are now
+`RangeError`s and the table lookup is a Map so `"constructor"` finds
+nothing); binary on a text property re-read as
+mojibake; and 3.0 time-only values carried the RFC 6350 `T` prefix, which
+RFC 2426 does not have (a bare extended time is written now; truncated
+forms, which only 4.0 defines, keep the prefix). Lone surrogates are
+replaced by U+FFFD once per line, which is what every UTF-8 encoder does
+anyway, so folded and unfolded lines agree. Parameters with no non-empty
+value are skipped, as readers would.
+
+2026-11-09 Line endings are always CRLF, no option
+--------------------------------------------------
+
+The plan's `SerializeOptions` carried a `lineEnding` of CRLF or LF for a
+human-readable archive on Unix. RFC 2426 §2.1 and RFC 6350 §3.2 both
+define a content line as ending in CRLF, the phones expect it, and a
+runtime option that can inject text at the end of every line is surface
+the layers above would have to validate. The option is removed from
+`serializeVCards` and from `foldLine`: nothing in the package can produce
+anything but CRLF. Both AOSP and Apple read LF files anyway, so a user who
+converts the file afterwards loses nothing.
+
+2026-11-09 Writer reports what 3.0 drops, and only PREF=1 becomes TYPE=PREF
+---------------------------------------------------------------------------
+
+The first writer checkpoint gave the writer no issue channel and left the
+loss report to the profiles, but the 3.0 table is where the losses are
+decided (`PARAMS_30`, `COMPONENTS_30`, the PREF collapse), and a profile
+re-implementing those tables to describe them would drift from them. The
+review of that checkpoint also found that any `PREF=n`, the least preferred
+included, became `TYPE=PREF`, which marked every ranked number as preferred
+on the phone, and that a parsed 4.0 card with a caret-encoded newline in an
+`X-` parameter made the 3.0 writer abort a whole export for one odd
+parameter in one contact. So `serializeVCards` now returns `{ text, issues
+}` like the parser and the normaliser, with the card index on each issue
+(`Issue.card`), and the 3.0 table reports every loss as a `warning`:
+`param-not-in-30` (names it has no form for), `param-value-not-in-30` (a
+quote or control character RFC 2426 cannot escape, the value is dropped
+rather than the export refused), `pref-not-in-30` (any rank but 1, which is
+the only one `TYPE=PREF` can say) and `components-not-in-30` (a non-empty N
+or ADR component beyond 5 or 7; padding and empty tails are lossless and
+silent). `SerializeError` is left for what no version can write, and a
+`TYPE` value holding a comma joined that list because readers split a
+quoted `TYPE` on commas in every version, so quoting it would re-read as a
+different model. Two more canonicalisations came out of the same review:
+the derived `VALUE` parameter is always written first, whether or not the
+model declared one, so two exports of one contact never differ by parameter
+order; and the writer validates names with the lexer's `NAME_RE` and floats
+with the parser's `FLOAT`, so reader and writer cannot disagree on either
+grammar.
+
+2026-11-09 Blank lines between cards are an opt-in writer option
+----------------------------------------------------------------
+
+The plan ruled out blank lines between cards because Apple's reader is
+unverified on anything between `END:VCARD` and the next `BEGIN:VCARD`.
+They do make a long export much easier to scan, which is the point of
+the human-readable output, so `serializeVCards` takes
+`blankLinesBetweenCards` (an integer 0 to 9, `RangeError` otherwise,
+default 0) and writes that many empty CRLF lines between consecutive
+cards, never before the first or after the last. The default stays 0 for
+the reason the plan gave. AOSP's `readBeginVCard` skips blank lines in
+every version, so the `android` profile may turn it on; the `apple`
+profile must not; the `rfc` profile stays at 0 because neither RFC 2426
+nor RFC 6350 has a blank line between entities in its grammar. Our own
+parser drops empty physical lines before it looks for a property, so the
+spaced output re-reads to the same cards with no issue.

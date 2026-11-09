@@ -38,7 +38,8 @@ Source: `ImportVCardActivity.java`, `ImportProcessor.java`,
 | Folding             | 2.1: continuation must start with a space (not tab); N/ADR/ORG lines   |
 |                     | without `:` are joined; base64 continues until a blank line or a known |
 |                     | property name. 3.0: RFC 2425 unfolding.                                |
-| Line endings        | CRLF, LF, CR all fine. Lines starting with `#` ignored.                |
+| Line endings        | CRLF, LF, CR all fine. Lines starting with `#` ignored. Blank lines    |
+|                     | before `BEGIN:VCARD` skipped (`readBeginVCard`).                       |
 | Groups              | `item1.` prefix parsed and ignored. `X-ABLabel` dropped.               |
 | Escaping            | 2.1: values not unescaped except inside list splitting. 3.0: `\n`→LF,  |
 |                     | `\x`→x for any x, applied before `;` splitting.                        |
@@ -156,7 +157,9 @@ Apple Contacts (iOS / macOS)
 ----------------------------
 
 Import: 3.0 fully supported; 2.1 (unverified); 4.0 unreliable (iCloud
-rejects, iOS drops cards or fields).
+rejects, iOS drops cards or fields). Property names are case-insensitive
+per RFC and DAVx5 and ez-vcard write `X-ABLABEL` uppercase; our writer
+does too (unverified against a device: check on the first Apple test).
 
 | 4.0 feature in input                                | Result on Apple                                  |
 | --------------------------------------------------- | ------------------------------------------------ |
@@ -197,7 +200,8 @@ Export dialect (verified from iOS 8 to 18 samples):
 |              | macOS may omit TYPE                                               |
 | groups       | `X-ADDRESSBOOKSERVER-KIND:group` + `X-ADDRESSBOOKSERVER-MEMBER:`  |
 |              | `urn:uuid:…`                                                      |
-| misc         | `X-ABShowAs:COMPANY`, `X-ABUID`, `X-ACTIVITY-ALERT`, `X-ALTBDAY`, |
+| misc         | `X-ABShowAs:COMPANY`, `X-ABUID`, `X-ACTIVITY-ALERT`,              |
+|              | `X-ALTBDAY;CALSCALE=chinese` (a 4.0 parameter in a 3.0 card),     |
 |              | `UID`, `REV`, `NICKNAME`, `NOTE`, `ORG:Company;Dept`, `TITLE`     |
 
 Google Contacts

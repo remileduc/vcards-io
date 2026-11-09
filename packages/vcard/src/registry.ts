@@ -267,3 +267,31 @@ export function defaultValueKind(name: string, version: VCardVersion): VValueKin
 	if (!spec?.versions.includes(version)) return undefined;
 	return typeof spec.kind === "string" ? spec.kind : spec.kind[version];
 }
+
+/**
+ * Default kind for a version, falling back to the last version the property is defined in
+ * (NICKNAME in 2.1, LABEL in 4.0), so a property outside its versions still has a type.
+ */
+export function nearestValueKind(name: string, version: VCardVersion): VValueKind | undefined {
+	const kind = defaultValueKind(name, version);
+	if (kind !== undefined) return kind;
+	const spec = PROPERTY_REGISTRY.get(name.toUpperCase());
+	if (spec === undefined) return undefined;
+	const nearest = spec.versions.at(-1) ?? version;
+	return typeof spec.kind === "string" ? spec.kind : spec.kind[nearest];
+}
+
+/** VALUE token naming each value kind in vCard 4.0; list and structured values are text. */
+export const VALUE_TOKENS: ReadonlyMap<VValueKind, string> = new Map([
+	["text", "text"],
+	["text-list", "text"],
+	["structured", "text"],
+	["uri", "uri"],
+	["date-and-or-time", "date-and-or-time"],
+	["timestamp", "timestamp"],
+	["utc-offset", "utc-offset"],
+	["language-tag", "language-tag"],
+	["integer", "integer"],
+	["float", "float"],
+	["boolean", "boolean"],
+]);

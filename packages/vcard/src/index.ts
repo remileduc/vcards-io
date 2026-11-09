@@ -10,9 +10,11 @@ export {
 	COMMON_PARAMS,
 	defaultValueKind,
 	isMediaProperty,
+	nearestValueKind,
 	PROPERTY_REGISTRY,
 	type PropertySpec,
 	TEXT_FAMILY,
+	VALUE_TOKENS,
 } from "./registry.js";
 export { decodeBase64, encodeBase64 } from "./text/base64.js";
 export { caretDecode, caretEncode } from "./text/caret.js";
@@ -41,7 +43,12 @@ export {
 	parseUtcOffset,
 } from "./values/date.js";
 export { guessImageType, type ImageType } from "./values/image.js";
-export { declaredMediaType, MEDIA_TYPE_NAMES, mediaTypeFromName } from "./values/media.js";
+export {
+	declaredMediaType,
+	MEDIA_TYPE_NAMES,
+	mediaTypeFromName,
+	mediaTypeName,
+} from "./values/media.js";
 export {
 	buildDataUri,
 	type DataUri,
@@ -52,3 +59,5 @@ export {
 	type TelUri,
 	URI_SCHEME,
 } from "./values/uri.js";
+export { serializeVCards } from "./write/engine.js";
+export { SerializeError } from "./write/error.js";

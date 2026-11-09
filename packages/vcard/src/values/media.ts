@@ -34,3 +34,9 @@ export function mediaTypeFromName(type: string): string | undefined {
 	if (MEDIA_TYPE.test(lower)) return lower;
 	return MEDIA_TYPE_NAMES.get(lower);
 }
+
+/** The legacy TYPE word for a media type (`image/jpeg` → `JPEG`), undefined when none exists. */
+export function mediaTypeName(mediaType: string): string | undefined {
+	for (const [word, type] of MEDIA_TYPE_NAMES) if (type === mediaType) return word.toUpperCase();
+	return undefined;
+}

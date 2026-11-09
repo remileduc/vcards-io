@@ -1,8 +1,8 @@
 import { excerpt } from "../parse/issues.js";
 import { FLOAT } from "../parse/properties.js";
-import { defaultValueKind, isMediaProperty, PROPERTY_REGISTRY, TEXT_FAMILY } from "../registry.js";
+import { isMediaProperty, nearestValueKind, TEXT_FAMILY, VALUE_TOKENS } from "../registry.js";
 import { unescapeText21 } from "../text/escape.js";
-import type { VProperty, VValue, VValueKind } from "../types.js";
+import type { VProperty, VValue } from "../types.js";
 import { mediaTypeFromName } from "../values/media.js";
 import { buildDataUri, parseGeoUri, URI_SCHEME } from "../values/uri.js";
 import {
@@ -269,27 +269,12 @@ const adrFormattedComponent: Rule = (card, ctx) => {
 	}
 };
 
-/** VALUE tokens the writer can emit for a value kind; list and structured values are text. */
-const VALUE_TOKENS: ReadonlyMap<VValueKind, string> = new Map([
-	["text", "text"],
-	["text-list", "text"],
-	["structured", "text"],
-	["uri", "uri"],
-	["date-and-or-time", "date-and-or-time"],
-	["timestamp", "timestamp"],
-	["utc-offset", "utc-offset"],
-	["language-tag", "language-tag"],
-	["integer", "integer"],
-	["float", "float"],
-	["boolean", "boolean"],
-]);
-
 // VALUE is absent for the property's 4.0 default kind and set from the kind otherwise, so two
 // cards with the same meaning have the same model (docs/decisions.md, upgrade normaliser).
 const canonicalValueParam: Rule = (card, ctx) => {
 	for (const p of card.properties) {
 		const declared = firstParam(p, "VALUE");
-		const expected = defaultKind40(p.name);
+		const expected = nearestValueKind(p.name, "4.0");
 		const kind = p.value.kind;
 		if (expected === undefined || kind === "unknown" || kind === "binary") {
 			if (declared === undefined) continue;
@@ -313,16 +298,6 @@ const canonicalValueParam: Rule = (card, ctx) => {
 		if (token !== undefined && declared !== token) p.params.set("VALUE", [token]);
 	}
 };
-
-/** 4.0 default kind, or the last version's for 2.1 / 3.0-only properties the registry knows. */
-function defaultKind40(name: string): VValueKind | undefined {
-	const kind = defaultValueKind(name, "4.0");
-	if (kind !== undefined) return kind;
-	const spec = PROPERTY_REGISTRY.get(name);
-	if (spec === undefined) return undefined;
-	const nearest = spec.versions.at(-1) ?? "4.0";
-	return typeof spec.kind === "string" ? spec.kind : spec.kind[nearest];
-}
 
 function normaliseValueToken(token: string): string {
 	const lower = token.toLowerCase();

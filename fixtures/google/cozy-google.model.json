@@ -224,7 +224,7 @@
 					"params": {},
 					"value": {
 						"kind": "uri",
-						"value": "http\\://test.example.com"
+						"value": "http://test.example.com"
 					},
 					"line": 14
 				},

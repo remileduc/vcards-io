@@ -13,7 +13,8 @@ const EQUALS = 0x3d;
 const ENCODINGS = new Set(["QUOTED-PRINTABLE", "BASE64", "8BIT", "7BIT"]);
 const CHARSET_RE =
 	/^(?:UTF-?(?:8|16|32)(?:LE|BE)?|ISO-?8859-\d{1,2}|WINDOWS-\d{3,4}|CP\d{3,5}|US-ASCII|ASCII|LATIN-?\d|SHIFT[-_]JIS|EUC-[A-Z]{2}|GB\d{4,5}|GBK|BIG5(?:-HKSCS)?|KOI8-?[RU]?|MAC(?:INTOSH|-?ROMAN))$/i;
-const NAME_RE = /^[A-Z0-9-]+$/;
+/** RFC 6350 `name = 1*(ALPHA / DIGIT / "-")` after uppercasing; the writer checks the same. */
+export const NAME_RE = /^[A-Z0-9-]+$/;
 
 /** A parameter as written: name uppercased, values undecoded (charset and caret are version matters). */
 export interface RawParam {
