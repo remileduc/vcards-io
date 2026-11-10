@@ -1,0 +1,306 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Test"
+							],
+							[
+								"Cozy"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Cozy Test"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Cozycloud"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Testeur Fou"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"work",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest@cozycloud.cc"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest2@cozycloud.cc"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "06 00 00 00 00"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "06 00 00 00 00"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"43 rue blabla"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"750000"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": "item1",
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"18 rue poulet"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75000"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 12
+				},
+				{
+					"group": "item1",
+					"name": "X-ABADR",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "fr"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {
+						"VALUE": [
+							"date"
+						]
+					},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1999,
+							"month": 2,
+							"day": 1
+						},
+						"raw": "1999-02-01"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "X-AIM",
+					"params": {
+						"TYPE": [
+							"home",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozypseudo"
+					},
+					"line": 15
+				},
+				{
+					"group": "item2",
+					"name": "X-ABRELATEDNAMES",
+					"params": {
+						"TYPE": [
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Cozypouet"
+					},
+					"line": 16
+				},
+				{
+					"group": "item2",
+					"name": "X-ABLABEL",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "_$!<Friend>!$_"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "X-ABUID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "7EC63789-9F24-4F95-AF74-A85483437BC8:ABPerson"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Something"
+					},
+					"line": 19
+				}
+			]
+		}
+	],
+	"issues": []
+}

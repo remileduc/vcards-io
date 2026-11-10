@@ -38,7 +38,8 @@ Source: `ImportVCardActivity.java`, `ImportProcessor.java`,
 | Folding             | 2.1: continuation must start with a space (not tab); N/ADR/ORG lines   |
 |                     | without `:` are joined; base64 continues until a blank line or a known |
 |                     | property name. 3.0: RFC 2425 unfolding.                                |
-| Line endings        | CRLF, LF, CR all fine. Lines starting with `#` ignored.                |
+| Line endings        | CRLF, LF, CR all fine. Lines starting with `#` ignored. Blank lines    |
+|                     | before `BEGIN:VCARD` skipped (`readBeginVCard`).                       |
 | Groups              | `item1.` prefix parsed and ignored. `X-ABLabel` dropped.               |
 | Escaping            | 2.1: values not unescaped except inside list splitting. 3.0: `\n`→LF,  |
 |                     | `\x`→x for any x, applied before `;` splitting.                        |
@@ -136,7 +137,7 @@ One card per raw contact, CRLF, no separator between cards.
 | TEL          | bare params: HOME, WORK, `HOME;FAX`, CELL, PAGER, VOICE (other), CAR,       |
 |              | `WORK;PREF` (company main), ISDN, `PREF` (main), FAX, TLX, `WORK;CELL`,     |
 |              | MSG (mms); custom → `X-<label>`; primary appends PREF. Numbers keep digits  |
-|              | and `+` only. Duplicates dropped.                                           |
+|              | and `+` only. Duplicates dropped. No type at all → `TEL;:` (empty param).   |
 | EMAIL        | PREF, HOME, WORK, CELL, `X-<label>`; none for OTHER. Never INTERNET.        |
 | ADR          | `PREF`, HOME, WORK, `X-<label>`, `X-OTHER`; 7 components, ext slot empty    |
 | ORG / TITLE  | `ORG:company;department`, `TITLE:`                                          |
@@ -156,7 +157,9 @@ Apple Contacts (iOS / macOS)
 ----------------------------
 
 Import: 3.0 fully supported; 2.1 (unverified); 4.0 unreliable (iCloud
-rejects, iOS drops cards or fields).
+rejects, iOS drops cards or fields). Property names are case-insensitive
+per RFC and DAVx5 and ez-vcard write `X-ABLABEL` uppercase; our writer
+does too (unverified against a device: check on the first Apple test).
 
 | 4.0 feature in input                                | Result on Apple                                  |
 | --------------------------------------------------- | ------------------------------------------------ |
@@ -197,7 +200,8 @@ Export dialect (verified from iOS 8 to 18 samples):
 |              | macOS may omit TYPE                                               |
 | groups       | `X-ADDRESSBOOKSERVER-KIND:group` + `X-ADDRESSBOOKSERVER-MEMBER:`  |
 |              | `urn:uuid:…`                                                      |
-| misc         | `X-ABShowAs:COMPANY`, `X-ABUID`, `X-ACTIVITY-ALERT`, `X-ALTBDAY`, |
+| misc         | `X-ABShowAs:COMPANY`, `X-ABUID`, `X-ACTIVITY-ALERT`,              |
+|              | `X-ALTBDAY;CALSCALE=chinese` (a 4.0 parameter in a 3.0 card),     |
 |              | `UID`, `REV`, `NICKNAME`, `NOTE`, `ORG:Company;Dept`, `TITLE`     |
 
 Google Contacts
@@ -220,6 +224,7 @@ Other producers
 | ------------------------- | ------------------------------------------------------------------- |
 | Outlook desktop           | 2.1, one contact per file, `LABEL;WORK;PREF;ENCODING=QUOTED-        |
 |                           | PRINTABLE`, `X-MS-OL-*`, Windows-1252 (unverified)                  |
+|                           | `X-WAB-GENDER:1` female, `2` male, `0` unset (unverified)           |
 | Outlook.com / new Outlook | CSV only                                                            |
 | Thunderbird 102+          | 4.0 (stores 4.0; reads 2.1/3.0, handles X-APPLE-OMIT-YEAR)          |
 | Nextcloud (sabre)         | serves 3.0 by default; `VCardConverter` 4→3 rules worth copying     |

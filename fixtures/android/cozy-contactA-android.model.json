@@ -1,0 +1,280 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"de Cozy"
+							],
+							[
+								"Testé"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Testé de Cozy"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+33612345678"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "012-345-6789"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test.decozy@cozycloud.cc"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "testcozy@cozycloud.cc"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						],
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"12, rue René Boulanger\n75010 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"4, rue Léon Jouhaux\n75010 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Société Cozycloud"
+							]
+						]
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Tésteur Fou"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "46b12,\n3ème étage droite."
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1989-02-02"
+					},
+					"line": 17
+				}
+			]
+		}
+	],
+	"issues": []
+}

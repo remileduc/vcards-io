@@ -1,0 +1,26 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:Jane Doe
+BIRTHPLACE:Babies'R'Us Hospital
+BIRTHPLACE;VALUE=uri:http://example.com/hospitals/babiesrus.vcf
+BIRTHPLACE;VALUE=uri:geo:46.769307,-71.283079
+DEATHPLACE:Aboard the Titanic\, near Newfoundland
+DEATHPLACE;VALUE=uri:http://example.com/ships/titanic.vcf
+DEATHPLACE;VALUE=uri:geo:41.731944,-49.945833
+DEATHDATE:19960415
+DEATHDATE:--0415
+DEATHDATE:19531015T231000Z
+DEATHDATE;VALUE=text:circa 1800
+EXPERTISE;LEVEL=beginner;INDEX=2:chinese literature
+EXPERTISE;INDEX=1;LEVEL=expert:chemistry
+HOBBY;INDEX=1;LEVEL=high:reading
+HOBBY;INDEX=2;LEVEL=high:sewing
+INTEREST;INDEX=1;LEVEL=medium:r&b music
+INTEREST;INDEX=2;LEVEL=high:rock 'n' roll music
+ORG-DIRECTORY;INDEX=1:http://directory.mycompany.example.com
+ORG-DIRECTORY;PREF=1:ldap://ldap.tech.example/
+CONTACT-URI:https://contact.example.com
+CONTACT-URI;PREF=1:mailto:contact@example.com
+ADR;TYPE=work;CC=US:;;54321 Oak St;Reston;VA;20190;USA
+ADR;TYPE=home;CC=US:;;12345 Elm St;Reston;VA;20190;USA
+END:VCARD

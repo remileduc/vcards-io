@@ -1,4 +1,5 @@
 import { decodeBase64, encodeBase64 } from "../text/base64.js";
+import { MEDIA_TYPE } from "./media.js";
 
 export interface DataUri {
 	/** Lowercased media type, absent when the URI omits it. */
@@ -9,8 +10,10 @@ export interface DataUri {
 	data: Uint8Array;
 }
 
+/** RFC 3986 scheme followed by its colon; the one test every reader and rule uses for "is a URI". */
+export const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/;
+
 const DATA_URI = /^data:([^,]*),([\s\S]*)$/i;
-const MEDIA_TYPE = /^[\w!#$&^.+-]+\/[\w!#$&^.+-]+$/;
 
 function percentDecode(text: string): Uint8Array | null {
 	const encoded = new TextEncoder().encode(text);

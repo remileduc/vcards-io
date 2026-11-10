@@ -119,7 +119,7 @@ Target standards
 
 | Standard             | Role                                                         |
 | -------------------- | ------------------------------------------------------------ |
-| vCard 2.1 (IMC 1996) | read (Android/Samsung/Outlook exports)                       |
+| vCard 2.1 (versit)   | read (Android/Samsung/Outlook exports)                       |
 | RFC 2425/2426 (3.0)  | read + write (profiles `android`, `apple`)                   |
 | RFC 6350 (4.0)       | read + write (profile `rfc`)                                 |
 | RFC 6868             | caret escaping in parameter values (4.0)                     |
@@ -183,8 +183,10 @@ parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): Pars
 // ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number }
 
 upgradeTo40(card: VCard, opts?: { vendor?: boolean }): { card: VCard; issues: Issue[] }
-serializeVCards(cards: VCard[], opts?: SerializeOptions): string
-// SerializeOptions = { version: '3.0' | '4.0', lineEnding?: '\r\n' | '\n', foldAt?: number | 'none' /* 75 octets */ }
+serializeVCards(cards: VCard[], opts: SerializeOptions): SerializeResult
+// SerializeOptions = { version: '3.0' | '4.0', foldAt?: number | 'none' /* 75 octets */,
+//                      blankLinesBetweenCards?: number /* 0..9, default 0 */ }   // CRLF always
+// SerializeResult  = { text: string; issues: Issue[] }   // one warning per loss 3.0 forced, `card` index set
 
 interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved
 interface VProperty {
@@ -228,7 +230,11 @@ caller types it as date-and-or-time and reports), `parseUtcOffset`/
 `PROPERTY_REGISTRY` (default value type, structure, cardinality, allowed
 params, per version), `defaultValueKind(name, version)` and
 `COMMON_PARAMS` (parameters any property may carry; property-specific ones
-are only in `PropertySpec.params`, the two never overlap). Parsers return
+are only in `PropertySpec.params`, the two never overlap), `isMediaProperty`,
+`TEXT_FAMILY` (the kinds `VALUE=text` covers), `URI_SCHEME`,
+`MEDIA_TYPE_NAMES` / `mediaTypeFromName` (legacy `TYPE=JPEG` words),
+`declaredMediaType` (a `MEDIATYPE` value with its parameters), and the
+relation table `RELATION_TYPES` with its two lookups. Parsers return
 `null` on bad input, including mixed basic/extended forms such as
 `1985-0412`; formatters throw `RangeError` for a field out of range or a
 shape the grammar cannot express, so hostile JSContact never reaches the
@@ -239,161 +245,300 @@ writer as unparseable text.
 1. **Bytes in.** A `string` input is encoded to UTF-8 bytes so there is one
    code path. BOM sniffing: `EF BB BF` → UTF-8 (strip; we never write one);
    `FF FE`/`FE FF` → transcode UTF-16 to UTF-8 bytes; BOM-less UTF-16
-   heuristic: `bytes[0]=='B' && bytes[1]==0`.
+   heuristic: `bytes[0]` is `B` or `b` and `bytes[1]==0` (or the reverse for
+   big-endian), the same case-insensitivity as `BEGIN:VCARD` itself.
+   `maxInputBytes` applies to the UTF-8 result, so a string or a UTF-16 file
+   that only grows past the cap once transcoded is rejected too, and never
+   fully encoded first.
 2. **Physical lines.** Split on CRLF, LF or CR at byte level. Track line
    numbers. Enforce `maxLineLength` (default 1 MiB) and `maxInputBytes`
-   (default 64 MiB) as `error` issues, not exceptions.
+   (default 64 MiB) as `error` issues, not exceptions. Issues themselves are
+   capped at 1000 per code (then one `issues-truncated` warning per code),
+   since a file that warns on every line would otherwise cost gigabytes.
 3. **Logical lines (unfold), version-agnostic.** Join a line starting with SP
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:
    - previous logical line has `ENCODING=QUOTED-PRINTABLE` (or bare
      `QUOTED-PRINTABLE`) and ends with `=` → drop that `=` and append the
-     next physical line even without leading whitespace (AOSP writes
-     `=\r\n` soft breaks with no indentation). The soft break is consumed
-     here, so `decodeQuotedPrintable` never sees one inside a logical line;
+     next physical line verbatim, indented or not (AOSP writes `=\r\n` soft
+     breaks with no indentation and, like RFC 2045 6.7, keeps a leading
+     space on the next line as content). The soft break is consumed here,
+     so `decodeQuotedPrintable` never sees one inside a logical line;
    - previous line has `ENCODING=BASE64|B` and the next non-empty physical
      line has no `:` and matches `[A-Za-z0-9+/=]+` → append (Outlook writes
-     unindented base64). A blank line ends a base64 block (AOSP writes one).
-     Unfolding on bytes reassembles multi-byte UTF-8 split by careless writers.
+     unindented base64). A blank line ends a base64 block (AOSP writes one);
+   - previous line is `N`, `ADR` or `ORG` and the next physical line has no
+     `:` at all, does not start with `#` and does not read as a property
+     header (`NAME;` or `group.NAME;` then a `=` somewhere) → append with a
+     warning (AOSP does this; Google exports have such breaks, `834;;;;`).
+     A line that reads as a header is one folded inside its parameter list
+     (RFC 9554 examples), so it starts a new property. Any other unindented
+     line without `:` is reported and skipped by the lexer.
+   The header these rules key on (property name, `ENCODING`) is read by the
+   lexer of step 4 itself once the unfolder has found the first unquoted
+   `:`, with the lexer's own quote rule, so the two never disagree on what a
+   line is encoded as.
+   A soft break directly followed by `BEGIN:`/`END:` is not joined (warning),
+   so a truncated value cannot swallow a card delimiter.
+   Unfolding on bytes reassembles multi-byte UTF-8 split by careless writers.
+   Physical lines over `maxLineLength` are dropped with an `error`, and so
+   are the indented continuations that follow them. When the over-long line
+   continues a logical line (a fold, a soft break, unindented base64), that
+   logical line is dropped with it rather than passed on truncated.
 4. **Content-line lexing on bytes.** Group/name up to `;` or `:`; parameters
    up to the first **unquoted** `:`; never look at `:` in the value (URIs,
    `tel:`, Google's `http\://` escapes). Produce `RawLine { group, name,
-   params: RawParam[] {name, rawValues}, valueBytes, line }`. Quoted param
+   params: RawParam[] {name, values: Uint8Array[], bare}, value: Uint8Array,
+   line }`; parameter values stay bytes because their charset is only known
+   in step 6, and `bare` marks 2.1 words promoted to a named parameter. The
+   value bytes are never trimmed (`VERSION: 3.0` is tolerated by the version
+   check, not by the lexer). Empty parameters (`TEL;:`, AOSP's untyped
+   phone) are skipped silently. Quoted param
    values kept whole; unquoted ones split on `,`. A bare parameter (no `=`)
-   becomes `ENCODING` if `QUOTED-PRINTABLE|BASE64|B|8BIT|7BIT`, `CHARSET` if
-   it looks like one, else `TYPE` (2.1 `knowntype` list, `PREF`, and
-   `X-<label>` custom labels). Tolerate `[ws]` around `=` and `:`, a `,`
-   used as separator in 2.1 (`LABEL;INTL;PARCEL,ENCODING=...`), lowercase
-   `type=`, repeated `type=` (Apple), and `TYPE="a,b"`.
+   becomes `ENCODING` if `QUOTED-PRINTABLE|BASE64|8BIT|7BIT` (the versit
+   `pencodingval` list; RFC 2426's `B` only counts as `ENCODING=b`, so a
+   stray bare `B` cannot turn a value into base64), `CHARSET` if it looks
+   like one, else `TYPE` (2.1 `knowntype` list, `PREF`, and `X-<label>`
+   custom labels). Tolerate `[ws]` around `=` and `:`, a `,` used as
+   separator in 2.1 (`LABEL;INTL;PARCEL,ENCODING=...`, the versit 2.3.2
+   example), lowercase `type=`, repeated `type=` (Apple), and `TYPE="a,b"`.
 5. **Card grouping.** `BEGIN:VCARD`…`END:VCARD` case-insensitive. Missing
-   END → close at EOF with a warning. Nested `BEGIN:VCARD` inside AGENT
-   (2.1) → raw text value with a warning. Lines outside cards → warning.
+   END → close at EOF with a warning. A 2.1 AGENT's nested vCard, either
+   `BEGIN:VCARD` on the line after an empty `AGENT:` (the versit 2.5.4
+   example) or `AGENT:BEGIN:VCARD` with the card continuing on the next
+   lines (the versit 2.9 grammar) → the nested lines become the AGENT's raw
+   text value (LF-joined) with an `info` (it is valid 2.1; the `android`
+   profile reports the loss), and only their BEGIN/END are looked at, so the
+   nested text raises no lexer diagnostics; any other nested BEGIN closes the
+   current card with a warning. Lines outside cards → warning. Lines
+   starting with `#` → skipped with an `info` (AOSP treats them as comments).
    VERSION anywhere in the card (2.1/3.0); missing → 2.1 if bare params or
    QP seen, else 3.0, warning. Mixed versions in one file are fine for us.
 6. **Version-aware value decoding.** With the version known:
-   - params: 4.0 caret-decode; TYPE values lowercased; param names
-     uppercased;
+   - params: decoded with the line's charset, 4.0 caret-decode; TYPE
+     values split on `,` even when quoted (RFC 6350 section 8 writes
+     `TYPE="work,voice"`) and lowercased except `X-` custom labels (Android
+     shows their case); param names uppercased; repeated params merged;
+     empty values dropped;
    - value bytes: QP → bytes (accept QP in 3.0 too, AOSP does); base64 →
-     `binary` with mediaType from `TYPE`/`MEDIATYPE`/magic bytes; then
-     `TextDecoder(CHARSET ?? defaultCharset)`; on a fatal UTF-8 error retry
-     with `windows-1252` and warn (Outlook);
-   - typing: `VALUE` param, else registry default for property+version,
-     else `unknown`. TEXT values unescaped once (`\\ \, \; \n \N`; lenient
-     `\x`→`x`, so `\:` works). Structured values split on unescaped `;`,
-     list components on unescaped `,` (ORG components are not lists; 2.1
-     escapes only `\;`, the registry flag `commaIsLiteral` handles it).
-     URI values never split or unescaped, except Google's `http\://` which
-     is repaired with a warning.
+     bytes, which are the value itself (`binary`, mediaType from magic
+     bytes, else `MEDIATYPE`, else the `TYPE` media name `JPEG`) for media
+     properties, `VALUE=binary` and unknown properties, and a transfer
+     encoding (versit 2.1) for everything else; then
+     `TextDecoder(CHARSET ?? defaultCharset, {fatal})`; on a decode error
+     retry with `windows-1252` and warn (Outlook); unknown CHARSET →
+     default + warning. CHARSET and `defaultCharset` are ignored with an
+     `info` when the input was text or UTF-16 (already UTF-8 by then) and
+     CHARSET is ignored on 4.0 lines (RFC 6350 removed it);
+   - typing: `VALUE` param, else registry default for property+version
+     (a property outside its versions is read as in its last version, with
+     an `info`), else `unknown` (raw text, escapes kept). `VALUE=text` never
+     flattens a structured or list property. 3.0/4.0 TEXT values unescaped
+     once (`\\ \, \; \n \N`; lenient `\x`→`x`, so `\:` works). 2.1 text is
+     kept as written and only list splitting unescapes `\\ \; \, \:`, as
+     AOSP does. Structured values split on unescaped `;`, list components
+     on unescaped `,` (never in 2.1; ORG components are not lists, the
+     registry flag `commaIsLiteral` handles it). URI values never split or
+     unescaped, except Google's `http\://` which is repaired with a warning.
+     Scalars (dates, offsets, numbers, booleans, language tags) that do not
+     parse fall back to `unknown` with a warning, never an exception. A 2.1
+     / 3.0 media property without ENCODING is read as `uri` when the text
+     has a scheme (Thunderbird) with an `info`, else kept `unknown` with a
+     warning. `CHARSET`, `ENCODING` and `VALUE` values are always ASCII.
    - dates: basic and extended ISO, `--MMDD`, `--MM-DD` (Android yearless),
-     `--MM`, `---DD`, `YYYY-MM`, `YYYY`, times with zones; a bare year 1604
-     or `X-APPLE-OMIT-YEAR` → yearless; original string kept.
+     `--MM`, `---DD`, `YYYY-MM`, `YYYY`, times with zones; original string
+     kept. Apple's 1604 placeholder year and `X-APPLE-OMIT-YEAR` parse as
+     written, the normaliser rewrites them. A date-only `REV` becomes
+     date-and-or-time with a warning in 4.0 and an `info` before (RFC 2426
+     allows a date there); a non-gregorian `CALSCALE` keeps the value
+     `unknown` with an `info`.
 7. **Output** `VCard` with `version` as read. Unknown properties are kept as
    `text` or `unknown` values, never dropped.
 
 ### Upgrade normaliser (2.1/3.0 → 4.0 semantics)
 
-Pure function on the model, table-driven (`upgrade/rules.ts`), each rule a
-small function with a unit test. Standard rules:
+`upgradeTo40` is a pure function on the model (`upgrade/upgrade.ts`): the
+input card is cloned, the standard rules run (`upgrade/rules.ts`), then the
+vendor rules (`upgrade/vendor.ts`, on by default), then two finishing rules
+(canonical `VALUE` parameter, N/ADR padding), and the version becomes 4.0.
+Rules fire on the shape of a property, not on the card's version (the two
+exceptions are the 2.1 text unescape and Google's 8th ADR component, which
+in a 4.0 card is RFC 9554's room), so a 4.0 input with legacy shapes is
+normalised too and running the function twice changes nothing: the second
+pass reports no `info`. Each rule is a small function with unit tests.
+Standard rules:
 
-| 2.1 / 3.0 input                             | 4.0 output                                               |
-| ------------------------------------------- | -------------------------------------------------------- |
-| `TYPE=PREF` / bare `PREF`                   | `PREF=1`, value removed from TYPE                        |
-| inline binary PHOTO/LOGO/SOUND/KEY          | `uri` value `data:<mediatype>;base64,...`; TYPE media    |
-|                                             | name (`JPEG`) → `MEDIATYPE=image/jpeg`                   |
-| `VALUE=URL`/`uri`                           | `VALUE=uri`                                              |
-| LABEL property                              | `LABEL=` param on the ADR with the same group, else      |
-|                                             | the ADR with the same TYPE set, else a new ADR with only |
-|                                             | LABEL (lossless)                                         |
-| SORT-STRING                                 | `SORT-AS` on N                                           |
-| AGENT (uri)                                 | `RELATED;TYPE=agent;VALUE=uri`                           |
-| AGENT (inline vcard)                        | kept as-is for `vCardProps`                              |
-| GEO `lat;lon` / `lat,lon`                   | `geo:lat,lon` URI                                        |
-| TZ `-05:00` / `-0500`                       | `utc-offset` (kept; converter maps to Etc/GMT±n)         |
-| CHARSET / ENCODING / CONTEXT params         | dropped                                                  |
-| NAME, PROFILE, MAILER, CLASS                | kept as-is (end in `vCardProps`)                         |
-| ADR/LABEL TYPE `dom                         | intl                                                     | postal | parcel` | kept in TYPE (end in `vCardParams.type`) |
-| EMAIL TYPE `internet`                       | dropped (default); `x400` kept                           |
-| TEL TYPE `msg                               | bbs                                                      | modem  | car     | isdn                                     | pcs` | kept in TYPE (→ `vCardParams.type`) |
-| ADR with 8 comps (Google formatted address) | 8th → `LABEL=` param; 7 comps kept                       |
-| N with 5 comps, ADR with 7 comps            | padded to 7 / 18 empty components                        |
+| 2.1 / 3.0 input                                 | 4.0 output                                                            |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| 2.1 `text` with `\\ \; \, \:`                   | unescaped (AOSP's set, never `\n`); AGENT text untouched              |
+| `TYPE=PREF` / bare `PREF`                       | `PREF=1` unless a PREF exists, value removed from TYPE                |
+| inline binary PHOTO/LOGO/SOUND/KEY              | `uri` value `data:<mediatype>;base64,...`, `VALUE=binary` gone        |
+| TYPE media name (`JPEG`) on a media property    | removed; `MEDIATYPE=image/jpeg` unless a `data:` URI carries it       |
+| `VALUE=` parameter                              | canonical: absent when the value kind is the property's 4.0           |
+|                                                 | default, else set from the kind (`TZ:-0500` → `VALUE=utc-offset`,     |
+|                                                 | bare text UID → `VALUE=text`); `URL`/`CID` spellings → `uri`          |
+| UID text with a scheme (`urn:uuid:`)            | `uri` value; a bare UUID stays text                                   |
+| `VALUE=CONTENT-ID:<id>`                         | `cid:id` URI (RFC 2392)                                               |
+| LABEL property (an empty one is dropped, info)  | `LABEL=` param on the ADR with the same group, else the ADR with      |
+|                                                 | the same TYPE set, else a new ADR with only LABEL (lossless)          |
+| SORT-STRING                                     | `SORT-AS` on the first N without one; otherwise kept                  |
+| AGENT (uri, or text with a scheme)              | `RELATED;TYPE=agent`                                                  |
+| AGENT (inline vcard, free text)                 | kept as-is for `vCardProps`                                           |
+| GEO `lat;lon` / `lat,lon`                       | `geo:lat,lon` URI; non-numeric or out of range kept (warning)         |
+| TZ `-05:00` / `-0500`                           | `utc-offset` kept, `VALUE=utc-offset` (converter maps to Etc/GMT±n)   |
+| CHARSET / ENCODING params                       | dropped silently: the parser already decoded the bytes                |
+| CONTEXT param                                   | dropped (info)                                                        |
+| NAME, PROFILE, MAILER, CLASS                    | kept as-is (end in `vCardProps`)                                      |
+| ADR/LABEL TYPE `dom`/`intl`/`postal`/`parcel`   | kept in TYPE (end in `vCardParams.type`)                              |
+| EMAIL TYPE `internet`                           | dropped (default); `x400` kept                                        |
+| TEL TYPE `msg`/`bbs`/`modem`/`car`/`isdn`/`pcs` | kept in TYPE (→ `vCardParams.type`)                                   |
+| ADR with 8 comps (Google, 3.0 cards only)       | 8th → `LABEL=` param; 7 comps kept; 9+ or LABEL taken: kept (warning) |
+| N with 5 comps, ADR with 7 comps                | padded to 7 / 18 empty components (RFC 9554), silently                |
 
 Vendor rules (`upgrade/vendor.ts`, on by default, individually testable).
 This is where the "understand Android fields" requirement lives:
 
-| Vendor property                                        | 4.0 output                                                           |
-| ------------------------------------------------------ | -------------------------------------------------------------------- |
-| `X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;    | `NICKNAME;X-KIND=<default                                            | other                                          | maiden | short | initials | custom:label>` |
-| <name>;<type>;<label>;...`                             | (X-KIND consumed by convert into the vendor nickname kind)           |
-| `.../contact_event;<date>;1;...` (anniversary)         | `ANNIVERSARY:<date>`                                                 |
-| `.../contact_event;<date>;3;...` (birthday)            | `BDAY:<date>` if no BDAY yet, else kept raw                          |
-| `.../contact_event;<date>;2                            | 0;<label>;...`                                                       | kept raw (→ `vCardProps`, re-emitted verbatim) |
-| `.../relation;<name>;<type>;<label>;...`               | `RELATED;VALUE=text;TYPE=<mapped>` (table below)                     |
-| other `X-ANDROID-CUSTOM` MIME types                    | kept raw                                                             |
-| `X-AIM/X-MSN/X-YAHOO/X-ICQ/X-JABBER/X-SKYPE-USERNAME/` | `IMPP;SERVICE-TYPE=<Name>:<scheme>:<handle>` (aim:, msnim:, ymsgr:,  |
-| `X-SKYPE/X-GOOGLE-TALK/X-GTALK/"X-GOOGLE TALK"/X-QQ/`  | icq:, xmpp:, skype:, xmpp:, qq:, callto:); `X-TWITTER` →             |
-| `X-NETMEETING/X-TWITTER`                               | `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`                      |
-| `X-SIP:<addr>`                                         | `IMPP:sip:<addr>` (Android's 3.0 form)                               |
-| `X-SKYPE-PSTNNUMBER`                                   | `TEL;TYPE=x-skype`                                                   |
-| `X-PHONETIC-FIRST/MIDDLE/LAST-NAME`                    | kept raw in M2 (→ `vCardProps`); mapping to N;PHONETIC needs a       |
-|                                                        | script/system we do not know; revisit                                |
-| `X-ADDRESSBOOKSERVER-KIND` / `-MEMBER`                 | `KIND` / `MEMBER`                                                    |
-| `itemN.X-ABLabel:_$!<X>!$_`                            | built-ins → TYPE on the grouped property (`Home`→home, `Work`→work,  |
-|                                                        | `Mobile`→cell, `Main`→main-number, `HomePage`/`Other`→drop); custom  |
-|                                                        | text kept (→ `label` in convert); empty label dropped (Google)       |
-| `itemN.X-ABADR:us`                                     | `CC=US` on grouped ADR                                               |
-| `BDAY;X-APPLE-OMIT-YEAR=1604:1604-04-15` / bare 1604   | `BDAY:--0415`                                                        |
-| `itemN.X-ABDATE` + label `Anniversary`                 | `ANNIVERSARY`; other labels → kept raw                               |
-| `itemN.X-ABRELATEDNAMES` + label                       | `RELATED;VALUE=text;TYPE=<mapped>` (same table as Android relations) |
-| `X-SOCIALPROFILE;type=twitter;x-user=u:url`            | `SOCIALPROFILE;SERVICE-TYPE=Twitter;USERNAME=u:url`                  |
-| `IMPP;X-SERVICE-TYPE=Skype`                            | `IMPP;SERVICE-TYPE=Skype`                                            |
-| `X-ABShowAs:COMPANY`                                   | `KIND:org`                                                           |
-| `X-WAB-GENDER`                                         | `GENDER`                                                             |
-| `X-MS-*`, `X-ABUID`, `X-ACTIVITY-ALERT`, others        | untouched (lossless via `vCardProps`); revisit after fixtures        |
+| Vendor property                                           | 4.0 output                                                                |
+| --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;`      | `NICKNAME`, plus `X-KIND=other|maiden|short|initials|custom[:<label>]`    |
+| `<name>;<type>;<label>;...`                               | for types 2-5 and 0 (consumed by convert into the vendor Nickname kind)   |
+| `.../contact_event;<date>;1;...` (anniversary)            | `ANNIVERSARY:<date>` if none yet, else kept raw                           |
+| `.../contact_event;<date>;3;...` (birthday)               | `BDAY:<date>` if no BDAY yet, else kept raw                               |
+| `.../contact_event;<date>;2|0;<label>;...`                | kept raw (→ `vCardProps`, re-emitted verbatim); unparseable date: warning |
+| `.../relation;<name>;<type>;<label>;...`                  | `RELATED;VALUE=text;TYPE=<mapped>` (table below); type 0 adds             |
+|                                                           | `itemN.X-ABLabel:<label>` in a fresh group, the Apple shape, so the       |
+|                                                           | converter reads every relation label the same way                         |
+| other `X-ANDROID-CUSTOM` MIME types, unknown type numbers | kept raw (unknown type number: warning)                                   |
+| `X-AIM/X-MSN/X-YAHOO/X-ICQ/X-JABBER/X-SKYPE-USERNAME/`    | `IMPP;SERVICE-TYPE=<Name>:<scheme>:<handle>` (aim:, msnim:, ymsgr:,       |
+| `X-SKYPE/X-GOOGLE-TALK/X-GTALK/"X-GOOGLE TALK"/X-QQ/`     | icq:, xmpp:, skype:, xmpp:, qq:, callto:), handle percent-encoded;        |
+| `X-NETMEETING/X-TWITTER`                                  | `X-TWITTER` → `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`             |
+| `X-SIP:<addr>`                                            | `IMPP:sip:<addr>` (Android's 3.0 form)                                    |
+| `X-SKYPE-PSTNNUMBER`                                      | `TEL;TYPE=x-skype`                                                        |
+| `X-PHONETIC-FIRST/MIDDLE/LAST-NAME`                       | kept raw in M2 (→ `vCardProps`); mapping to N;PHONETIC needs a            |
+|                                                           | script/system we do not know; revisit                                     |
+| `X-ADDRESSBOOKSERVER-KIND` / `-MEMBER`                    | `KIND` (if none) / `MEMBER`                                               |
+| `itemN.X-ABLabel:_$!<X>!$_`                               | built-ins → TYPE on the grouped property (`Home`→home, `Work`→work,       |
+|                                                           | `Mobile`→cell, `Main`→main as Apple's own `type=MAIN`, `HomePage`/        |
+|                                                           | `Other`→dropped); custom text kept (→ `label` in convert); empty label    |
+|                                                           | dropped (Google); a label repeating the IMPP SERVICE-TYPE dropped; a      |
+|                                                           | label whose group holds only raw `X-` properties kept with them           |
+| `itemN.X-ABADR:us`                                        | `CC=US` on grouped ADR; not two letters: kept (warning)                   |
+| `BDAY;X-APPLE-OMIT-YEAR=1604:1604-04-15` / bare 1604      | `BDAY:--0415`; also on X-ABDATE and ANNIVERSARY; a flag whose year        |
+|                                                           | does not match the value is left alone                                    |
+| `itemN.X-ABDATE` + label `Anniversary`                    | `ANNIVERSARY` (if none yet); other labels → kept raw with the label       |
+| `itemN.X-ABRELATEDNAMES` + label                          | `RELATED;VALUE=text;TYPE=<mapped>` (same table as Android relations;      |
+|                                                           | Google's `RELATIVE`, `REFERRED_BY`, `DOMESTIC_PARTNER` words too);        |
+|                                                           | `Other` → no TYPE; custom text → `x-custom`, label kept                   |
+| `X-SOCIALPROFILE;type=twitter;x-user=u:url`               | `SOCIALPROFILE;SERVICE-TYPE=Twitter;USERNAME=u:url` (`VALUE=text`         |
+|                                                           | when the value has no scheme); `x-userid` and the like kept               |
+| `IMPP;X-SERVICE-TYPE=Skype`                               | `IMPP;SERVICE-TYPE=Skype`                                                 |
+| `X-ABShowAs:COMPANY`                                      | `KIND:org` (dropped when KIND:org exists, kept beside another KIND)       |
+| `X-WAB-GENDER` (1 female, 2 male), `X-GENDER` words       | `GENDER` (if none); `0`/empty kept silently, other values kept (warning)  |
+| `X-MS-*`, `X-ABUID`, `X-ACTIVITY-ALERT`, others           | untouched (lossless via `vCardProps`); revisit after fixtures             |
 
-Relation mapping (shared by Android numeric types, Apple labels, and the
-export profiles):
+Relation mapping (`upgrade/relations.ts`, exported as `RELATION_TYPES` with
+`relationTypeForAndroid` / `relationTypeForLabel`, shared by the Android and
+Apple rules, the converter and the export profiles):
 
-| Android type / Apple label | RELATED TYPE (4.0)   | JSContact relation key                 |
-| -------------------------- | -------------------- | -------------------------------------- |
-| 3 child / Child            | `child`              | `child`                                |
-| 6 friend / Friend          | `friend`             | `friend`                               |
-| 9 parent / Parent          | `parent`             | `parent`                               |
-| 14 spouse / Spouse         | `spouse`             | `spouse`                               |
-| 8 mother / Mother          | `x-mother`           | `remileduc.github.io:mother`           |
-| 5 father / Father          | `x-father`           | `remileduc.github.io:father`           |
-| 2 brother / Brother        | `x-brother`          | `remileduc.github.io:brother`          |
-| 13 sister / Sister         | `x-sister`           | `remileduc.github.io:sister`           |
-| 4 domestic partner         | `x-domestic-partner` | `remileduc.github.io:domestic-partner` |
-| 10 partner / Partner       | `x-partner`          | `remileduc.github.io:partner`          |
-| 1 assistant / Assistant    | `x-assistant`        | `remileduc.github.io:assistant`        |
-| 7 manager / Manager        | `x-manager`          | `remileduc.github.io:manager`          |
-| 11 referred by             | `x-referred-by`      | `remileduc.github.io:referred-by`      |
-| 12 relative                | `kin`                | `kin`                                  |
-| 0 custom / free label      | `x-custom`           | `{}` + `label`                         |
+| Android type / Apple label                     | RELATED TYPE (4.0)   | JSContact relation key                 |
+| ---------------------------------------------- | -------------------- | -------------------------------------- |
+| 3 child / Child                                | `child`              | `child`                                |
+| 6 friend / Friend                              | `friend`             | `friend`                               |
+| 9 parent / Parent                              | `parent`             | `parent`                               |
+| 14 spouse / Spouse                             | `spouse`             | `spouse`                               |
+| 8 mother / Mother                              | `x-mother`           | `remileduc.github.io:mother`           |
+| 5 father / Father                              | `x-father`           | `remileduc.github.io:father`           |
+| 2 brother / Brother                            | `x-brother`          | `remileduc.github.io:brother`          |
+| 13 sister / Sister                             | `x-sister`           | `remileduc.github.io:sister`           |
+| 4 domestic partner / DOMESTIC_PARTNER (Google) | `x-domestic-partner` | `remileduc.github.io:domestic-partner` |
+| 10 partner / Partner                           | `x-partner`          | `remileduc.github.io:partner`          |
+| 1 assistant / Assistant                        | `x-assistant`        | `remileduc.github.io:assistant`        |
+| 7 manager / Manager                            | `x-manager`          | `remileduc.github.io:manager`          |
+| 11 referred by / REFERRED_BY (Google)          | `x-referred-by`      | `remileduc.github.io:referred-by`      |
+| 12 relative / RELATIVE (Google)                | `kin`                | `kin`                                  |
+| 0 custom / free label                          | `x-custom`           | `{}` + `label`                         |
 
-Every rule records a `warning`/`info` issue so the UI can list what was
-rewritten.
+Issues: every semantic rewrite is an `info` naming the source line and
+`group.NAME`, so the UI can list what changed; a `warning` means the input
+was malformed and a rule could not apply (the property is kept as written).
+Nothing is reported for what the normaliser keeps on purpose (unmapped
+vendor properties, the second BDAY), for dead transport parameters, or for
+padding: those are not changes of meaning, and a Pixel export would
+otherwise drown the useful infos under one `CHARSET dropped` per line.
+A card with several VERSION lines keeps one `VERSION:4.0` (info per extra).
+Issues are capped per code like the parser's, and messages quote values
+through `excerpt`. Rules index groups and candidate ADRs once per card, so
+a 20 000-row card upgrades in well under a second (a test keeps it so).
 
 ### Writer
 
-- Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`). The
-  engine emits `BEGIN:VCARD`, `VERSION`, then properties in model order,
-  then `END:VCARD`, CRLF, no BOM, property names uppercased (Android
-  compares case-sensitively), parameter names uppercased (`TYPE=`, since
-  Google's own iOS export does that and Apple reads it).
+- Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`,
+  contract in `write/syntax.ts`). The engine emits `BEGIN:VCARD`, `VERSION`,
+  then properties in model order (any VERSION property in the model is
+  replaced), then `END:VCARD`, CRLF, no BOM, property and parameter names
+  uppercased (Android compares case-sensitively), `CHARSET`/`ENCODING` from
+  the model never written. The `VALUE` parameter is derived, not copied:
+  absent when the kind is the property's default in the target version
+  (unknown properties default to text), the version's token otherwise; an
+  `unknown` value keeps what was declared, `binary` needs none. It is
+  written first, so the same model gives the same text whether or not it
+  declared one.
 - **3.0 syntax**: `TYPE=a;TYPE=b` repeated (never comma-joined: AOSP 3.0
-  reads both, Apple writes repeated); `PREF` as `TYPE=PREF` (uppercase,
-  AOSP checks case-sensitively); `binary` values as `ENCODING=b;TYPE=JPEG`
-  folded at 75 with leading space and no 4.0 params (iOS drops the card
-  otherwise); escaping `\\ \, \; \n`; no CHARSET; exactly 5 N and 7 ADR
-  components (Apple drops cards when a fold lands in an empty 4.0 tail);
-  `data:` URIs are decoded back to `binary` by the engine.
-- **4.0 syntax**: caret encoding, quoted params, `PREF=n`, 7/18 components,
-  `data:` URIs, `JSCOMPS` etc.
+  reads both, Apple writes repeated) and uppercased except `X-` labels
+  (AOSP uppercases before matching, Android shows custom labels as
+  written); `PREF=1` only as a last `TYPE=PREF` (uppercase, AOSP checks
+  case-sensitively; last is where Apple puts it; any other rank is dropped
+  with a `pref-not-in-30` warning since marking every rank would make them
+  all preferred, and the profile decides which properties carry PREF);
+  `binary` values as `ENCODING=b;TYPE=JPEG`
+  (the legacy word, or the full media type when none exists) folded at 75
+  with leading space; `data:` URIs on PHOTO/LOGO/SOUND/KEY are decoded back
+  to `binary` by the table, `MEDIATYPE` on a media property becomes the
+  `TYPE` word; only `TYPE`, `VALUE`, `LANGUAGE`, `CALSCALE` (Apple writes
+  it on `X-ALTBDAY` in 3.0) and `X-` parameters are written, every other
+  4.0 parameter is dropped with a `param-not-in-30` warning (iOS hides a
+  card whose PHOTO carries one); a parameter value holding a quote or a
+  control character, which RFC 2426 cannot escape, is dropped with a
+  `param-value-not-in-30` warning; exactly 5 N and 7 ADR components (Apple
+  drops cards when a fold lands in an empty 4.0 tail; RFC 9554 says the
+  extra components repeat what the first ones hold; a non-empty extra one
+  is a `components-not-in-30` warning); extended ISO dates and
+  offsets (`1985-04-12`, `-05:00`, a bare `10:22:00` for a time), 3.0
+  `VALUE` tokens `date` / `time` / `date-time` by shape; RFC 6350-only
+  shapes (`--04-12`, truncated times) are written as our parser reads them,
+  phones read none of them and the profile must map them (Apple's
+  `X-APPLE-OMIT-YEAR`); escaping `\\ \, \; \n`; no CHARSET.
+- **4.0 syntax**: caret encoding, quoted params, comma lists, `PREF=n`,
+  components as held (the normaliser pads to 7/18), basic ISO dates,
+  `data:` URIs, `JSCOMPS` etc. passed through.
+- Parameter values are quoted when they hold `;` `:` `,` or start or end
+  with whitespace (readers trim unquoted values); a parameter with no
+  non-empty value is skipped. Names, groups and parameter keys are
+  normalised (upper, lower, upper) once before the tables see them, so a
+  hand-built lowercase key cannot bypass a table; the name grammar is the
+  lexer's. Lone surrogates become U+FFFD. `version`, `foldAt` and
+  `blankLinesBetweenCards` are validated up front (`RangeError`): they
+  come from settings at runtime.
+  Lines always end in CRLF; there is no line-ending option (decision of
+  2026-11-09). Every loss the version forces is a `warning` in `issues`,
+  with the `card` index and `group.NAME`, capped per code like the
+  parser's; 4.0 never raises one.
 - Folding at 75 **octets** via `TextEncoder`, never splitting a UTF-8
   sequence or a `\` escape; base64 valid by construction (invalid base64
-  aborts an entire Android import).
-- `SerializeError` only for programming errors (missing FN, `binary` in 4.0).
+  aborts an entire Android import). Known limit: a `foldAt` shorter than
+  `group.NAME;PARAM` lets a fold land before the first `=`, and the
+  unfolder's N/ADR/ORG tolerance then joins that first line to the
+  property above; impossible at 75 for any real name.
+- `SerializeError` only for what no version can express, always a
+  defect of the caller's model (the input is a card in 4.0 semantics; a
+  parsed 2.1 card must go through `upgradeTo40` first or its escapes are
+  doubled): `binary` in 4.0, a control character a 4.0 parameter cannot
+  caret-encode, a `TYPE` value holding a comma (readers split it even when
+  quoted), a date shape outside the grammar (the formatters' `RangeError`,
+  rethrown), a name outside `[A-Za-z0-9-]`, `BEGIN`/`END` as a property, a
+  line break escaping cannot absorb (URI, raw). It carries the card index
+  and `group.NAME`. A missing FN is not checked here: 2.1 cards legally
+  lack one, and `convert` always builds it.
 
 ### Human-readable output rules
 
@@ -411,8 +556,9 @@ The files are meant to be opened in a text editor as much as in a phone.
 | Fold only lines longer than 75 octets; when a space falls | Folding is mandatory in Apple's reader for PHOTO and expected by the RFC;    |
 | inside the window, break before it (unfold removes the    | short lines are never touched; a `foldAt: 'none'` option exists for          |
 | CRLF + one whitespace, so the text reads naturally)       | people who prefer long lines, off by default                                 |
-| No blank lines between cards                              | Apple's tolerance for garbage between cards is unverified; AOSP 2.1 is fine, |
-|                                                           | not worth the risk                                                           |
+| No blank lines between cards by default;                  | AOSP skips blank lines before `BEGIN:VCARD` in every version; Apple's        |
+| `blankLinesBetweenCards` (0..9) opts in for a reader who  | tolerance for anything between cards is unverified, so the `apple`           |
+| wants to see where one card ends                          | profile must leave it at 0                                                   |
 | `UID`/`REV` written once, at the end, not interleaved     | Easier to skim; both phones ignore or accept them anywhere                   |
 | JSON export: `JSON.stringify(cards, null, 2)` with a      | JSContact says key order is irrelevant; a stable order diffs well in git     |
 | stable key order (`@type`, `version`, `uid`, `name`, …,   | and reads top-down                                                           |
@@ -427,7 +573,9 @@ accepts in any other form.
 - Golden tests: every `fixtures/**/*.vcf` parsed; model compared to a
   reviewed `*.model.json`; `parse → serialize(4.0) → parse` stable for 4.0
   inputs; `parse → upgrade → serialize → parse → upgrade` idempotent for
-  2.1/3.0 inputs.
+  2.1/3.0 inputs (model equality modulo source lines, date spelling, the
+  derived `VALUE` parameter and CRLF inside text; text equality for both
+  versions, our own output re-reads with no new warning).
 - Hostile inputs: 100 MB line, binary garbage, truncated base64, lone
   surrogates, mixed line endings, missing END, nested BEGIN, BOM, UTF-16.
 
@@ -771,6 +919,13 @@ pnpm test && pnpm build` clean, docs updated.
 - Writer engine + 3.0 and 4.0 syntax tables, octet folding, base64
   re-encoding of `data:` for 3.0.
 - Round-trip and idempotence tests. `README.md` with usage.
+- Done 2026-11-09. Known hand-offs to M4/M5: the convert layer must drop
+  a property whose name the parser flagged invalid and a bare `END:` kept
+  as a property (the writer refuses both), surface the writer's 3.0
+  warnings in the profile's loss report, and map for 3.0 what the writer
+  leaves in 4.0 shape:
+  `GEO` as a `geo:` URI (3.0 wants `lat;lon`), `TZ` text, `UID` URIs,
+  yearless and truncated dates.
 
 ### M3. `@vcards-io/jscontact`: types, vendor, validator, utils (medium)
 

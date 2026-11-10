@@ -1,7 +1,15 @@
 export interface FoldOptions {
 	/** Maximum octets per physical line, default 75; "none" never folds. Minimum 5. */
 	foldAt?: number | "none";
-	lineEnding?: "\r\n" | "\n";
+}
+
+/** The width comes from settings at runtime; `foldLine` and `serializeVCards` both check it. */
+export function assertFoldAt(foldAt: number | "none"): void {
+	if (foldAt === "none") return;
+	// 5 = fold space + one 4-octet UTF-8 sequence; below that a line could never make progress.
+	if (!Number.isInteger(foldAt) || foldAt < 5) {
+		throw new RangeError(`foldAt must be "none" or an integer >= 5, got ${foldAt}`);
+	}
 }
 
 const encoder = new TextEncoder();
@@ -14,11 +22,9 @@ const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
  * before a space when one falls inside the window so no line ends with trailing whitespace.
  */
 export function foldLine(line: string, options: FoldOptions = {}): string {
-	const { foldAt = 75, lineEnding = "\r\n" } = options;
+	const { foldAt = 75 } = options;
+	assertFoldAt(foldAt);
 	if (foldAt === "none") return line;
-	// 5 = fold space + one 4-octet UTF-8 sequence; below that a line could never make progress.
-	if (!Number.isInteger(foldAt) || foldAt < 5)
-		throw new RangeError(`foldAt must be >= 5, got ${foldAt}`);
 	const bytes = encoder.encode(line);
 	if (bytes.length <= foldAt) return line;
 
@@ -46,7 +52,7 @@ export function foldLine(line: string, options: FoldOptions = {}): string {
 		segments.push(decoder.decode(bytes.subarray(start, cut)));
 		start = cut;
 	}
-	return segments.join(`${lineEnding} `);
+	return segments.join("\r\n ");
 }
 
 function isWhitespace(byte: number | undefined): boolean {

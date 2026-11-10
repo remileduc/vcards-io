@@ -29,6 +29,11 @@ export function unescapeText(text: string): string {
 	return out;
 }
 
+/** vCard 2.1 inside list splitting (AOSP): backslash, semicolon, comma, colon; anything else stays. */
+export function unescapeText21(text: string): string {
+	return text.replace(/\\([\\;,:])/g, "$1");
+}
+
 /**
  * Splits on every separator not preceded by a backslash. Escapes are kept so each piece
  * can still be unescaped exactly once.

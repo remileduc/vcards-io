@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { buildDataUri, parseDataUri, parseGeoUri, parseTelUri } from "../src/index.js";
+import {
+	buildDataUri,
+	declaredMediaType,
+	parseDataUri,
+	parseGeoUri,
+	parseTelUri,
+} from "../src/index.js";
 
 const text = (b: Uint8Array) => new TextDecoder().decode(b);
 
@@ -109,5 +115,19 @@ describe("geo URIs", () => {
 		expect(parseGeoUri("geo:0,181")).toBeNull();
 		expect(parseGeoUri("geo:37.386013")).toBeNull();
 		expect(parseGeoUri("37.386013;-122.082932")).toBeNull();
+	});
+});
+
+describe("media types", () => {
+	test("declaredMediaType keeps RFC 6350 parameters and rejects what would break a data: URI", () => {
+		expect(declaredMediaType("Image/PNG")).toBe("image/png");
+		expect(declaredMediaType("Application/PGP-Keys; version=1")).toBe(
+			"application/pgp-keys;version=1",
+		);
+		expect(declaredMediaType('text/plain;charset="utf-8"')).toBe('text/plain;charset="utf-8"');
+		expect(declaredMediaType("jpeg")).toBeUndefined();
+		expect(declaredMediaType("a/b;,c")).toBeUndefined();
+		expect(declaredMediaType("a/b;x")).toBeUndefined();
+		expect(declaredMediaType("")).toBeUndefined();
 	});
 });

@@ -1,0 +1,272 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Frank Dawson"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Lotus Development Corporation"
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work",
+							"postal",
+							"parcel"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"6544 Battleford Drive"
+							],
+							[
+								"Raleigh"
+							],
+							[
+								"NC"
+							],
+							[
+								"27613-3502"
+							],
+							[
+								"U.S.A."
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"voice",
+							"msg",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-919-676-9515"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"fax",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-919-676-9564"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet",
+							"pref"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Frank_Dawson@Lotus.com"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "fdawson@earthlink.net"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "http://home.earthlink.net/~fdawson"
+					},
+					"line": 11
+				}
+			]
+		},
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Tim Howes"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Netscape Communications Corp."
+							]
+						]
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"501 E. Middlefield Rd."
+							],
+							[
+								"Mountain View"
+							],
+							[
+								"CA"
+							],
+							[
+								" 94043"
+							],
+							[
+								"U.S.A."
+							]
+						]
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"voice",
+							"msg",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-415-937-3419"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"fax",
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+1-415-528-4164"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "howes@netscape.com"
+					},
+					"line": 21
+				}
+			]
+		}
+	],
+	"issues": []
+}

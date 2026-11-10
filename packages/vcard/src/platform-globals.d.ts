@@ -1,7 +1,8 @@
-// TextEncoder / TextDecoder are WHATWG Encoding globals present in every browser and in Node,
-// but typed only in lib.dom. Declaring the subset used here keeps the library off the DOM lib.
+// Globals every browser and Node provide but TypeScript types only in lib.dom: the WHATWG
+// Encoding classes and HTML's structuredClone. Declaring just these keeps the library off lib.dom.
 declare class TextEncoder {
 	encode(input?: string): Uint8Array;
+	encodeInto(source: string, destination: Uint8Array): { read: number; written: number };
 }
 
 interface TextDecoderOptions {
@@ -15,3 +16,5 @@ declare class TextDecoder {
 	readonly fatal: boolean;
 	decode(input?: ArrayBuffer | ArrayBufferView, options?: { stream?: boolean }): string;
 }
+
+declare function structuredClone<T>(value: T): T;

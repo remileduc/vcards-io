@@ -115,10 +115,10 @@ describe("foldLine", () => {
 		expect(folded.length).toBe(line.length + 3 * Math.ceil((line.length - 75) / 74));
 	});
 
-	test("honours foldAt, lineEnding and 'none'", () => {
+	test("honours foldAt and 'none', always with CRLF", () => {
 		const line = "X".repeat(30);
-		expect(foldLine(line, { foldAt: 10, lineEnding: "\n" })).toBe(
-			`${"X".repeat(10)}\n ${"X".repeat(9)}\n ${"X".repeat(9)}\n XX`,
+		expect(foldLine(line, { foldAt: 10 })).toBe(
+			`${"X".repeat(10)}\r\n ${"X".repeat(9)}\r\n ${"X".repeat(9)}\r\n XX`,
 		);
 		expect(foldLine(line, { foldAt: "none" })).toBe(line);
 	});

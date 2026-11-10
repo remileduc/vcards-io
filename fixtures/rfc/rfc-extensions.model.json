@@ -1,0 +1,400 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jane Doe"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "BIRTHPLACE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Babies'R'Us Hospital"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "BIRTHPLACE",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://example.com/hospitals/babiesrus.vcf"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "BIRTHPLACE",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "geo:46.769307,-71.283079"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "DEATHPLACE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Aboard the Titanic, near Newfoundland"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "DEATHPLACE",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://example.com/ships/titanic.vcf"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "DEATHPLACE",
+					"params": {
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "geo:41.731944,-49.945833"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "DEATHDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1996,
+							"month": 4,
+							"day": 15
+						},
+						"raw": "19960415"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "DEATHDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"month": 4,
+							"day": 15
+						},
+						"raw": "--0415"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "DEATHDATE",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1953,
+							"month": 10,
+							"day": 15,
+							"hour": 23,
+							"minute": 10,
+							"second": 0,
+							"zone": "utc"
+						},
+						"raw": "19531015T231000Z"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "DEATHDATE",
+					"params": {
+						"VALUE": [
+							"text"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "circa 1800"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "EXPERTISE",
+					"params": {
+						"LEVEL": [
+							"beginner"
+						],
+						"INDEX": [
+							"2"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "chinese literature"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "EXPERTISE",
+					"params": {
+						"INDEX": [
+							"1"
+						],
+						"LEVEL": [
+							"expert"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "chemistry"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "HOBBY",
+					"params": {
+						"INDEX": [
+							"1"
+						],
+						"LEVEL": [
+							"high"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "reading"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "HOBBY",
+					"params": {
+						"INDEX": [
+							"2"
+						],
+						"LEVEL": [
+							"high"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "sewing"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "INTEREST",
+					"params": {
+						"INDEX": [
+							"1"
+						],
+						"LEVEL": [
+							"medium"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "r&b music"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "INTEREST",
+					"params": {
+						"INDEX": [
+							"2"
+						],
+						"LEVEL": [
+							"high"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "rock 'n' roll music"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "ORG-DIRECTORY",
+					"params": {
+						"INDEX": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://directory.mycompany.example.com"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "ORG-DIRECTORY",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "ldap://ldap.tech.example/"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "CONTACT-URI",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "https://contact.example.com"
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "CONTACT-URI",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "mailto:contact@example.com"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"CC": [
+							"US"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"54321 Oak St"
+							],
+							[
+								"Reston"
+							],
+							[
+								"VA"
+							],
+							[
+								"20190"
+							],
+							[
+								"USA"
+							]
+						]
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						],
+						"CC": [
+							"US"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"12345 Elm St"
+							],
+							[
+								"Reston"
+							],
+							[
+								"VA"
+							],
+							[
+								"20190"
+							],
+							[
+								"USA"
+							]
+						]
+					},
+					"line": 25
+				}
+			]
+		}
+	],
+	"issues": []
+}

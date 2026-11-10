@@ -1,0 +1,297 @@
+{
+	"cards": [
+		{
+			"version": "3.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "3.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "PRODID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-//Inverse inc.//SOGo Connector 1.0//EN"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "C67C51E2-8A60-0001-38DA-18D01DBF80D0"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"de Cozy"
+							],
+							[
+								"Testé"
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Testé de Cozy"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"CozyCloud"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "CATEGORIES",
+					"params": {},
+					"value": {
+						"kind": "text-list",
+						"values": [
+							"groupe1",
+							"groupe2"
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"4, rue Léon Jouhaux"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"12, rue René Boulanger"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "01 23 45 67 89"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+33612345678"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "X-MOZILLA-HTML",
+					"params": {},
+					"value": {
+						"kind": "unknown",
+						"raw": "FALSE"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "test.decozy@cozycloud.cc"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "testcozy@cozycloud.cc"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1989-02-02"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "46b12,\n3ème étage droite."
+					},
+					"line": 17
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "BEGIN outside BEGIN/END ignored",
+			"line": 19
+		},
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "PRODID outside BEGIN/END ignored",
+			"line": 20
+		},
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "VERSION outside BEGIN/END ignored",
+			"line": 21
+		},
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "UID outside BEGIN/END ignored",
+			"line": 22
+		},
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "FN outside BEGIN/END ignored",
+			"line": 23
+		},
+		{
+			"severity": "warning",
+			"code": "line-outside-card",
+			"message": "END outside BEGIN/END ignored",
+			"line": 24
+		}
+	]
+}

@@ -242,7 +242,8 @@ export function formatDateAndOrTime(value: DateAndOrTime, options: DateFormatOpt
 		return date;
 	}
 	if (zone !== undefined) time += zone === "utc" ? "Z" : formatUtcOffset(zone, { extended });
-	if (date === "") return `T${time}`;
+	// RFC 2426 writes a bare extended time; RFC 6350 and truncated forms need the T prefix.
+	if (date === "") return extended && time.includes(":") ? time : `T${time}`;
 	// A date-time is a complete day followed by a time that starts with the hour.
 	if (day === undefined || hour === undefined) {
 		throw new RangeError(`Date-time ${dateShape}T${timeShape} needs a day and an hour`);

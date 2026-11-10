@@ -1,0 +1,302 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "REV",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 2015,
+							"month": 1,
+							"day": 19,
+							"hour": 9,
+							"minute": 33,
+							"second": 57,
+							"zone": "utc"
+						},
+						"raw": "2015-01-19T09:33:57Z"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"de Cozy"
+							],
+							[
+								"Testé"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Testé de Cozy"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "c01b4a11-b7ab-4223-bd72-cbef2849258d"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"internet"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "testcozy@cozycloud.cc"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						],
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"12, rue René Boulanger"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"4, rue Léon Jouhaux"
+							],
+							[
+								"Paris"
+							],
+							[
+								""
+							],
+							[
+								"75010"
+							],
+							[
+								"France"
+							]
+						]
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "0123456789"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "+33612345678"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Société Cozycloud"
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "19890202"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "46b12,\n3ème étage droite."
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "X-MOZILLA-PROPERTY",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "PopularityIndex;0"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "X-MOZILLA-PROPERTY",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						]
+					},
+					"value": {
+						"kind": "unknown",
+						"raw": "PreferMailFormat;0"
+					},
+					"line": 17
+				}
+			]
+		}
+	],
+	"issues": [
+		{
+			"severity": "warning",
+			"code": "charset-fallback",
+			"message": "Bytes are not valid utf-8, decoded as windows-1252",
+			"line": 14,
+			"property": "NOTE"
+		}
+	]
+}

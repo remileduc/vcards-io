@@ -1,0 +1,845 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 7
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"1.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 16
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"2.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "boss@example.com"
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"1.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"2.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-666-666-6666"
+					},
+					"line": 26
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 27
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 30
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 31
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 32
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 33
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 34
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"2.2"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "ceo@example.com"
+					},
+					"line": 35
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"1.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 36
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"2.2"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-666-666-6666"
+					},
+					"line": 37
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 38
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"2"
+							],
+							[
+								"urn:uuid:1f762d2b-03c4-4a83-9a03-75ff658a6eee"
+							]
+						]
+					},
+					"line": 39
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 42
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 43
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 44
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 45
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 46
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"2.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "boss@example.com"
+					},
+					"line": 47
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"2.2"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "ceo@example.com"
+					},
+					"line": 48
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"1.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 49
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"2.1",
+							"2.2"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-666-666-6666"
+					},
+					"line": 50
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 51
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"2"
+							],
+							[
+								"urn:uuid:1f762d2b-03c4-4a83-9a03-75ff658a6eee"
+							]
+						]
+					},
+					"line": 52
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 55
+				},
+				{
+					"group": null,
+					"name": "UID",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "urn:uuid:4fbe8971-0bc3-424c-9c26-36c3e1eff6b1"
+					},
+					"line": 56
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "J. Doe"
+					},
+					"line": 57
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Doe"
+							],
+							[
+								"J."
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 58
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"1.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "jdoe@example.com"
+					},
+					"line": 59
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"2.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "boss@example.com"
+					},
+					"line": 60
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"PID": [
+							"3.1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "ceo@example.com"
+					},
+					"line": 61
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"1.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-555-555-5555"
+					},
+					"line": 62
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"PID": [
+							"2.1"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-666-666-6666"
+					},
+					"line": 63
+				},
+				{
+					"group": null,
+					"name": "CLIENTPIDMAP",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"1"
+							],
+							[
+								"urn:uuid:53e374d9-337e-4727-8803-a1e9c14e0556"
+							]
+						]
+					},
+					"line": 64
+				}
+			]
+		}
+	],
+	"issues": []
+}

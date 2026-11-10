@@ -1,0 +1,44 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Pittsburgh Pirates"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "GEO",
+					"params": {
+						"X-ADDRESS": [
+							"Pittsburgh Pirates\n115 Federal St\nPittsburgh, PA 15212"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "geo:40.446816,-80.00566"
+					},
+					"line": 4
+				}
+			]
+		}
+	],
+	"issues": []
+}

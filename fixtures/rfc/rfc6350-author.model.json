@@ -1,0 +1,300 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Simon Perreault"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Perreault"
+							],
+							[
+								"Simon"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"ing. jr",
+								"M.Sc."
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"month": 2,
+							"day": 3
+						},
+						"raw": "--0203"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "ANNIVERSARY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 2009,
+							"month": 8,
+							"day": 8,
+							"hour": 14,
+							"minute": 30,
+							"zone": {
+								"sign": -1,
+								"hours": 5,
+								"minutes": 0
+							}
+						},
+						"raw": "20090808T1430-0500"
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "GENDER",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"M"
+							]
+						]
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "LANG",
+					"params": {
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "language-tag",
+						"value": "fr"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "LANG",
+					"params": {
+						"PREF": [
+							"2"
+						]
+					},
+					"value": {
+						"kind": "language-tag",
+						"value": "en"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Viagenie"
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								"Suite D2-630"
+							],
+							[
+								"2875 Laurier"
+							],
+							[
+								"Quebec"
+							],
+							[
+								"QC"
+							],
+							[
+								"G1V 2M2"
+							],
+							[
+								"Canada"
+							]
+						]
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"VALUE": [
+							"uri"
+						],
+						"TYPE": [
+							"work",
+							"voice"
+						],
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-418-656-9254;ext=102"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"VALUE": [
+							"uri"
+						],
+						"TYPE": [
+							"work",
+							"cell",
+							"voice",
+							"video",
+							"text"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "tel:+1-418-262-6501"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "simon.perreault@viagenie.ca"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "GEO",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "geo:46.772673,-71.282945"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "KEY",
+					"params": {
+						"TYPE": [
+							"work"
+						],
+						"VALUE": [
+							"uri"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://www.viagenie.ca/simon.perreault/simon.asc"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "TZ",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "-0500"
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "URL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "http://nomis80.org"
+					},
+					"line": 20
+				}
+			]
+		}
+	],
+	"issues": []
+}

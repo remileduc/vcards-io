@@ -1,0 +1,559 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "John Quinlan Public"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"GEO": [
+							"geo:12.3457,78.910"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								"U.S.A"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123"
+							],
+							[
+								"Main Street"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Public"
+							],
+							[
+								"John"
+							],
+							[
+								"Quinlan"
+							],
+							[
+								"Mr."
+							],
+							[
+								"Esq."
+							]
+						]
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Stevenson"
+							],
+							[
+								"John"
+							],
+							[
+								"Philip",
+								"Paul"
+							],
+							[
+								"Dr."
+							],
+							[
+								"Jr.",
+								"M.D.",
+								"A.C.P."
+							],
+							[
+								""
+							],
+							[
+								"Jr."
+							]
+						]
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "CREATED",
+					"params": {},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 2022,
+							"month": 7,
+							"day": 5,
+							"hour": 9,
+							"minute": 34,
+							"second": 12,
+							"zone": "utc"
+						},
+						"raw": "20220705T093412Z"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "CREATED",
+					"params": {
+						"VALUE": [
+							"TIMESTAMP"
+						]
+					},
+					"value": {
+						"kind": "timestamp",
+						"value": {
+							"year": 2021,
+							"month": 10,
+							"day": 22,
+							"hour": 14,
+							"minute": 0,
+							"second": 0,
+							"zone": {
+								"sign": -1,
+								"hours": 5,
+								"minutes": 0
+							}
+						},
+						"raw": "20211022T140000-05"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "GRAMGENDER",
+					"params": {
+						"LANGUAGE": [
+							"de"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "feminine"
+					},
+					"line": 11
+				},
+				{
+					"group": null,
+					"name": "LANGUAGE",
+					"params": {},
+					"value": {
+						"kind": "language-tag",
+						"value": "de-AT"
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "PRONOUNS",
+					"params": {
+						"LANGUAGE": [
+							"en"
+						],
+						"PREF": [
+							"1"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "xe/xir"
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "PRONOUNS",
+					"params": {
+						"LANGUAGE": [
+							"en"
+						],
+						"PREF": [
+							"2"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "they/them"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "SOCIALPROFILE",
+					"params": {
+						"SERVICE-TYPE": [
+							"Mastodon"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "https://example.com/@foo"
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "SOCIALPROFILE",
+					"params": {},
+					"value": {
+						"kind": "uri",
+						"value": "https://example.com/ietf"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "SOCIALPROFILE",
+					"params": {
+						"SERVICE-TYPE": [
+							"SomeSite"
+						],
+						"VALUE": [
+							"text"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "peter94"
+					},
+					"line": 17
+				},
+				{
+					"group": null,
+					"name": "SOCIALPROFILE",
+					"params": {
+						"USERNAME": [
+							"The Foo"
+						]
+					},
+					"value": {
+						"kind": "uri",
+						"value": "https://example.com/@foo"
+					},
+					"line": 18
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"AUTHOR": [
+							"mailto:john@example.com"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "This is some note."
+					},
+					"line": 19
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"AUTHOR-NAME": [
+							"_:l33tHckr:_"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "A note by an unusual author name."
+					},
+					"line": 20
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {
+						"CREATED": [
+							"20221122T151823Z"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "This is some note."
+					},
+					"line": 21
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								"John"
+							],
+							[
+								"Quinlan"
+							],
+							[
+								"Mr."
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 22
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"DERIVED": [
+							"TRUE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Mr. John Quinlan"
+					},
+					"line": 23
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"LANGUAGE": [
+							"zh-Hant"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"孫"
+							],
+							[
+								"中山"
+							],
+							[
+								"文",
+								"逸仙"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 24
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"ALTID": [
+							"1"
+						],
+						"PHONETIC": [
+							"jyut"
+						],
+						"SCRIPT": [
+							"Latn"
+						],
+						"LANGUAGE": [
+							"yue"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"syun1"
+							],
+							[
+								"zung1saan1"
+							],
+							[
+								"man4",
+								"jat6sin1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 25
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"billing"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								"U.S.A."
+							]
+						]
+					},
+					"line": 27
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"delivery"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"123 Main Street"
+							],
+							[
+								"Any Town"
+							],
+							[
+								"CA"
+							],
+							[
+								"91921-1234"
+							],
+							[
+								"U.S.A."
+							]
+						]
+					},
+					"line": 28
+				}
+			]
+		}
+	],
+	"issues": []
+}

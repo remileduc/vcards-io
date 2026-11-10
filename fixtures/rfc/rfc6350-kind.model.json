@@ -1,0 +1,115 @@
+{
+	"cards": [
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "KIND",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "individual"
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Jane Doe"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"ABC, Inc."
+							],
+							[
+								"North American Division"
+							],
+							[
+								"Marketing"
+							]
+						]
+					},
+					"line": 5
+				}
+			]
+		},
+		{
+			"version": "4.0",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "4.0"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "KIND",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "org"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "ABC Marketing"
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"ABC, Inc."
+							],
+							[
+								"North American Division"
+							],
+							[
+								"Marketing"
+							]
+						]
+					},
+					"line": 11
+				}
+			]
+		}
+	],
+	"issues": []
+}

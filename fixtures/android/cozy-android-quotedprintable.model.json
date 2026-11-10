@@ -1,0 +1,430 @@
+{
+	"cards": [
+		{
+			"version": "2.1",
+			"properties": [
+				{
+					"group": null,
+					"name": "VERSION",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "2.1"
+					},
+					"line": 2
+				},
+				{
+					"group": null,
+					"name": "N",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"de Cozy"
+							],
+							[
+								"Testé"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 3
+				},
+				{
+					"group": null,
+					"name": "FN",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Testé de Cozy"
+					},
+					"line": 4
+				},
+				{
+					"group": null,
+					"name": "NOTE",
+					"params": {},
+					"value": {
+						"kind": "text",
+						"value": "Something"
+					},
+					"line": 5
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/nickname"
+							],
+							[
+								"Cozypseudo"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 6
+				},
+				{
+					"group": null,
+					"name": "TEL",
+					"params": {
+						"TYPE": [
+							"cell"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "060-000-0000"
+					},
+					"line": 7
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"work"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest@cozycloud.cc"
+					},
+					"line": 8
+				},
+				{
+					"group": null,
+					"name": "EMAIL",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "cozytest2@cozycloud.cc"
+					},
+					"line": 9
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						],
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"1, rue Accentuée 75010 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 10
+				},
+				{
+					"group": null,
+					"name": "ADR",
+					"params": {
+						"TYPE": [
+							"home"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								"2 Sample Adress 75001 Paris"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 12
+				},
+				{
+					"group": null,
+					"name": "ORG",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"Société Cozycloud"
+							]
+						]
+					},
+					"line": 13
+				},
+				{
+					"group": null,
+					"name": "TITLE",
+					"params": {
+						"CHARSET": [
+							"UTF-8"
+						],
+						"ENCODING": [
+							"QUOTED-PRINTABLE"
+						]
+					},
+					"value": {
+						"kind": "text",
+						"value": "Tésteur Fou"
+					},
+					"line": 14
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/contact_event"
+							],
+							[
+								"2013-01-01"
+							],
+							[
+								"0"
+							],
+							[
+								"Date Perso"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 15
+				},
+				{
+					"group": null,
+					"name": "BDAY",
+					"params": {},
+					"value": {
+						"kind": "date-and-or-time",
+						"value": {
+							"year": 1989,
+							"month": 2,
+							"day": 2
+						},
+						"raw": "1989-02-02"
+					},
+					"line": 16
+				},
+				{
+					"group": null,
+					"name": "X-ANDROID-CUSTOM",
+					"params": {},
+					"value": {
+						"kind": "structured",
+						"components": [
+							[
+								"vnd.android.cursor.item/relation"
+							],
+							[
+								"Cozypouet"
+							],
+							[
+								"1"
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							],
+							[
+								""
+							]
+						]
+					},
+					"line": 17
+				}
+			]
+		}
+	],
+	"issues": []
+}

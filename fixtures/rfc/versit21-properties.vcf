@@ -1,0 +1,76 @@
+BEGIN:VCARD
+VERSION:2.1
+TEL;HOME:+1-919-555-1234
+NOTE;ENCODING=QUOTED-PRINTABLE:Don't remember to order Girl=
+  Scout cookies from Stacey today!
+NOTE;QUOTED-PRINTABLE:Don't remember to order Girl=
+  Scout cookies from Stacey today!
+NOTE:This is a very long description that exists on a long line.
+NOTE:This is a very long description 
+  that exists on a long line.
+LABEL;ENCODING=QUOTED-PRINTABLE:123 Winding Way=0D=0A=
+  Any Town, CA 12345=0D=0A=
+  USA
+A.TEL;HOME:+1-213-555-1234
+A.NOTE:This is my vacation home.
+PHOTO;VALUE=URL;TYPE=GIF:http://www.abc.com/dir_photos/my_photo.gif
+SOUND;VALUE=CONTENT-ID:<jsmith.part3.960817T083000.xyzMail@host1.com
+FN:Mr. John Q. Public, Esq.
+N:Public;John;Quinlan;Mr.;Esq.
+N:Veni, Vidi, Vici;The Restaurant.
+PHOTO;VALUE=URL:file:///jqpublic.gif
+PHOTO;ENCODING=BASE64;TYPE=GIF:
+    R0lGODdhfgA4AOYAAAAAAK+vr62trVIxa6WlpZ+fnzEpCEpzlAha/0Kc74+PjyGM
+    SuecKRhrtX9/fzExORBSjCEYCGtra2NjYyF7nDGE50JrhAg51qWtOTl7vee1MWu1
+    50o5e3PO/3sxcwAx/4R7GBgQOcDAwFoAQt61hJyMGHuUSpRKIf8A/wAY54yMjHtz
+BDAY:19950415
+BDAY:1995-04-15
+ADR;DOM;HOME:P.O. Box 101;Suite 101;123 Main Street;Any Town;CA;91921-1234;
+ADR;DOM;WORK;HOME;POSTAL:P.O. Box 101;;;Any Town;CA;91921-1234;
+LABEL;DOM;POSTAL;ENCODING=QUOTED-PRINTABLE:P. O. Box 456=0D=0A=
+123 Main Street=0D=0A=
+Any Town, CA 91921-1234
+LABEL;INTL;PARCEL,ENCODING=QUOTED-PRINTABLE:Suite 101=0D=0A=
+123 Main Street=0D=0A=
+Any Town, CA 91921-1234=0D=0A=
+U.S.A.
+LABEL;DOM;HOME,ENCODING=QUOTED-PRINTABLE:Suite 101=0D=0A=
+123 Main Street=0D=0A=
+Any Town, CA 91921-1234
+TEL;PREF;WORK;MSG;FAX:+1-800-555-1234
+TEL;WORK;HOME;VOICE;FAX:+1-800-555-1234
+EMAIL;INTERNET:john.public@abc.com
+MAILER:ccMail 2.2
+TZ:-0500
+TZ:-08:00
+GEO:37.24,-17.87
+TITLE:V.P., Research and Development
+ROLE:Executive
+LOGO;ENCODING=BASE64;TYPE=GIF:
+    R0lGODdhfgA4AOYAAAAAAK+vr62trVIxa6WlpZ+fnzEpCEpzlAha/0Kc74+PjyGM
+    SuecKRhrtX9/fzExORBSjCEYCGtra2NjYyF7nDGE50JrhAg51qWtOTl7vee1MWu1
+    50o5e3PO/3sxcwAx/4R7GBgQOcDAwFoAQt61hJyMGHuUSpRKIf8A/wAY54yMjHtz
+AGENT:
+BEGIN:VCARD
+VERSION:2.1
+N:Friday;Fred
+TEL;WORK;VOICE:+1-213-555-1234
+TEL;WORK;FAX:+1-213-555-5678
+END:VCARD
+ORG:ABC, Inc.;North American Division;Marketing
+NOTE;ENCODING=QUOTED-PRINTABLE:This facsimile machine if operational=
+ 0830 to 1715 hours=0D=0A=
+Monday through Friday. Call +1-213-555-1234 if you have problems=0D=0A=
+with access to the machine.
+REV:19951031T222710
+REV:1995-10-31T22:27:10Z
+SOUND:JON Q PUBLIK
+SOUND;VALUE=URL:file///multimed/audio/jqpublic.wav
+SOUND;WAVE;BASE64:
+    UklGRhAsAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YesrAACAg4eC
+    eXR4e3uAhoiIiYmKjIiDfnx5eX6CgoKEhYWDenV5fH6BhISGiIiDfHZ2eXt/hIiK
+    jY2IhH12d3Vyc3uDiIiFf3l7fn18eXl+houFf319fnyAgHl5eoCIiISChIeAfnt2
+URL:http://abc.com/pub/directory/northam/jpublic.ecd
+UID:19950401-080045-40000F192713-0052
+X-ABC-VIDEO;MPEG2:http://lonestar.bubbas.org/billibob.mpg
+END:VCARD

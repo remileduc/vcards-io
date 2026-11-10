@@ -4,12 +4,17 @@
  */
 export const VERSION = "0.1.0";
 
+export { parseVCards } from "./parse/parser.js";
 export {
 	type Cardinality,
 	COMMON_PARAMS,
 	defaultValueKind,
+	isMediaProperty,
+	nearestValueKind,
 	PROPERTY_REGISTRY,
 	type PropertySpec,
+	TEXT_FAMILY,
+	VALUE_TOKENS,
 } from "./registry.js";
 export { decodeBase64, encodeBase64 } from "./text/base64.js";
 export { caretDecode, caretEncode } from "./text/caret.js";
@@ -22,6 +27,13 @@ export {
 } from "./text/quoted-printable.js";
 export type * from "./types.js";
 export {
+	RELATION_TYPES,
+	type RelationType,
+	relationTypeForAndroid,
+	relationTypeForLabel,
+} from "./upgrade/relations.js";
+export { type UpgradeOptions, type UpgradeResult, upgradeTo40 } from "./upgrade/upgrade.js";
+export {
 	type DateFormatOptions,
 	formatDateAndOrTime,
 	formatTimestamp,
@@ -32,6 +44,12 @@ export {
 } from "./values/date.js";
 export { guessImageType, type ImageType } from "./values/image.js";
 export {
+	declaredMediaType,
+	MEDIA_TYPE_NAMES,
+	mediaTypeFromName,
+	mediaTypeName,
+} from "./values/media.js";
+export {
 	buildDataUri,
 	type DataUri,
 	type GeoUri,
@@ -39,4 +57,7 @@ export {
 	parseGeoUri,
 	parseTelUri,
 	type TelUri,
+	URI_SCHEME,
 } from "./values/uri.js";
+export { serializeVCards } from "./write/engine.js";
+export { SerializeError } from "./write/error.js";
