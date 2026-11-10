@@ -96,6 +96,7 @@ pnpm test        # vitest
 pnpm build       # libraries (tsc) then the app (vite)
 pnpm dev         # vite dev server, http://localhost:5173/vcards-io/
 pnpm preview     # serve the production build
+pnpm repl        # node REPL
 ```
 
 Licence: MIT.
