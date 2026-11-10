@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "pnpm --filter web run dev",
     "preview": "pnpm --filter web run preview",
+    "repl": "TSX_TSCONFIG_PATH=tsconfig.base.json node --import tsx",
     "build": "pnpm -r --filter './packages/**' run build && pnpm --filter web run build",
     "typecheck": "pnpm -r run typecheck",
     "test": "vitest run",
@@ -24,11 +25,12 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@biomejs/biome": "^2.6.4",
+    "@biomejs/biome": "^2.6.6",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
     "fast-check": "^4.10.2",
     "publint": "^0.3.25",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"
   }
