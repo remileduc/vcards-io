@@ -1,5 +1,5 @@
 import type { Issue } from "../types.js";
-import { discardIssues, latin1 } from "./issues.js";
+import { discardIssues, error, latin1, warn } from "./issues.js";
 import { lexContentLine } from "./lexer.js";
 
 export const DEFAULT_MAX_LINE_LENGTH = 1024 * 1024;
@@ -60,16 +60,17 @@ export function readLogicalLines(
 		if (segment.length > maxLineLength) {
 			// A truncated value must not pass as complete: the line it continues goes with it.
 			const continues = pending.open && pending.joins(segment, indented) !== null;
-			issues.push({
-				severity: "error",
-				code: "line-too-long",
-				message: `Line of ${segment.length} bytes exceeds the ${maxLineLength} byte limit and was dropped${
-					continues
-						? `, with the ${pending.name || "unnamed"} line ${pending.line} it continues`
-						: ""
-				}`,
-				line,
-			});
+			issues.push(
+				error(
+					"line-too-long",
+					`Line of ${segment.length} bytes exceeds the ${maxLineLength} byte limit and was dropped${
+						continues
+							? `, with the ${pending.name || "unnamed"} line ${pending.line} it continues`
+							: ""
+					}`,
+					line,
+				),
+			);
 			if (continues) pending.discard();
 			else flush();
 			dropping = true;
@@ -82,12 +83,13 @@ export function readLogicalLines(
 			if (join !== null) {
 				if (join === "soft-break") pending.takeSoftBreak();
 				if (join === "unindented") {
-					issues.push({
-						severity: "warning",
-						code: "unindented-continuation",
-						message: `Line without ":" joined to the ${pending.name} above it`,
-						line,
-					});
+					issues.push(
+						warn(
+							"unindented-continuation",
+							`Line without ":" joined to the ${pending.name} above it`,
+							line,
+						),
+					);
 				}
 				pending.append(join === "fold" ? segment.subarray(1) : segment);
 				return;
@@ -97,13 +99,14 @@ export function readLogicalLines(
 				pending.takeSoftBreak() &&
 				segment.length > 0
 			) {
-				issues.push({
-					severity: "warning",
-					code: "qp-soft-break-dangling",
-					message:
+				// On the line holding the "=", not the delimiter's: that one may open another card.
+				issues.push(
+					warn(
+						"qp-soft-break-dangling",
 						"Quoted-printable soft break followed by a card delimiter, value ended",
-					line,
-				});
+						line - 1,
+					),
+				);
 			}
 		}
 		flush();

@@ -1,4 +1,5 @@
 import type { Issue } from "../types.js";
+import { error, info } from "./issues.js";
 
 export const DEFAULT_MAX_INPUT_BYTES = 64 * 1024 * 1024;
 
@@ -39,7 +40,7 @@ export function toUtf8Bytes(
 	const b1 = bytes[1] ?? 0;
 	if (b0 === 0xef && b1 === 0xbb && bytes[2] === 0xbf) {
 		bytes = bytes.subarray(3);
-		issues.push({ severity: "info", code: "bom-stripped", message: "UTF-8 BOM removed" });
+		issues.push(info("bom-stripped", "UTF-8 BOM removed"));
 		return { bytes, transcoded, issues };
 	}
 	// A BOM-less file is recognised by the "B" of BEGIN, in either case like the delimiter itself.
@@ -54,20 +55,15 @@ export function toUtf8Bytes(
 		bytes = encodeCapped(new TextDecoder(utf16).decode(bytes), maxInputBytes);
 		transcoded = true;
 		if (bytes === null) return { bytes: new Uint8Array(0), transcoded, issues: [tooLarge()] };
-		issues.push({
-			severity: "info",
-			code: "utf16-transcoded",
-			message: `Input was ${utf16}, transcoded to UTF-8`,
-		});
+		issues.push(info("utf16-transcoded", `Input was ${utf16}, transcoded to UTF-8`));
 	}
 	return { bytes, transcoded, issues };
 
 	function tooLarge(): Issue {
-		return {
-			severity: "error",
-			code: "input-too-large",
-			message: `Input exceeds the ${maxInputBytes} byte limit, nothing parsed`,
-		};
+		return error(
+			"input-too-large",
+			`Input exceeds the ${maxInputBytes} byte limit, nothing parsed`,
+		);
 	}
 }
 

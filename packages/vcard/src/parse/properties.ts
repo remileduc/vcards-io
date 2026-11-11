@@ -1,3 +1,4 @@
+import type { ParseIssueCode } from "../issue-codes.js";
 import { defaultValueKind, isMediaProperty, PROPERTY_REGISTRY, TEXT_FAMILY } from "../registry.js";
 import { decodeBase64 } from "../text/base64.js";
 import { caretDecode } from "../text/caret.js";
@@ -233,7 +234,7 @@ class Context {
 		this.property = raw.group === null ? raw.name : `${raw.group}.${raw.name}`;
 	}
 
-	report(severity: IssueSeverity, code: string, message: string): void {
+	report(severity: IssueSeverity, code: ParseIssueCode, message: string): void {
 		this.issues.push(issue(severity, code, message, this.line, this.property));
 	}
 }
@@ -337,7 +338,7 @@ function typeValue(text: string, kind: VValueKind, params: VParams, ctx: Context
 		case "utc-offset": {
 			const offset = parseUtcOffset(text.trim());
 			if (offset === null) return invalid(text, kind, ctx);
-			return { kind, ...offset };
+			return { kind, value: offset };
 		}
 		case "language-tag": {
 			const tag = text.trim();

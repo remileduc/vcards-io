@@ -40,10 +40,6 @@ describe("every fixture upgrades to 4.0", () => {
 			expect(first.card.version).toBe("4.0");
 			// Fixtures are well-formed: rules apply or stay silent, nothing is malformed for them.
 			expect(first.issues.filter((i) => i.severity !== "info")).toEqual([]);
-			expect(first.card.properties[0]).toMatchObject({
-				name: "VERSION",
-				value: { value: "4.0" },
-			});
 			for (const p of first.card.properties) {
 				expect(p.value.kind, id(p)).not.toBe("binary");
 				for (const name of ["CHARSET", "ENCODING", "X-SERVICE-TYPE", "X-APPLE-OMIT-YEAR"]) {

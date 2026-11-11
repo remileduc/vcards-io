@@ -1,4 +1,4 @@
-import { excerpt, latin1, warn } from "./issues.js";
+import { excerpt, info, latin1, warn } from "./issues.js";
 import type { IssueSink, LogicalLine } from "./lines.js";
 
 const HTAB = 0x09;
@@ -88,12 +88,13 @@ export function lexContentLine(logical: LogicalLine, issues: IssueSink): RawLine
 			for (const word of splitBytes(token.subarray(0, comma), COMMA))
 				params.push(bareParam(word));
 			token = trimBytes(token.subarray(comma + 1));
-			issues.push({
-				severity: "info",
-				code: "param-comma-separator",
-				message: `Comma used as a parameter separator before "${latin1.decode(token)}"`,
-				line,
-			});
+			issues.push(
+				info(
+					"param-comma-separator",
+					`Comma used as a parameter separator before "${latin1.decode(token)}"`,
+					line,
+				),
+			);
 		}
 		if (bytes[i] !== EQUALS) {
 			// "TEL;:" is what AOSP writes for an untyped phone: nothing to report.

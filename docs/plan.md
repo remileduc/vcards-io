@@ -179,7 +179,7 @@ only has to know 4.0; a writer engine with syntax tables for 3.0 and 4.0.
 
 ```ts
 parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): ParseResult
-// ParseResult = { cards: VCard[]; issues: Issue[] }
+// ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card
 // ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number }
 
 upgradeTo40(card: VCard, opts?: { vendor?: boolean }): { card: VCard; issues: Issue[] }
@@ -188,7 +188,7 @@ serializeVCards(cards: VCard[], opts: SerializeOptions): SerializeResult
 //                      blankLinesBetweenCards?: number /* 0..9, default 0 */ }   // CRLF always
 // SerializeResult  = { text: string; issues: Issue[] }   // one warning per loss 3.0 forced, `card` index set
 
-interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved
+interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved; VERSION is `version`, never a property
 interface VProperty {
   group: string | null;           // lowercased ('item1')
   name: string;                   // uppercased ('TEL', 'X-ANDROID-CUSTOM')
@@ -203,12 +203,22 @@ type VValue =
   | { kind: 'uri'; value: string }
   | { kind: 'date-and-or-time'; value: DateAndOrTime; raw: string }
   | { kind: 'timestamp'; value: Timestamp; raw: string }
-  | { kind: 'utc-offset'; sign: 1 | -1; hours: number; minutes: number }
+  | { kind: 'utc-offset'; value: UtcOffset }
   | { kind: 'language-tag' | 'integer' | 'float' | 'boolean'; value: ... }
   | { kind: 'binary'; data: Uint8Array; mediaType?: string } // inline base64 (2.1/3.0); writer re-encodes for 3.0
   | { kind: 'unknown'; raw: string }                          // unparsed, escapes kept
 
-interface Issue { severity: 'error' | 'warning' | 'info'; code: string; message: string; line?: number; property?: string }
+interface Issue<Code extends string = IssueCode> { severity: 'error' | 'warning' | 'info'; code: Code; message: string; line?: number; property?: string; card?: number }
+// IssueCode = the union of four `as const` lists, one per stage, all exported:
+// COMMON_ISSUE_CODES (issues-truncated), PARSE_ISSUE_CODES, UPGRADE_ISSUE_CODES, SERIALIZE_ISSUE_CODES.
+// Every stage reports through helpers typed with its own list (parse: error/warn/info and the
+// decoder's report; upgrade: UpgradeContext; write: Warn), so a typo or another stage's code does
+// not compile there. `issue()`, the builder under them, takes any code and is called nowhere
+// else; a test checks that each code is raised by its own stage's sources and by no other.
+// The app's string table is a Record<IssueCode, string>, so a new code is a major release.
+// `Code` is for @vcards-io/convert, which adds its own list: Issue<IssueCode | ConvertIssueCode>.
+// `card` is the index in ParseResult.cards (parser) or in the `cards` argument (writer);
+// absent on upgradeTo40 issues (one card at a time) and on issues outside any card.
 
 // Every part optional: a date has no hour, a time has no date part, a date-time has both.
 interface DateAndOrTime { year?: number; month?: number; day?: number; hour?: number; minute?: number; second?: number; zone?: UtcOffset | 'utc' }
@@ -216,17 +226,23 @@ interface Timestamp     { year: number; month: number; day: number; hour: number
 interface UtcOffset     { sign: 1 | -1; hours: number; minutes: number }
 ```
 
-Also exported: `escapeText`, `unescapeText`, `splitEscaped` (split on an
-unescaped separator, escapes kept), `foldLine`, `unfoldLines`,
-`caretEncode`/`caretDecode` (RFC 6868), `decodeQuotedPrintable`,
-`encodeQuotedPrintable` (only for tests of 2.1 reading),
+The exports come in two tiers, listed in the package README. The stable
+contract is everything above plus the helpers a consumer of the model
+needs: `escapeText`, `unescapeText`, `splitEscaped` (split on an
+unescaped separator, escapes kept), `foldLine` (there is no public
+unfolder: a plain RFC 6350 one would disagree with the parser's tolerant
+one on 2.1 input), `caretEncode`/`caretDecode` (RFC 6868),
+`decodeQuotedPrintable` (the encoder is a test helper in
+`packages/vcard/test/helpers/`, the library never writes QP),
 `encodeBase64`/`decodeBase64` (`Uint8Array.fromBase64` with fallback;
 whitespace ignored, missing padding accepted, anything else throws
 `SyntaxError`), `parseDateAndOrTime`/`formatDateAndOrTime`,
 `parseTimestamp`/`formatTimestamp` (a date without a time is rejected: the
 caller types it as date-and-or-time and reports), `parseUtcOffset`/
 `formatUtcOffset`, `parseDataUri`/`buildDataUri`, `parseTelUri`,
-`parseGeoUri`, `guessImageType` (magic bytes: JPEG/PNG/GIF/WebP),
+`parseGeoUri`, `guessImageType` (magic bytes: JPEG/PNG/GIF/WebP). The
+second tier exists for the sibling packages and carries no stability
+promise, since these tables follow the registry and the importers:
 `PROPERTY_REGISTRY` (default value type, structure, cardinality, allowed
 params, per version), `defaultValueKind(name, version)` and
 `COMMON_PARAMS` (parameters any property may carry; property-specific ones
@@ -278,8 +294,9 @@ writer as unparseable text.
    lexer of step 4 itself once the unfolder has found the first unquoted
    `:`, with the lexer's own quote rule, so the two never disagree on what a
    line is encoded as.
-   A soft break directly followed by `BEGIN:`/`END:` is not joined (warning),
-   so a truncated value cannot swallow a card delimiter.
+   A soft break directly followed by `BEGIN:`/`END:` is not joined (warning,
+   on the line holding the `=`: the delimiter's line may belong to another
+   card), so a truncated value cannot swallow a card delimiter.
    Unfolding on bytes reassembles multi-byte UTF-8 split by careless writers.
    Physical lines over `maxLineLength` are dropped with an `error`, and so
    are the indented continuations that follow them. When the over-long line
@@ -314,6 +331,19 @@ writer as unparseable text.
    starting with `#` → skipped with an `info` (AOSP treats them as comments).
    VERSION anywhere in the card (2.1/3.0); missing → 2.1 if bare params or
    QP seen, else 3.0, warning. Mixed versions in one file are fine for us.
+   VERSION lines are consumed here and never become properties: the first
+   valid one is `card.version` (a group or parameters on it are dropped
+   with an `info`, `version-extras-dropped`), an unknown or a second one
+   is dropped with a warning. Each card records the line that closed it
+   (its END, a nested BEGIN, or end of input), and once every stage has
+   run, each issue whose line falls inside a card gets that card's index
+   (`Issue.card`). This is done by line range rather than at the source
+   because the line stage reports before cards exist and a line it dropped
+   never reaches this step. One line is in two ranges, a nested BEGIN: it
+   closes a card and opens the next. The range lookup gives it to the card
+   it closed, so this step sets the index itself on the two issues it
+   reports there: `nested-begin` (the card it closed) and
+   `version-missing` (the card it opened).
 6. **Version-aware value decoding.** With the version known:
    - params: decoded with the line's charset, 4.0 caret-decode; TYPE
      values split on `,` even when quoted (RFC 6350 section 8 writes
@@ -465,7 +495,9 @@ Nothing is reported for what the normaliser keeps on purpose (unmapped
 vendor properties, the second BDAY), for dead transport parameters, or for
 padding: those are not changes of meaning, and a Pixel export would
 otherwise drown the useful infos under one `CHARSET dropped` per line.
-A card with several VERSION lines keeps one `VERSION:4.0` (info per extra).
+The version is `card.version`, set to 4.0. The parser never leaves a
+VERSION property; one in a hand-built model is dropped first, with an
+`info` (`version-dropped`), because the writer refuses it.
 Issues are capped per code like the parser's, and messages quote values
 through `excerpt`. Rules index groups and candidate ADRs once per card, so
 a 20 000-row card upgrades in well under a second (a test keeps it so).
@@ -474,8 +506,9 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
 
 - Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`,
   contract in `write/syntax.ts`). The engine emits `BEGIN:VCARD`, `VERSION`,
-  then properties in model order (any VERSION property in the model is
-  replaced), then `END:VCARD`, CRLF, no BOM, property and parameter names
+  then properties in model order (VERSION is the requested version whatever
+  `card.version` says; a VERSION property in a hand-built model is a
+  `SerializeError` like BEGIN and END), then `END:VCARD`, CRLF, no BOM, property and parameter names
   uppercased (Android compares case-sensitively), `CHARSET`/`ENCODING` from
   the model never written. The `VALUE` parameter is derived, not copied:
   absent when the kind is the property's default in the target version
@@ -536,7 +569,8 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
   caret-encode, a `TYPE` value holding a comma (readers split it even when
   quoted), a date shape outside the grammar (the formatters' `RangeError`,
   rethrown), a name outside `[A-Za-z0-9-]`, `BEGIN`/`END` as a property, a
-  line break escaping cannot absorb (URI, raw). It carries the card index
+  line break escaping cannot absorb (URI, raw), a value without the fields
+  of its kind (the `TypeError`, rethrown). It carries the card index
   and `group.NAME`. A missing FN is not checked here: 2.1 cards legally
   lack one, and `convert` always builds it.
 
@@ -668,6 +702,11 @@ jscontactToVCard(card: Card, opts: { profile: 'android' | 'apple' | 'rfc'; prodI
 // Convenience chain used by the app:
 importVCards(input: string | Uint8Array, opts?): { cards: Card[]; issues: Issue[] }   // parse → upgradeTo40 → convert
 exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] }    // convert(profile) → serialize(version)
+// Here Issue = Issue<IssueCode | ConvertIssueCode> from @vcards-io/vcard: the package exports its
+// own CONVERT_ISSUE_CODES list (profile losses, mapping fallbacks) and never adds to the vcard lists.
+// importVCards / exportVCards set `card` on every issue of a card, upgrade and convert ones
+// included (those stages take one card and set none); it is the index in the returned `cards`
+// on import and in the `cards` argument on export.
 ```
 
 ### vCard → JSContact algorithm
@@ -726,7 +765,7 @@ exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] 
      `DERIVED=true` → skipped with an info issue; `VALUE` never copied;
      unknown params → `vCardParams`.
    - Several FN without LANGUAGE: keep the one with the fewest params.
-6. **Fallback**: anything unmapped (VERSION, XML, CLIENTPIDMAP, GENDER,
+6. **Fallback**: anything unmapped (XML, CLIENTPIDMAP, GENDER,
    X-ANDROID-CUSTOM leftovers, X-PHONETIC-_, X-MS-_, X-*, cardinality
    overflow) → `vCardProps` as jCard with group kept in the `group` param.
 7. **JSPROP**: collect, build one PatchObject, validate, apply last.
@@ -781,7 +820,11 @@ Shared rules: emitters produce the canonical readable property order (see
 ordered join, else `cardDisplayName`, with `DERIVED=TRUE` in `rfc`);
 `localizations` → ALTID + LANGUAGE in `rfc` only. Each profile returns the
 list of _losses_ as `info` issues so the export dialog can show "what this
-phone will not get back" before the file is written.
+phone will not get back" before the file is written. A `vCardProps`
+entry named BEGIN, END or VERSION is never emitted, in any profile, and
+is reported with a warning: the JSON is hostile input, the writer throws
+a `SerializeError` on those names, and one entry must not abort the
+export of every card.
 
 The Android and Apple emitters are compatible with each other's importers
 in practice (each ignores the other's `X-` properties), so a later

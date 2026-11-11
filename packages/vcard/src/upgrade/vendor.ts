@@ -264,7 +264,11 @@ function twitterToSocialProfile(p: VProperty, ctx: UpgradeContext): VProperty | 
 	if (handle === undefined) return undefined;
 	const social = derive(p, "SOCIALPROFILE", { kind: "text", value: handle });
 	social.params.set("SERVICE-TYPE", ["Twitter"]);
-	ctx.info("legacy-im-to-impp", "X-TWITTER rewritten as SOCIALPROFILE;SERVICE-TYPE=Twitter", p);
+	ctx.info(
+		"legacy-im-to-socialprofile",
+		"X-TWITTER rewritten as SOCIALPROFILE;SERVICE-TYPE=Twitter",
+		p,
+	);
 	return social;
 }
 
@@ -273,7 +277,7 @@ function skypeNumberToTel(p: VProperty, ctx: UpgradeContext): VProperty | undefi
 	if (handle === undefined) return undefined;
 	const tel = derive(p, "TEL", { kind: "text", value: handle });
 	addType(tel, "x-skype");
-	ctx.info("legacy-im-to-impp", "X-SKYPE-PSTNNUMBER rewritten as TEL;TYPE=x-skype", p);
+	ctx.info("legacy-im-to-tel", "X-SKYPE-PSTNNUMBER rewritten as TEL;TYPE=x-skype", p);
 	return tel;
 }
 

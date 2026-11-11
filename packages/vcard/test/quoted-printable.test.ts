@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { decodeQuotedPrintable, encodeQuotedPrintable } from "../src/index.js";
+import { decodeQuotedPrintable } from "../src/index.js";
+import { encodeQuotedPrintable } from "./helpers/quoted-printable.js";
 
 const utf8 = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);

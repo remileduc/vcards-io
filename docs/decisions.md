@@ -394,3 +394,64 @@ profile must not; the `rfc` profile stays at 0 because neither RFC 2426
 nor RFC 6350 has a blank line between entities in its grammar. Our own
 parser drops empty physical lines before it looks for a property, so the
 spaced output re-reads to the same cards with no issue.
+
+2026-11-11 Public API of the vcard package settled before 0.1.0
+---------------------------------------------------------------
+
+Everything exported becomes a semver promise once 0.1.0 ships, so seven
+things changed while they still could. `Issue.code` is the `IssueCode` union
+built from four exported `as const` lists (`COMMON_ISSUE_CODES` for
+`issues-truncated`, then one per stage: parse, upgrade, serialize); every
+stage reports through helpers that accept only its own list, so a typo no
+longer compiles, a test checks that every listed code is raised by a helper
+call in its own stage's sources and in no other stage's, and the app can map
+codes to translated text with a `Record<IssueCode, string>` instead of
+showing the English `message`. That table is the reason a new code is a
+major release: a complete `Record` stops compiling when the union grows.
+`Issue` takes the code type as a parameter defaulting to `IssueCode`, so
+`@vcards-io/convert` returns the same shape with its own list added and
+never has to touch this package's lists. Two rewrites that shared
+`legacy-im-to-impp` without producing an IMPP got their own codes,
+`legacy-im-to-socialprofile` (X-TWITTER) and `legacy-im-to-tel`
+(X-SKYPE-PSTNNUMBER). Parse issues now carry `card`, the index in
+`ParseResult.cards`: it is assigned at the end by line range (each card
+knows the line that closed it) rather than where the issue is raised,
+because the line stage runs before cards exist and an over-long line it
+drops never reaches the grouper; issues outside a card and whole-input ones
+(BOM, size cap) have none. A nested BEGIN line is the one line in two
+ranges, so the grouper sets the index itself on what it reports there:
+`nested-begin` under the card it closed, `version-missing` under the card it
+opened. For the same reason `qp-soft-break-dangling` is reported on the line
+holding the `=` and not on the delimiter after it, which may open another
+card or follow a line outside any card. The `utc-offset` value nests its
+fields as `{ kind, value: UtcOffset }` like the two date kinds, which
+removes the structural-typing accident the writer relied on; a value in the
+old flat shape, or any value without the fields of its kind, is a
+`SerializeError` naming the card and the property (the writer rethrows the
+`TypeError`). `encodeQuotedPrintable` left the package for
+`packages/vcard/test/helpers/`: it only ever built 2.1 test input and the
+project never writes QP. `unfoldLines` is gone: it was a plain RFC 6350
+unfolder nothing used, and it disagreed with the parser's tolerant one (no
+QP soft breaks, no unindented base64), so a consumer running it on a 2.1
+file got different lines than `parseVCards`. VERSION is no longer a
+property: `card.version` is the only copy, the grouper consumes VERSION
+lines (an unknown or a second one is still a `version-unknown` /
+`version-duplicate` warning, since the line is dropped), `upgradeTo40` sets
+the field, and the writer treats a VERSION property in a hand-built model as
+a `SerializeError` like BEGIN and END instead of skipping it, because
+writing it would give the card two VERSION lines. So that a model which went
+through the normaliser can always be written, `upgradeTo40` drops such a
+property with an `info` (`version-dropped`, which no longer means a
+collapsed duplicate). The export path does not run the normaliser, so
+`jscontactToVCard` must refuse BEGIN, END and VERSION entries of
+`vCardProps` itself (docs/plan.md, profiles). The `VERSION` entry of
+`PROPERTY_REGISTRY` went too: the registry describes what `properties` can
+hold, and its cardinality of exactly one would fail every card. The price,
+accepted: the VERSION line number is lost, an unknown `VERSION:5.0` line is
+not kept anywhere, and a group or parameters on the VERSION line are dropped
+with an `info` (`version-extras-dropped`).
+Finally the README states which exports are the stable contract (pipeline,
+model types, issue codes, text and value helpers) and which exist for the
+sibling packages with no stability promise (`PROPERTY_REGISTRY` and its
+lookups, `COMMON_PARAMS`, `TEXT_FAMILY`, `VALUE_TOKENS`, the media word
+tables, `declaredMediaType`, the relation table, `URI_SCHEME`).

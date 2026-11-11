@@ -4,34 +4,26 @@
  */
 export const VERSION = "0.1.0";
 
-export { parseVCards } from "./parse/parser.js";
+// Stable contract: a breaking change here is a semver major (README, "Exports").
+
 export {
-	type Cardinality,
-	COMMON_PARAMS,
-	defaultValueKind,
-	isMediaProperty,
-	nearestValueKind,
-	PROPERTY_REGISTRY,
-	type PropertySpec,
-	TEXT_FAMILY,
-	VALUE_TOKENS,
-} from "./registry.js";
+	COMMON_ISSUE_CODES,
+	type CommonIssueCode,
+	type IssueCode,
+	PARSE_ISSUE_CODES,
+	type ParseIssueCode,
+	SERIALIZE_ISSUE_CODES,
+	type SerializeIssueCode,
+	UPGRADE_ISSUE_CODES,
+	type UpgradeIssueCode,
+} from "./issue-codes.js";
+export { parseVCards } from "./parse/parser.js";
 export { decodeBase64, encodeBase64 } from "./text/base64.js";
 export { caretDecode, caretEncode } from "./text/caret.js";
 export { escapeText, splitEscaped, unescapeText } from "./text/escape.js";
-export { type FoldOptions, foldLine, unfoldLines } from "./text/fold.js";
-export {
-	decodeQuotedPrintable,
-	encodeQuotedPrintable,
-	type QuotedPrintableOptions,
-} from "./text/quoted-printable.js";
+export { type FoldOptions, foldLine } from "./text/fold.js";
+export { decodeQuotedPrintable } from "./text/quoted-printable.js";
 export type * from "./types.js";
-export {
-	RELATION_TYPES,
-	type RelationType,
-	relationTypeForAndroid,
-	relationTypeForLabel,
-} from "./upgrade/relations.js";
 export { type UpgradeOptions, type UpgradeResult, upgradeTo40 } from "./upgrade/upgrade.js";
 export {
 	type DateFormatOptions,
@@ -44,12 +36,6 @@ export {
 } from "./values/date.js";
 export { guessImageType, type ImageType } from "./values/image.js";
 export {
-	declaredMediaType,
-	MEDIA_TYPE_NAMES,
-	mediaTypeFromName,
-	mediaTypeName,
-} from "./values/media.js";
-export {
 	buildDataUri,
 	type DataUri,
 	type GeoUri,
@@ -57,7 +43,34 @@ export {
 	parseGeoUri,
 	parseTelUri,
 	type TelUri,
-	URI_SCHEME,
 } from "./values/uri.js";
 export { serializeVCards } from "./write/engine.js";
 export { SerializeError } from "./write/error.js";
+
+// For the sibling @vcards-io packages: these tables follow the registry and the importers,
+// and may change in any release.
+
+export {
+	type Cardinality,
+	COMMON_PARAMS,
+	defaultValueKind,
+	isMediaProperty,
+	nearestValueKind,
+	PROPERTY_REGISTRY,
+	type PropertySpec,
+	TEXT_FAMILY,
+	VALUE_TOKENS,
+} from "./registry.js";
+export {
+	RELATION_TYPES,
+	type RelationType,
+	relationTypeForAndroid,
+	relationTypeForLabel,
+} from "./upgrade/relations.js";
+export {
+	declaredMediaType,
+	MEDIA_TYPE_NAMES,
+	mediaTypeFromName,
+	mediaTypeName,
+} from "./values/media.js";
+export { URI_SCHEME } from "./values/uri.js";

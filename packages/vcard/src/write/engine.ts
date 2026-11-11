@@ -30,10 +30,10 @@ const LINE_BREAK = /[\r\n]/;
 /**
  * Writes cards in vCard 3.0 or 4.0 syntax: `BEGIN:VCARD`, `VERSION`, the properties in model
  * order, `END:VCARD`, CRLF, no BOM, raw UTF-8, names uppercased, lines over `foldAt` octets
- * folded, `blankLinesBetweenCards` empty lines between cards (none by default). Any VERSION
- * property in the model is replaced by the requested one. Every loss the
- * version forces is a warning in `issues`. Throws SerializeError for what no version can
- * express (see the class) and RangeError for options that make no sense.
+ * folded, `blankLinesBetweenCards` empty lines between cards (none by default). VERSION is the
+ * requested one whatever `card.version` says. Every loss the version forces is a warning in
+ * `issues`. Throws SerializeError for what no version can express (see the class) and
+ * RangeError for options that make no sense.
  */
 export function serializeVCards(
 	cards: readonly VCard[],
@@ -52,7 +52,6 @@ export function serializeVCards(
 		if (index > 0) text += separator;
 		text += `BEGIN:VCARD\r\nVERSION:${table.version}\r\n`;
 		for (const p of card.properties) {
-			if (p.name.toUpperCase() === "VERSION") continue;
 			text += `${foldLine(writeProperty(p, table, index, issues), fold)}\r\n`;
 		}
 		text += "END:VCARD\r\n";
@@ -81,9 +80,13 @@ function writeProperty(
 	try {
 		return contentLine(p, table, card, issues);
 	} catch (error) {
-		if (error instanceof SerializeError || error instanceof RangeError) {
-			const id = propertyId(p);
-			throw new SerializeError(`${error.message} (card ${card}, ${id})`, card, id);
+		// A TypeError is a value that lacks the fields of its kind: JSON read without the types.
+		const malformed = error instanceof TypeError;
+		if (malformed || error instanceof SerializeError || error instanceof RangeError) {
+			// `p` itself may be what is malformed: a null entry has no name to report.
+			const id = typeof p?.name === "string" ? propertyId(p) : undefined;
+			const what = malformed ? `Malformed property: ${error.message}` : error.message;
+			throw new SerializeError(`${what} (card ${card}, ${id ?? "no name"})`, card, id);
 		}
 		throw error;
 	}
@@ -96,7 +99,8 @@ function contentLine(
 	issues: IssueCollector,
 ): string {
 	const p = canonical(source);
-	if (p.name === "BEGIN" || p.name === "END") {
+	// VERSION is `card.version` in the model; one more here would be a second VERSION line.
+	if (p.name === "BEGIN" || p.name === "END" || p.name === "VERSION") {
 		throw new SerializeError(`${p.name} is not a property`);
 	}
 	const warn: Warn = (code, message) => {
@@ -185,7 +189,7 @@ function formatValue(value: VValue, table: SyntaxTable): string {
 		case "timestamp":
 			return formatTimestamp(value.value, table.dateFormat);
 		case "utc-offset":
-			return formatUtcOffset(value, table.dateFormat);
+			return formatUtcOffset(value.value, table.dateFormat);
 		case "integer":
 			if (!Number.isSafeInteger(value.value)) {
 				throw new SerializeError(`Not a safe integer: ${value.value}`);

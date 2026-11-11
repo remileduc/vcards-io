@@ -65,7 +65,6 @@ const uri = (
  */
 export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<string, PropertySpec>([
 	// RFC 6350 section 6, with the 2.1 / 3.0 differences
-	["VERSION", text(ALL, "1")],
 	["SOURCE", uri(V3_UP)],
 	["KIND", text(V4, "*1")],
 	["XML", text(V4)],

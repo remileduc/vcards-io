@@ -1,7 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { foldLine, unfoldLines } from "../src/index.js";
+import { foldLine } from "../src/index.js";
 
 const octets = (s: string) => new TextEncoder().encode(s).length;
+/** Undoes the folds `foldLine` writes: CRLF and one space. */
+const unfold = (s: string) => s.replaceAll("\r\n ", "");
 
 describe("foldLine", () => {
 	test("leaves lines of 75 octets or less alone", () => {
@@ -20,7 +22,7 @@ describe("foldLine", () => {
 			expect(p.endsWith(" ")).toBe(false);
 		}
 		expect(physical[1]?.startsWith("  ")).toBe(true);
-		expect(unfoldLines(folded)).toEqual([line]);
+		expect(unfold(folded)).toBe(line);
 	});
 
 	test("folds at octets without splitting a UTF-8 sequence", () => {
@@ -28,7 +30,7 @@ describe("foldLine", () => {
 		const folded = foldLine(line);
 		for (const p of folded.split("\r\n")) expect(octets(p)).toBeLessThanOrEqual(75);
 		expect(folded).not.toContain("�");
-		expect(unfoldLines(folded)).toEqual([line]);
+		expect(unfold(folded)).toBe(line);
 	});
 
 	test("never splits a backslash escape", () => {
@@ -36,7 +38,7 @@ describe("foldLine", () => {
 		const line = `${"a".repeat(74)}\\;b`;
 		const folded = foldLine(line);
 		expect(folded.split("\r\n")[0]).toBe("a".repeat(74));
-		expect(unfoldLines(folded)).toEqual([line]);
+		expect(unfold(folded)).toBe(line);
 	});
 
 	test("keeps an escaped backslash pair together but allows a break after it", () => {
@@ -51,14 +53,14 @@ describe("foldLine", () => {
 		expect(octets(physical[0] ?? "")).toBe(75);
 		expect(octets(physical[1] ?? "")).toBe(75);
 		expect(physical.slice(1).every((p) => p.startsWith(" "))).toBe(true);
-		expect(unfoldLines(foldLine(line))).toEqual([line]);
+		expect(unfold(foldLine(line))).toBe(line);
 	});
 
 	test("keeps a U+FEFF that lands at a segment start", () => {
 		const line = `NOTE:${"x".repeat(70)}\uFEFFabc`;
-		expect(unfoldLines(foldLine(line))).toEqual([line]);
+		expect(unfold(foldLine(line))).toBe(line);
 		const leading = `\uFEFFNOTE:${"x".repeat(80)}`;
-		expect(unfoldLines(foldLine(leading))).toEqual([leading]);
+		expect(unfold(foldLine(leading))).toBe(leading);
 	});
 
 	test("breaks at a space that is only reachable in a later segment", () => {
@@ -66,7 +68,7 @@ describe("foldLine", () => {
 		const physical = foldLine(line).split("\r\n");
 		expect(physical[0]).toBe(`NOTE:${"x".repeat(69)}`);
 		expect(physical[1]).toBe(`  ${"y".repeat(73)}`);
-		expect(unfoldLines(foldLine(line))).toEqual([line]);
+		expect(unfold(foldLine(line))).toBe(line);
 	});
 
 	test("backs up over a whitespace run so no line ends with a space or tab", () => {
@@ -78,7 +80,7 @@ describe("foldLine", () => {
 			const physical = foldLine(line).split("\r\n");
 			expect(physical.length).toBeGreaterThan(1);
 			for (const p of physical) expect(/[ \t]$/.test(p)).toBe(false);
-			expect(unfoldLines(foldLine(line))).toEqual([line]);
+			expect(unfold(foldLine(line))).toBe(line);
 		}
 	});
 
@@ -87,14 +89,14 @@ describe("foldLine", () => {
 		const physical = foldLine(line).split("\r\n");
 		expect(physical[0]).toBe("a".repeat(74));
 		expect(physical[1]).toBe(" \\ b");
-		expect(unfoldLines(foldLine(line))).toEqual([line]);
+		expect(unfold(foldLine(line))).toBe(line);
 	});
 
 	test("a continuation that is all whitespace still makes progress", () => {
 		const line = `NOTE:${"x".repeat(70)}${" ".repeat(200)}end`;
 		const physical = foldLine(line).split("\r\n");
 		for (const p of physical) expect(octets(p)).toBeLessThanOrEqual(75);
-		expect(unfoldLines(foldLine(line))).toEqual([line]);
+		expect(unfold(foldLine(line))).toBe(line);
 	});
 
 	test("a tab at the boundary and an escaped space survive", () => {
@@ -103,7 +105,7 @@ describe("foldLine", () => {
 			`${"a".repeat(74)}\\ b`,
 			`${"a".repeat(75)}\\ b`,
 		]) {
-			expect(unfoldLines(foldLine(line))).toEqual([line]);
+			expect(unfold(foldLine(line))).toBe(line);
 		}
 	});
 
@@ -126,26 +128,5 @@ describe("foldLine", () => {
 	test("rejects a limit too small to make progress", () => {
 		expect(() => foldLine("abc", { foldAt: 4 })).toThrow(RangeError);
 		expect(() => foldLine("abc", { foldAt: 7.5 })).toThrow(RangeError);
-	});
-});
-
-describe("unfoldLines", () => {
-	test("joins RFC 6350 continuation lines, dropping one whitespace character", () => {
-		expect(
-			unfoldLines("NOTE:This is a long description\r\n  that exists on a long line.\r\n"),
-		).toEqual(["NOTE:This is a long description that exists on a long line."]);
-		expect(unfoldLines("A:1\r\n\tb\r\nB:2")).toEqual(["A:1b", "B:2"]);
-	});
-
-	test("accepts LF, CR and mixed line endings", () => {
-		expect(unfoldLines("A:1\n b\rB:2\r\n c")).toEqual(["A:1b", "B:2c"]);
-	});
-
-	test("keeps a continuation with nothing before it", () => {
-		expect(unfoldLines(" orphan\nA:1")).toEqual([" orphan", "A:1"]);
-	});
-
-	test("empty input is one empty line", () => {
-		expect(unfoldLines("")).toEqual([""]);
 	});
 });

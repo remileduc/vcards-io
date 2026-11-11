@@ -9,18 +9,18 @@ describe("IssueCollector", () => {
 	test("keeps the first N issues per code and one truncation marker", () => {
 		const sink = new IssueCollector(2);
 		for (let i = 0; i < 5; i++) {
-			sink.push({ severity: "warning", code: "a", message: `a${i}` });
-			sink.push({ severity: "info", code: "b", message: `b${i}` });
+			sink.push({ severity: "warning", code: "invalid-line", message: `a${i}` });
+			sink.push({ severity: "info", code: "comment-skipped", message: `b${i}` });
 		}
 		expect(sink.issues.map((i) => `${i.code}:${i.message.slice(0, 2)}`)).toEqual([
-			"a:a0",
-			"b:b0",
-			"a:a1",
-			"b:b1",
+			"invalid-line:a0",
+			"comment-skipped:b0",
+			"invalid-line:a1",
+			"comment-skipped:b1",
 			"issues-truncated:Mo",
 			"issues-truncated:Mo",
 		]);
-		expect(sink.issues[4]?.message).toContain('"a"');
+		expect(sink.issues[4]?.message).toContain('"invalid-line"');
 	});
 
 	test("bounds memory on a file that warns on every line", () => {
