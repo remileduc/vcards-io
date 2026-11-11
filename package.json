@@ -20,7 +20,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "publint": "pnpm -r --filter './packages/**' exec publint && pnpm -r --filter './packages/**' exec attw --pack --profile esm-only",
+    "publint": "pnpm -r --filter './packages/**' exec publint && pnpm -r --filter './packages/**' exec sh -c 'd=$(mktemp -d) && pnpm pack --pack-destination \"$d\" >/dev/null && attw \"$d\"/*.tgz --profile esm-only; rc=$?; rm -rf \"$d\"; exit $rc'",
     "clean": "pnpm -r run clean"
   },
   "devDependencies": {
