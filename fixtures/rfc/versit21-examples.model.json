@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "2.1"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "N",
 					"params": {},
 					"value": {
@@ -110,16 +100,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "2.1"
-					},
-					"line": 9
-				},
-				{
-					"group": null,
 					"name": "N",
 					"params": {},
 					"value": {
@@ -200,16 +180,6 @@
 		{
 			"version": "2.1",
 			"properties": [
-				{
-					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "2.1"
-					},
-					"line": 16
-				},
 				{
 					"group": null,
 					"name": "N",
@@ -338,7 +308,8 @@
 			"code": "binary-without-encoding",
 			"message": "PHOTO has neither ENCODING nor a URI, kept as written",
 			"line": 21,
-			"property": "PHOTO"
+			"property": "PHOTO",
+			"card": 2
 		}
 	]
 }

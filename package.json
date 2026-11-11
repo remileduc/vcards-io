@@ -9,7 +9,7 @@
   "engines": {
     "node": ">=24"
   },
-  "packageManager": "pnpm@12.18.0",
+  "packageManager": "pnpm@12.21.0",
   "scripts": {
     "dev": "pnpm --filter web run dev",
     "preview": "pnpm --filter web run preview",
@@ -20,12 +20,12 @@
     "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "publint": "pnpm -r --filter './packages/**' exec publint && pnpm -r --filter './packages/**' exec attw --pack --profile esm-only",
+    "publint": "pnpm -r --filter './packages/**' exec publint && pnpm -r --filter './packages/**' exec sh -c 'd=$(mktemp -d) && pnpm pack --pack-destination \"$d\" >/dev/null && attw \"$d\"/*.tgz --profile esm-only; rc=$?; rm -rf \"$d\"; exit $rc'",
     "clean": "pnpm -r run clean"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@biomejs/biome": "^2.6.6",
+    "@biomejs/biome": "^2.6.8",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
     "fast-check": "^4.10.2",

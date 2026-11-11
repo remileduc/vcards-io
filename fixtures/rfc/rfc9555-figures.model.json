@@ -4,16 +4,6 @@
 			"version": "4.0",
 			"properties": [
 				{
-					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "4.0"
-					},
-					"line": 2
-				},
-				{
 					"group": "item1",
 					"name": "TEL",
 					"params": {

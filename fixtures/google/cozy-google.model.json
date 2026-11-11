@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "3.0"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "N",
 					"params": {},
 					"value": {
@@ -336,7 +326,8 @@
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 14,
-			"property": "item1.URL"
+			"property": "item1.URL",
+			"card": 0
 		}
 	]
 }
