@@ -1,3 +1,4 @@
+import type { IssueCode, ParseIssueCode } from "../issue-codes.js";
 import type { Issue, IssueSeverity } from "../types.js";
 import type { IssueSink } from "./lines.js";
 
@@ -12,7 +13,7 @@ export const discardIssues: IssueSink = { push() {} };
 /** `line` and `property` are only set when given, so issues compare equal by content. */
 export function issue(
 	severity: IssueSeverity,
-	code: string,
+	code: IssueCode,
 	message: string,
 	line?: number,
 	property?: string,
@@ -23,11 +24,18 @@ export function issue(
 	return out;
 }
 
-export function warn(code: string, message: string, line?: number): Issue {
-	return issue("warning", code, message, line);
+export function error(code: ParseIssueCode, message: string, line?: number): Issue {
+	return issue("error", code, message, line);
 }
 
-export function info(code: string, message: string, line?: number): Issue {
+/** `card` is for what the grouper reports on a line two cards share; the rest is placed by line. */
+export function warn(code: ParseIssueCode, message: string, line?: number, card?: number): Issue {
+	const out = issue("warning", code, message, line);
+	if (card !== undefined) out.card = card;
+	return out;
+}
+
+export function info(code: ParseIssueCode, message: string, line?: number): Issue {
 	return issue("info", code, message, line);
 }
 
@@ -44,7 +52,7 @@ export function excerpt(value: string | Uint8Array): string {
  */
 export class IssueCollector implements IssueSink {
 	readonly issues: Issue[] = [];
-	private readonly counts = new Map<string, number>();
+	private readonly counts = new Map<IssueCode, number>();
 
 	constructor(private readonly maxPerCode = DEFAULT_MAX_ISSUES_PER_CODE) {
 		if (!Number.isInteger(maxPerCode) || maxPerCode < 1) {
@@ -52,17 +60,14 @@ export class IssueCollector implements IssueSink {
 		}
 	}
 
-	push(issue: Issue): void {
-		const count = (this.counts.get(issue.code) ?? 0) + 1;
-		this.counts.set(issue.code, count);
+	push(pushed: Issue): void {
+		const count = (this.counts.get(pushed.code) ?? 0) + 1;
+		this.counts.set(pushed.code, count);
 		if (count <= this.maxPerCode) {
-			this.issues.push(issue);
+			this.issues.push(pushed);
 		} else if (count === this.maxPerCode + 1) {
-			this.issues.push({
-				severity: "warning",
-				code: "issues-truncated",
-				message: `More than ${this.maxPerCode} "${issue.code}" issues, further ones not recorded`,
-			});
+			const message = `More than ${this.maxPerCode} "${pushed.code}" issues, further ones not recorded`;
+			this.issues.push(issue("warning", "issues-truncated", message));
 		}
 	}
 }

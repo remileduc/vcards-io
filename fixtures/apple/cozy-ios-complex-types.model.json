@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "3.0"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "PRODID",
 					"params": {},
 					"value": {

@@ -16,11 +16,8 @@ function card(version: VCardVersion | null, ...lines: string[]): string {
 	return ["BEGIN:VCARD", ...head, ...lines, "END:VCARD"].join("\r\n");
 }
 
-/** Properties of one card, VERSION excluded. */
 function props(version: VCardVersion, ...lines: string[]): VProperty[] {
-	return (parseVCards(card(version, ...lines)).cards[0]?.properties ?? []).filter(
-		(p) => p.name !== "VERSION",
-	);
+	return parseVCards(card(version, ...lines)).cards[0]?.properties ?? [];
 }
 
 function value(version: VCardVersion, line: string): VValue {
@@ -45,19 +42,12 @@ function concat(...parts: (string | number[])[]): Uint8Array {
 }
 
 describe("parseVCards", () => {
-	test("returns cards in order with their version, VERSION kept among the properties", () => {
+	test("returns cards in order with their version, VERSION is not a property", () => {
 		const { cards, issues } = parseVCards(
 			`${card("3.0", "FN:A", "item1.TEL;TYPE=cell:+1")}\r\n${card(null, "FN:B", "TEL;CELL:+2")}`,
 		);
 		expect(cards.map((c) => c.version)).toEqual(["3.0", "2.1"]);
 		expect(cards[0]?.properties).toEqual([
-			{
-				group: null,
-				name: "VERSION",
-				params: new Map(),
-				value: { kind: "text", value: "3.0" },
-				line: 2,
-			},
 			{
 				group: null,
 				name: "FN",
@@ -76,11 +66,76 @@ describe("parseVCards", () => {
 		expect(codes(issues)).toEqual(["version-missing"]);
 	});
 
+	test("issues carry the index of the card they are about, none outside a card", () => {
+		const input = [
+			"FN:lost",
+			"BEGIN:VCARD",
+			"VERSION:3.0",
+			"URL:http\\://x",
+			"END:VCARD",
+			"BEGIN:VCARD",
+			"BDAY:nope",
+			"BEGIN:VCARD",
+			"VERSION:4.0",
+			`NOTE:${"x".repeat(200)}`,
+			"FN:c",
+		].join("\r\n");
+		const { cards, issues } = parseVCards(`\uFEFF${input}`, { maxLineLength: 100 });
+		expect(cards).toHaveLength(3);
+		expect(issues.map((i) => [i.code, i.line, i.card])).toEqual([
+			["bom-stripped", undefined, undefined],
+			["line-too-long", 10, 2],
+			["line-outside-card", 1, undefined],
+			["nested-begin", 8, 1],
+			["version-missing", 6, 1],
+			["missing-end", 11, 2],
+			["uri-escaped-colon", 4, 0],
+			["invalid-value", 7, 1],
+		]);
+	});
+
+	test("a card opened by a nested BEGIN owns the issues about itself", () => {
+		const input = [
+			"BEGIN:VCARD",
+			"VERSION:3.0",
+			"FN:A",
+			"BEGIN:VCARD",
+			"FN:B",
+			"BEGIN:VCARD",
+			"FN:C",
+			"END:VCARD",
+		].join("\r\n");
+		const { cards, issues } = parseVCards(input);
+		expect(cards.map((c) => c.version)).toEqual(["3.0", "3.0", "3.0"]);
+		expect(issues.map((i) => [i.code, i.line, i.card])).toEqual([
+			["nested-begin", 4, 0],
+			["nested-begin", 6, 1],
+			["version-missing", 4, 1],
+			["version-missing", 6, 2],
+		]);
+	});
+
+	test("a dangling soft break belongs where its line is, in a card or not", () => {
+		const note = "NOTE;ENCODING=QUOTED-PRINTABLE:abc=";
+		const outside = parseVCards(`${note}\r\n${card("2.1", "FN:B")}`);
+		expect(outside.issues.map((i) => [i.code, i.line, i.card])).toEqual([
+			["qp-soft-break-dangling", 1, undefined],
+			["line-outside-card", 1, undefined],
+		]);
+		const nested = parseVCards(
+			`BEGIN:VCARD\r\nVERSION:2.1\r\n${note}\r\n${card("2.1", "FN:B")}`,
+		);
+		expect(nested.issues.map((i) => [i.code, i.line, i.card])).toEqual([
+			["qp-soft-break-dangling", 3, 0],
+			["nested-begin", 4, 0],
+		]);
+	});
+
 	test("accepts a string, bytes or an ArrayBuffer", () => {
 		const text = card("4.0", "FN:Zoë");
 		const bytes = utf8(text);
 		for (const input of [text, bytes, bytes.buffer as ArrayBuffer]) {
-			expect(parseVCards(input).cards[0]?.properties[1]?.value).toEqual({
+			expect(parseVCards(input).cards[0]?.properties[0]?.value).toEqual({
 				kind: "text",
 				value: "Zoë",
 			});
@@ -151,7 +206,7 @@ describe("parameters", () => {
 			"t:1\r\nEND:VCARD",
 		);
 		const { cards, issues } = parseVCards(input);
-		expect(cards[0]?.properties[1]?.params.get("TYPE")).toEqual(["X-Ét"]);
+		expect(cards[0]?.properties[0]?.params.get("TYPE")).toEqual(["X-Ét"]);
 		expect(issues).toEqual([]);
 	});
 });
@@ -213,7 +268,7 @@ describe("encodings and charsets", () => {
 	test("accepts base64 without padding and reports corrupted base64, keeping the text", () => {
 		expect(value("3.0", "PHOTO;ENCODING=b:/9j/4AAQ")).toMatchObject({ kind: "binary" });
 		const { cards, issues } = parseVCards(card("3.0", "PHOTO;ENCODING=b:/9j/4AA!Q"));
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "unknown", raw: "/9j/4AA!Q" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "unknown", raw: "/9j/4AA!Q" });
 		expect(issues).toEqual([
 			expect.objectContaining({
 				severity: "warning",
@@ -239,7 +294,7 @@ describe("encodings and charsets", () => {
 			"\r\nEND:VCARD",
 		);
 		const { cards, issues } = parseVCards(latin1);
-		expect(cards[0]?.properties.slice(1).map((p) => p.value)).toEqual([
+		expect(cards[0]?.properties.map((p) => p.value)).toEqual([
 			{ kind: "text", value: "café" },
 			{ kind: "text", value: "é" },
 		]);
@@ -248,7 +303,7 @@ describe("encodings and charsets", () => {
 			expect.objectContaining({ code: "charset-fallback", line: 4, property: "NOTE" }),
 		]);
 		const asLatin1 = parseVCards(latin1, { defaultCharset: "iso-8859-1" });
-		expect(asLatin1.cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "café" });
+		expect(asLatin1.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "café" });
 		expect(asLatin1.issues).toEqual([
 			expect.objectContaining({ code: "charset-fallback", line: 4 }),
 		]);
@@ -260,12 +315,12 @@ describe("encodings and charsets", () => {
 			[0x93, 0xfa, 0x96, 0x7b],
 			"\r\nEND:VCARD",
 		);
-		expect(parseVCards(shiftJis).cards[0]?.properties[1]?.value).toEqual({
+		expect(parseVCards(shiftJis).cards[0]?.properties[0]?.value).toEqual({
 			kind: "text",
 			value: "日本",
 		});
 		const { cards, issues } = parseVCards(card("2.1", "FN;CHARSET=X-BOGUS:a"));
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "a" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "a" });
 		expect(issues).toEqual([
 			expect.objectContaining({ code: "charset-unknown", property: "FN" }),
 		]);
@@ -335,7 +390,7 @@ describe("typing", () => {
 		});
 		expect(issuesOf("3.0", "URL:http://x/a\\,b")).toEqual([]);
 		const { cards, issues } = parseVCards(card("3.0", "item1.URL:http\\://x"));
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "uri", value: "http://x" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "uri", value: "http://x" });
 		expect(issues).toEqual([
 			expect.objectContaining({ code: "uri-escaped-colon", line: 3, property: "item1.URL" }),
 		]);
@@ -359,9 +414,7 @@ describe("typing", () => {
 		});
 		expect(value("4.0", "X-FOO;VALUE=utc-offset:+0530")).toEqual({
 			kind: "utc-offset",
-			sign: 1,
-			hours: 5,
-			minutes: 30,
+			value: { sign: 1, hours: 5, minutes: 30 },
 		});
 		expect(value("4.0", "X-FOO;VALUE=timestamp:20150206T073347Z").kind).toBe("timestamp");
 		expect(value("4.0", "X-FOO;VALUE=date:--0412").kind).toBe("date-and-or-time");
@@ -372,7 +425,7 @@ describe("typing", () => {
 
 	test("an unknown VALUE is reported and ignored", () => {
 		const { cards, issues } = parseVCards(card("4.0", "NOTE;VALUE=bogus:x"));
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "x" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "x" });
 		expect(issues).toEqual([
 			expect.objectContaining({ code: "value-type-unknown", property: "NOTE" }),
 		]);
@@ -404,15 +457,11 @@ describe("typing", () => {
 		expect(value("3.0", "UID:1").kind).toBe("text");
 		expect(value("3.0", "TZ:-05:00")).toEqual({
 			kind: "utc-offset",
-			sign: -1,
-			hours: 5,
-			minutes: 0,
+			value: { sign: -1, hours: 5, minutes: 0 },
 		});
 		expect(value("2.1", "TZ:+0100")).toEqual({
 			kind: "utc-offset",
-			sign: 1,
-			hours: 1,
-			minutes: 0,
+			value: { sign: 1, hours: 1, minutes: 0 },
 		});
 		expect(value("4.0", "TZ:America/New_York")).toEqual({
 			kind: "text",
@@ -447,7 +496,7 @@ describe("typing", () => {
 	test("a date that does not parse is kept raw with a warning", () => {
 		for (const line of ["BDAY:yesterday", "BDAY:1985-0412", "BDAY:1989-02-30"]) {
 			const { cards, issues } = parseVCards(card("4.0", line));
-			expect(cards[0]?.properties[1]?.value).toEqual({ kind: "unknown", raw: line.slice(5) });
+			expect(cards[0]?.properties[0]?.value).toEqual({ kind: "unknown", raw: line.slice(5) });
 			expect(issues).toEqual([
 				expect.objectContaining({
 					severity: "warning",
@@ -469,7 +518,7 @@ describe("typing", () => {
 			value: { zone: { sign: -1, hours: 5, minutes: 0 } },
 		});
 		const partial = parseVCards(card("3.0", "REV:2015-01-19"));
-		expect(partial.cards[0]?.properties[1]?.value).toEqual({
+		expect(partial.cards[0]?.properties[0]?.value).toEqual({
 			kind: "date-and-or-time",
 			value: { year: 2015, month: 1, day: 19 },
 			raw: "2015-01-19",
@@ -483,7 +532,7 @@ describe("typing", () => {
 		const { cards, issues } = parseVCards(
 			card("3.0", "X-ALTBDAY;CALSCALE=chinese:007800301201"),
 		);
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "unknown", raw: "007800301201" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "unknown", raw: "007800301201" });
 		expect(issues).toEqual([
 			expect.objectContaining({ severity: "info", code: "calscale-unsupported" }),
 		]);
@@ -515,11 +564,11 @@ describe("hostile input", () => {
 		const garbage = new Uint8Array(20000).map((_, i) => (i * 7919 + 13) % 256);
 		expect(() => parseVCards(garbage)).not.toThrow();
 		expect(
-			parseVCards("BEGIN:VCARD\nVERSION:4.0\nFN:\uD800x\nEND:VCARD").cards[0]?.properties[1]
+			parseVCards("BEGIN:VCARD\nVERSION:4.0\nFN:\uD800x\nEND:VCARD").cards[0]?.properties[0]
 				?.value,
 		).toEqual({ kind: "text", value: "\uFFFDx" });
 		const mixed = parseVCards("BEGIN:VCARD\rVERSION:3.0\nFN:a\r\n b\rEND:VCARD");
-		expect(mixed.cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "ab" });
+		expect(mixed.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "ab" });
 	});
 
 	test("rejects oversized input before encoding it", () => {
@@ -537,7 +586,7 @@ describe("hostile input", () => {
 		const { cards, issues } = parseVCards(card("4.0", `NOTE:${"x".repeat(200)}`, "FN:a"), {
 			maxLineLength: 100,
 		});
-		expect(cards[0]?.properties.map((p) => p.name)).toEqual(["VERSION", "FN"]);
+		expect(cards[0]?.properties.map((p) => p.name)).toEqual(["FN"]);
 		expect(issues).toEqual([
 			expect.objectContaining({ severity: "error", code: "line-too-long", line: 3 }),
 		]);
@@ -559,7 +608,7 @@ describe("hostile input", () => {
 				.flatMap((c) => [c.charCodeAt(0) & 0xff, c.charCodeAt(0) >> 8]),
 		);
 		const transcoded = parseVCards(utf16);
-		expect(transcoded.cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "é" });
+		expect(transcoded.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "é" });
 		expect(codes(transcoded.issues)).toEqual(["utf16-transcoded"]);
 		const open = parseVCards("BEGIN:VCARD\nVERSION:4.0\nFN:a");
 		expect(open.cards).toHaveLength(1);
@@ -567,7 +616,7 @@ describe("hostile input", () => {
 		const nested = parseVCards(
 			"BEGIN:VCARD\nVERSION:4.0\nFN:a\nBEGIN:VCARD\nVERSION:4.0\nFN:b\nEND:VCARD",
 		);
-		expect(nested.cards.map((c) => c.properties[1]?.value)).toEqual([
+		expect(nested.cards.map((c) => c.properties[0]?.value)).toEqual([
 			{ kind: "text", value: "a" },
 			{ kind: "text", value: "b" },
 		]);
@@ -581,7 +630,7 @@ describe("hostile input", () => {
 			card("3.0", "FN:a", `PHOTO;ENCODING=b;TYPE=JPEG:${folded}`),
 		);
 		expect(issues).toEqual([]);
-		expect(cards[0]?.properties[2]?.value).toEqual({
+		expect(cards[0]?.properties[1]?.value).toEqual({
 			kind: "binary",
 			data,
 			mediaType: "image/jpeg",
@@ -601,7 +650,7 @@ describe("hostile input", () => {
 			),
 		);
 		expect(cards).toHaveLength(1);
-		expect(cards[0]?.properties[2]?.value).toEqual({
+		expect(cards[0]?.properties[1]?.value).toEqual({
 			kind: "text",
 			value: "BEGIN:VCARD\nVERSION:2.1\nFN:Assistant\nEND:VCARD",
 		});
@@ -612,7 +661,7 @@ describe("review regressions", () => {
 	test("a parameter repeated hundreds of thousands of times does not overflow the stack", () => {
 		const values = Array<string>(300000).fill("a").join(",");
 		const { cards } = parseVCards(card("3.0", `TEL;TYPE=x;TYPE=${values}:1`));
-		expect(cards[0]?.properties[1]?.params.get("TYPE")).toHaveLength(300001);
+		expect(cards[0]?.properties[0]?.params.get("TYPE")).toHaveLength(300001);
 	});
 
 	test("2.1 components unescape a backslash as well as ; , and :", () => {
@@ -628,7 +677,7 @@ describe("review regressions", () => {
 
 	test("a 3.0 media property without ENCODING is a URI when it has a scheme, else reported", () => {
 		const asUri = parseVCards(card("3.0", "PHOTO:http://x/a.jpg"));
-		expect(asUri.cards[0]?.properties[1]?.value).toEqual({
+		expect(asUri.cards[0]?.properties[0]?.value).toEqual({
 			kind: "uri",
 			value: "http://x/a.jpg",
 		});
@@ -636,7 +685,7 @@ describe("review regressions", () => {
 			expect.objectContaining({ severity: "info", code: "binary-as-uri", property: "PHOTO" }),
 		]);
 		const junk = parseVCards(card("2.1", "LOGO:not a photo"));
-		expect(junk.cards[0]?.properties[1]?.value).toEqual({
+		expect(junk.cards[0]?.properties[0]?.value).toEqual({
 			kind: "unknown",
 			raw: "not a photo",
 		});
@@ -678,13 +727,13 @@ describe("review regressions", () => {
 			":1\r\nEND:VCARD",
 		);
 		const { cards, issues } = parseVCards(input);
-		expect(cards[0]?.properties[1]?.params.get("TYPE")).toEqual(["X-café"]);
+		expect(cards[0]?.properties[0]?.params.get("TYPE")).toEqual(["X-café"]);
 		expect(codes(issues)).toEqual(["charset-fallback"]);
 	});
 
 	test("empty inline binary gets an info, ENCODING wins over VALUE=uri", () => {
 		const empty = parseVCards(card("3.0", "PHOTO;ENCODING=b:"));
-		expect(empty.cards[0]?.properties[1]?.value).toEqual({
+		expect(empty.cards[0]?.properties[0]?.value).toEqual({
 			kind: "binary",
 			data: new Uint8Array(0),
 		});
@@ -719,7 +768,7 @@ describe("review regressions", () => {
 	test("text input is already UTF-8: CHARSET and defaultCharset are ignored with an info", () => {
 		const text = card("2.1", "N;CHARSET=ISO-8859-1:Dupont;Rémi", "NOTE;CHARSET=UTF-8:é");
 		const { cards, issues } = parseVCards(text);
-		expect(cards[0]?.properties.slice(1).map((p) => p.value)).toEqual([
+		expect(cards[0]?.properties.map((p) => p.value)).toEqual([
 			{ kind: "structured", components: [["Dupont"], ["Rémi"]] },
 			{ kind: "text", value: "é" },
 		]);
@@ -727,7 +776,7 @@ describe("review regressions", () => {
 			expect.objectContaining({ code: "charset-ignored", line: 3, property: "N" }),
 		]);
 		const forced = parseVCards(card("2.1", "FN:Rémi"), { defaultCharset: "windows-1252" });
-		expect(forced.cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "Rémi" });
+		expect(forced.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "Rémi" });
 		expect(forced.issues).toEqual([
 			expect.objectContaining({
 				code: "charset-ignored",
@@ -742,7 +791,7 @@ describe("review regressions", () => {
 			}),
 		);
 		const transcoded = parseVCards(utf16);
-		expect(transcoded.cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "Rémi" });
+		expect(transcoded.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "Rémi" });
 		expect(codes(transcoded.issues)).toEqual(["utf16-transcoded", "charset-ignored"]);
 		// Bytes keep honouring CHARSET: the same card as windows-1252 bytes decodes through it.
 		const bytes = concat(
@@ -750,7 +799,7 @@ describe("review regressions", () => {
 			[0xe9],
 			"mi\r\nEND:VCARD",
 		);
-		expect(parseVCards(bytes).cards[0]?.properties[1]?.value).toEqual({
+		expect(parseVCards(bytes).cards[0]?.properties[0]?.value).toEqual({
 			kind: "text",
 			value: "Rémi",
 		});
@@ -764,7 +813,7 @@ describe("review regressions", () => {
 			"mi\r\nEND:VCARD",
 		);
 		const { cards, issues } = parseVCards(bytes);
-		expect(cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: "Rémi" });
+		expect(cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "Rémi" });
 		expect(issues).toEqual([
 			expect.objectContaining({ code: "charset-ignored", line: 3, property: "FN" }),
 		]);

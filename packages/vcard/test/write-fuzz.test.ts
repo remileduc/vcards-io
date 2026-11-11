@@ -19,7 +19,8 @@ const PARAM_TEXT = fc
 	.string({ unit: "grapheme", maxLength: 20 })
 	.filter((s) => !s.includes('"') && !s.includes("\u007f"))
 	.filter((s) => [...s].every((c) => (c.codePointAt(0) ?? 0) >= 0x20));
-const NAME = fc.stringMatching(/^[A-Z][A-Z0-9-]{0,10}$/).map((n) => `X-${n}`);
+// Under a prefix of its own: a bare X-QQ or X-GENDER is a name the registry and the vendor rules know.
+const NAME = fc.stringMatching(/^[A-Z][A-Z0-9-]{0,8}$/).map((n) => `X-Z-${n}`);
 const GROUP = fc.option(fc.stringMatching(/^item[0-9]{1,3}$/), { nil: null });
 
 const textValue: fc.Arbitrary<VValue> = TEXT.map((value) => ({ kind: "text", value }));
@@ -68,6 +69,10 @@ const card: fc.Arbitrary<VCard> = fc
 	)
 	.map((properties) => ({ version: "4.0", properties }));
 
+// Only a card in 4.0 semantics is a fixed point of parse and upgrade: a generated BDAY in
+// Apple's placeholder year 1604 loses its year the first time the normaliser sees it.
+const normalised = (c: VCard): VCard => upgradeTo40(c).card;
+
 /** What the parser returns for a written property, minus the source line. */
 function stripLines(c: VCard): VCard {
 	return {
@@ -86,19 +91,11 @@ describe("writer round trip", () => {
 				expect(back.cards).toHaveLength(1);
 				const expected: VCard = {
 					version: "4.0",
-					properties: [
-						{
-							group: null,
-							name: "VERSION",
-							params: new Map(),
-							value: { kind: "text", value: "4.0" },
-						},
-						...c.properties.map((p) => ({
-							...p,
-							params: new Map([...p.params].map(([k, v]) => [k.toUpperCase(), v])),
-							value: expectedValue(p),
-						})),
-					],
+					properties: c.properties.map((p) => ({
+						...p,
+						params: new Map([...p.params].map(([k, v]) => [k.toUpperCase(), v])),
+						value: expectedValue(p),
+					})),
 				};
 				expect(stripLines(back.cards[0] as VCard)).toEqual(expected);
 			}),
@@ -193,7 +190,7 @@ describe("writer round trip", () => {
 			)
 			.map((properties): VCard => ({ version: "4.0", properties }));
 		fc.assert(
-			fc.property(typedCard, (c) => {
+			fc.property(typedCard.map(normalised), (c) => {
 				for (const version of ["3.0", "4.0"] as const) {
 					const text = serializeVCards([c], { version }).text;
 					const back = parseVCards(text);

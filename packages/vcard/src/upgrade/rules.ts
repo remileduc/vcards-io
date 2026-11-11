@@ -8,6 +8,7 @@ import { buildDataUri, parseGeoUri, URI_SCHEME } from "../values/uri.js";
 import {
 	cloneParams,
 	derive,
+	drop,
 	firstParam,
 	hasType,
 	type Rule,
@@ -24,6 +25,20 @@ const COMPONENTS_40: ReadonlyMap<string, number> = new Map([
 	["N", 7],
 	["ADR", 18],
 ]);
+
+// `card.version` is the only copy; the writer refuses the property a hand-built model may hold.
+// Matched in any case, as the writer canonicalises names before it checks.
+const dropVersionProperty: Rule = (card, ctx) => {
+	const doomed = new Set(card.properties.filter((p) => p.name.toUpperCase() === "VERSION"));
+	for (const p of doomed) {
+		ctx.info(
+			"version-dropped",
+			"VERSION property dropped, the card's version field is used",
+			p,
+		);
+	}
+	drop(card, doomed);
+};
 
 // The parser keeps 2.1 text as written; resolving AOSP's escape set here (never `\n`, as AOSP)
 // keeps the model equal to what a 3.0 writer meant. An inline AGENT vCard must stay verbatim.
@@ -324,6 +339,7 @@ const padComponents: Rule = (card) => {
 
 /** Standard rules, in the order they run; vendor rules follow, then FINAL_RULES. */
 export const STANDARD_RULES: readonly Rule[] = [
+	dropVersionProperty,
 	unescapeLegacyText,
 	dropTransportParams,
 	prefToParam,

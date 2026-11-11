@@ -63,15 +63,14 @@ describe("serializeVCards envelope", () => {
 		expect(out).toBe("BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nN:B\r\nEND:VCARD\r\n");
 	});
 
-	test("replaces any VERSION property with the requested version", () => {
-		const c = card(
-			prop("VERSION", text("2.1")),
-			prop("FN", text("A")),
-			prop("version", text("x")),
-		);
-		expect(serializeVCards([c], { version: "3.0" }).text).toBe(
+	test("writes the requested VERSION whatever card.version says, and refuses one as a property", () => {
+		const legacy: VCard = { version: "2.1", properties: [prop("FN", text("A"))] };
+		expect(serializeVCards([legacy], { version: "3.0" }).text).toBe(
 			"BEGIN:VCARD\r\nVERSION:3.0\r\nFN:A\r\nEND:VCARD\r\n",
 		);
+		for (const name of ["VERSION", "version"]) {
+			expect(() => line(prop(name, text("2.1")))).toThrow("VERSION is not a property");
+		}
 	});
 
 	test("concatenates cards without blank lines and returns an empty string for no card", () => {
@@ -229,7 +228,7 @@ describe("values", () => {
 		});
 		expect(line(rev)).toBe("REV:20150119T092556");
 		expect(line(rev, { version: "3.0" })).toBe("REV:2015-01-19T09:25:56");
-		const tz = prop("TZ", { kind: "utc-offset", sign: -1, hours: 5, minutes: 0 });
+		const tz = prop("TZ", { kind: "utc-offset", value: { sign: -1, hours: 5, minutes: 0 } });
 		expect(line(tz)).toBe("TZ;VALUE=utc-offset:-0500");
 		expect(line(tz, { version: "3.0" })).toBe("TZ:-05:00");
 	});
@@ -252,6 +251,41 @@ describe("values", () => {
 		expect(error.card).toBe(1);
 		expect(error.property).toBe("g.BDAY");
 		expect(error.message).toContain("g.BDAY");
+	});
+
+	test("turns a value without the fields of its kind into a SerializeError", () => {
+		// The shape `utc-offset` had before its fields were nested under `value`.
+		const flat = { kind: "utc-offset", sign: -1, hours: 5, minutes: 0 } as unknown as VValue;
+		const list = { kind: "text-list" } as unknown as VValue;
+		for (const value of [flat, list]) {
+			let caught: unknown;
+			try {
+				serializeVCards([card(prop("FN", text("A"))), card(prop("TZ", value))], {
+					version: "4.0",
+				});
+			} catch (error) {
+				caught = error;
+			}
+			expect(caught).toBeInstanceOf(SerializeError);
+			expect(caught).toMatchObject({ card: 1, property: "TZ" });
+			expect((caught as SerializeError).message).toContain("Malformed property");
+		}
+	});
+
+	test("turns an entry that is not a property into a SerializeError with the card index", () => {
+		for (const entry of [null, undefined, {}, "FN:A"]) {
+			let caught: unknown;
+			try {
+				serializeVCards([card(prop("FN", text("A")), entry as unknown as VProperty)], {
+					version: "4.0",
+				});
+			} catch (error) {
+				caught = error;
+			}
+			expect(caught).toBeInstanceOf(SerializeError);
+			expect(caught).toMatchObject({ card: 0, property: undefined });
+			expect((caught as SerializeError).message).toContain("(card 0, no name)");
+		}
 	});
 
 	test("writes an unknown value raw, escapes kept", () => {
@@ -331,7 +365,7 @@ describe("VALUE parameter", () => {
 		expect(out).toBe("NOTE;VALUE=binary;ENCODING=b://4AQQ==");
 		const back = parseVCards(`BEGIN:VCARD\r\nVERSION:3.0\r\n${out}\r\nEND:VCARD\r\n`);
 		expect(back.issues).toEqual([]);
-		expect(back.cards[0]?.properties[1]?.value).toEqual({ kind: "binary", data });
+		expect(back.cards[0]?.properties[0]?.value).toEqual({ kind: "binary", data });
 		// Media and unknown properties: ENCODING=b is enough, the reader keeps the bytes.
 		expect(line(prop("PHOTO", { kind: "binary", data }), { version: "3.0" })).toBe(
 			"PHOTO;ENCODING=b://4AQQ==",
@@ -704,7 +738,7 @@ describe("parse, upgrade, write", () => {
 		const out = serializeVCards([c], { version: "3.0" }).text;
 		const back = parseVCards(out);
 		expect(back.issues).toEqual([]);
-		expect(back.cards[0]?.properties[1]?.value).toEqual({
+		expect(back.cards[0]?.properties[0]?.value).toEqual({
 			kind: "binary",
 			data,
 			mediaType: "image/png",

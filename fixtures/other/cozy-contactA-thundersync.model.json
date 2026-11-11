@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "2.1"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "REV",
 					"params": {},
 					"value": {
@@ -296,7 +286,8 @@
 			"code": "charset-fallback",
 			"message": "Bytes are not valid utf-8, decoded as windows-1252",
 			"line": 14,
-			"property": "NOTE"
+			"property": "NOTE",
+			"card": 0
 		}
 	]
 }

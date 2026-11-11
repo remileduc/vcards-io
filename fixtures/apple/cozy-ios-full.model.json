@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "3.0"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "PRODID",
 					"params": {},
 					"value": {
@@ -1604,7 +1594,8 @@
 			"code": "calscale-unsupported",
 			"message": "CALSCALE=chinese date kept as written",
 			"line": 125,
-			"property": "X-ALTBDAY"
+			"property": "X-ALTBDAY",
+			"card": 0
 		}
 	]
 }

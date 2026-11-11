@@ -25,11 +25,11 @@ function source(version: VCardVersion | null, ...lines: string[]): VCard {
 	return card;
 }
 
-/** Upgrades one card; `props` leaves VERSION and FN out. */
+/** Upgrades one card; `props` leaves FN out. */
 function upgrade(version: VCardVersion | null, ...lines: string[]) {
 	const result = upgradeTo40(source(version, "FN:A", ...lines));
 	return {
-		props: result.card.properties.filter((p) => p.name !== "VERSION" && p.name !== "FN"),
+		props: result.card.properties.filter((p) => p.name !== "FN"),
 		issues: result.issues,
 	};
 }
@@ -245,7 +245,7 @@ describe("legacy instant messaging", () => {
 		const aim = card.properties.find((p) => p.name === "X-AIM");
 		if (aim !== undefined) aim.value = { kind: "text", value: "lone \ud800 surrogate" };
 		const { issues, card: result } = upgradeTo40(card);
-		expect(result.properties.map((p) => p.name)).toEqual(["VERSION", "FN", "X-AIM"]);
+		expect(result.properties.map((p) => p.name)).toEqual(["FN", "X-AIM"]);
 		expect(issues).toEqual([
 			expect.objectContaining({ severity: "warning", code: "impp-handle-invalid" }),
 		]);
@@ -268,6 +268,12 @@ describe("legacy instant messaging", () => {
 			value: { kind: "text", value: "jack" },
 		});
 		expect(params(twitter)).toEqual({ "SERVICE-TYPE": ["Twitter"], VALUE: ["text"] });
+		// One code per target, so a string table can say what the property became.
+		expect(
+			["X-SIP:a", "X-SKYPE-PSTNNUMBER:+1", "X-TWITTER:jack"].map(
+				(line) => upgrade("3.0", line).issues[0]?.code,
+			),
+		).toEqual(["legacy-im-to-impp", "legacy-im-to-tel", "legacy-im-to-socialprofile"]);
 	});
 
 	test("Apple's X-SERVICE-TYPE on IMPP becomes SERVICE-TYPE", () => {

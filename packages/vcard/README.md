@@ -28,6 +28,21 @@ const archive = serializeVCards(upgraded, { version: "4.0" }).text;
 Every step reports what it changed as `Issue` objects (`error`, `warning`
 or `info`) so a UI can show them; nothing is dropped silently.
 
+```ts
+interface Issue { severity; code: IssueCode; message: string; line?: number; property?: string; card?: number }
+```
+
+`code` is a union of string literals, built from one exported list per
+stage (`PARSE_ISSUE_CODES`, `UPGRADE_ISSUE_CODES`, `SERIALIZE_ISSUE_CODES`,
+plus `COMMON_ISSUE_CODES` for the per-code cap), so a
+`Record<IssueCode, string>` is a complete string table and `message` is
+only the English fallback. `Issue<Code>` takes another code type for a
+package that adds its own codes to the same shape.
+`card` is the index of the card the issue is about: in the returned `cards`
+for the parser, in the `cards` argument for the writer. Parser issues about
+a line outside any card or about the whole input have none; `upgradeTo40`
+takes one card and sets none.
+
 The model
 ---------
 
@@ -36,12 +51,14 @@ interface VCard     { version: "2.1" | "3.0" | "4.0"; properties: VProperty[] } 
 interface VProperty { group: string | null; name: string; params: Map<string, string[]>; value: VValue; line?: number }
 ```
 
-Names and parameter names are uppercased, groups lowercased. A value is
-typed (`text`, `text-list`, `structured`, `uri`, `date-and-or-time`,
-`timestamp`, `utc-offset`, `language-tag`, `integer`, `float`, `boolean`,
-`binary`) from the `VALUE` parameter or the property registry, or kept as
-`unknown` raw text when it cannot be. Text is unescaped exactly once, at
-the typed-value stage.
+Names and parameter names are uppercased, groups lowercased. `VERSION` is
+`card.version` and never one of the properties. A value is typed (`text`,
+`text-list`, `structured`, `uri`, `date-and-or-time`, `timestamp`,
+`utc-offset`, `language-tag`, `integer`, `float`, `boolean`, `binary`)
+from the `VALUE` parameter or the property registry, or kept as `unknown`
+raw text when it cannot be. The date kinds and `utc-offset` hold a parsed
+object in `value`. Text is unescaped exactly once, at the typed-value
+stage.
 
 Pipeline
 --------
@@ -64,7 +81,8 @@ Writer
 ------
 
 `serializeVCards(cards, { version, foldAt? })` returns `{ text, issues }`:
-`BEGIN:VCARD`, `VERSION`, the properties in model order, `END:VCARD`.
+`BEGIN:VCARD`, `VERSION` (the requested one, whatever `card.version`
+says), the properties in model order, `END:VCARD`.
 CRLF, raw UTF-8, no BOM, no `CHARSET`, never quoted-printable, lines
 folded at 75 octets without splitting a UTF-8 sequence or an escape.
 Properties are written in the order the model holds them: whoever builds
@@ -96,25 +114,58 @@ Names, groups and parameter keys are normalised before writing; `version`
 and `foldAt` are validated with a `RangeError`. Lines always end in CRLF,
 as both RFCs require.
 
-`SerializeError` is thrown for what no version can express: a `binary`
-value in 4.0, a control character a 4.0 parameter cannot caret-encode, a
-`TYPE` value holding a comma (readers split it even when quoted), a date
-shape outside the grammar, a property or parameter name outside
-`[A-Za-z0-9-]`, `BEGIN`/`END` as a property, or a line break the escaping
-cannot absorb. It carries the card index and the `group.NAME`. These are
-defects of the caller's model, never of input that went through the parser
-and the normaliser, with two exceptions the caller must filter: a property
-whose name the parser flagged as invalid, and a bare `END:` line kept as a
-property.
+`SerializeError` is thrown for what no version can express: a `binary` value
+in 4.0, a control character a 4.0 parameter cannot caret-encode, a `TYPE`
+value holding a comma (readers split it even when quoted), a date shape
+outside the grammar, a property or parameter name outside `[A-Za-z0-9-]`,
+`BEGIN`, `END` or `VERSION` as a property, a line break the escaping cannot
+absorb, or a value without the fields of its kind. It carries the card index
+and the `group.NAME`. These are defects of the caller's model, never of
+input that went through the parser and the normaliser, with two exceptions
+the caller must filter: a property whose name the parser flagged as invalid,
+and a bare `END:` line kept as a property.
 
-Utilities
----------
+Exports
+-------
 
-Also exported: `escapeText` / `unescapeText` / `splitEscaped`, `foldLine` /
-`unfoldLines`, `caretEncode` / `caretDecode`, `encodeBase64` /
-`decodeBase64`, `encodeQuotedPrintable` / `decodeQuotedPrintable`, the
-date, timestamp and UTC offset parsers and formatters, `parseDataUri` /
-`buildDataUri`, `parseTelUri`, `parseGeoUri`, `guessImageType`,
-`PROPERTY_REGISTRY` with `defaultValueKind` / `nearestValueKind` /
-`VALUE_TOKENS`, the media type word tables and the relation table
-`RELATION_TYPES`.
+Two tiers. The stable contract follows semver: a breaking change is a
+major release.
+
+| Stable contract    | Exports                                                      |
+| ------------------ | ------------------------------------------------------------ |
+| Pipeline           | `parseVCards`, `upgradeTo40`, `serializeVCards`,             |
+|                    | `SerializeError`, their option and result types, `VERSION`   |
+| Model              | `VCard`, `VProperty`, `VParams`, `VValue`, `VValueKind`,     |
+|                    | `VCardVersion`, `DateAndOrTime`, `Timestamp`, `UtcOffset`    |
+| Issues             | `Issue`, `IssueSeverity`, `IssueCode`, the four              |
+|                    | `*_ISSUE_CODES` lists and their per-stage types              |
+| Text               | `escapeText` / `unescapeText` / `splitEscaped`, `foldLine`,  |
+|                    | `caretEncode` / `caretDecode`, `encodeBase64` /              |
+|                    | `decodeBase64`, `decodeQuotedPrintable`                      |
+| Values             | the date, timestamp and UTC offset parsers and formatters,   |
+|                    | `parseDataUri` / `buildDataUri`, `parseTelUri`,              |
+|                    | `parseGeoUri`, `guessImageType`, the types they take and     |
+|                    | return                                                       |
+
+Adding, renaming or removing an issue code is a major release: a
+`Record<IssueCode, string>` table stops compiling when the union changes.
+
+The rest is exported for the sibling `@vcards-io` packages and carries no
+stability promise. These tables
+track the property registry and what the phone importers accept, and may
+change in any release; pin an exact version if you depend on them.
+
+| For sibling packages | Exports                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| Property registry    | `PROPERTY_REGISTRY`, `PropertySpec`, `Cardinality`,        |
+|                      | `COMMON_PARAMS`, `defaultValueKind`, `nearestValueKind`,   |
+|                      | `isMediaProperty`, `TEXT_FAMILY`, `VALUE_TOKENS`           |
+| Media type words     | `MEDIA_TYPE_NAMES`, `mediaTypeFromName`, `mediaTypeName`,  |
+|                      | `declaredMediaType`                                        |
+| Relations            | `RELATION_TYPES`, `RelationType`,                          |
+|                      | `relationTypeForAndroid`, `relationTypeForLabel`           |
+| Grammar              | `URI_SCHEME`                                               |
+
+There is no public unfolder and no quoted-printable encoder: unfolding is
+the parser's job (a plain RFC 6350 unfolder would disagree with it on 2.1
+input), and the library never writes quoted-printable.

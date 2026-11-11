@@ -1,9 +1,10 @@
+import type { SerializeIssueCode } from "../issue-codes.js";
 import { nearestValueKind, TEXT_FAMILY } from "../registry.js";
 import type { VParams, VProperty, VValue } from "../types.js";
 import type { DateFormatOptions } from "../values/date.js";
 
 /** Reports one loss the version forced on the property being written; the engine files it. */
-export type Warn = (code: string, message: string) => void;
+export type Warn = (code: SerializeIssueCode, message: string) => void;
 
 /** What a property looks like in one version, before the engine formats and folds it. */
 export interface Prepared {

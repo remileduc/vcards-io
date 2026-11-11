@@ -1,3 +1,4 @@
+import type { UpgradeIssueCode } from "../issue-codes.js";
 import { IssueCollector, issue } from "../parse/issues.js";
 import type { Issue, VCard, VParams, VProperty, VValue } from "../types.js";
 
@@ -13,11 +14,11 @@ export class UpgradeContext {
 		return this.collector.issues;
 	}
 
-	info(code: string, message: string, source: VProperty): void {
+	info(code: UpgradeIssueCode, message: string, source: VProperty): void {
 		this.collector.push(issue("info", code, message, source.line, propertyId(source)));
 	}
 
-	warn(code: string, message: string, source: VProperty): void {
+	warn(code: UpgradeIssueCode, message: string, source: VProperty): void {
 		this.collector.push(issue("warning", code, message, source.line, propertyId(source)));
 	}
 }

@@ -5,16 +5,6 @@
 			"properties": [
 				{
 					"group": null,
-					"name": "VERSION",
-					"params": {},
-					"value": {
-						"kind": "text",
-						"value": "3.0"
-					},
-					"line": 2
-				},
-				{
-					"group": null,
 					"name": "FN",
 					"params": {},
 					"value": {
@@ -928,48 +918,55 @@
 			"severity": "warning",
 			"code": "unindented-continuation",
 			"message": "Line without \":\" joined to the ADR above it",
-			"line": 27
+			"line": 27,
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "invalid-property-name",
 			"message": "Property name \"\\NARBITRARY_STRING\" is not valid vCard syntax",
-			"line": 78
+			"line": 78,
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 34,
-			"property": "item4.URL"
+			"property": "item4.URL",
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 36,
-			"property": "item5.URL"
+			"property": "item5.URL",
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 38,
-			"property": "item6.URL"
+			"property": "item6.URL",
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 40,
-			"property": "URL"
+			"property": "URL",
+			"card": 0
 		},
 		{
 			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 41,
-			"property": "item7.URL"
+			"property": "item7.URL",
+			"card": 0
 		}
 	]
 }

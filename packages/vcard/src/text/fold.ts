@@ -71,21 +71,3 @@ function isEscapedAt(bytes: Uint8Array, start: number, cut: number): boolean {
 	for (let i = cut - 1; i >= start && bytes[i] === 0x5c; i--) run++;
 	return run % 2 === 1;
 }
-
-/**
- * RFC 6350 unfolding on a string: joins lines starting with a space or tab to the previous
- * one. The byte-level, 2.1-tolerant unfolding lives in the parser.
- */
-export function unfoldLines(text: string): string[] {
-	const lines: string[] = [];
-	for (const physical of text.split(/\r\n|\r|\n/)) {
-		const first = physical.charCodeAt(0);
-		if ((first === 0x20 || first === 0x09) && lines.length > 0) {
-			lines[lines.length - 1] = (lines.at(-1) ?? "") + physical.slice(1);
-		} else {
-			lines.push(physical);
-		}
-	}
-	if (lines.length > 1 && lines.at(-1) === "") lines.pop();
-	return lines;
-}
