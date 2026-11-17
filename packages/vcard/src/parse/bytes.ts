@@ -1,5 +1,5 @@
 import type { Issue } from "../types.js";
-import { error, info } from "./issues.js";
+import { error, info } from "./report.js";
 
 export const DEFAULT_MAX_INPUT_BYTES = 64 * 1024 * 1024;
 

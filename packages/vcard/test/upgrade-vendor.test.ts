@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
 	type Issue,
 	parseVCards,
+	propertyId,
 	RELATION_TYPES,
 	relationTypeForAndroid,
 	relationTypeForLabel,
@@ -14,8 +15,7 @@ import {
 const codes = (issues: Issue[]) => issues.map((i) => i.code);
 const params = (p: VProperty | undefined) => Object.fromEntries(p?.params ?? []);
 const first = (p: VProperty, name: string) => p.params.get(name)?.[0];
-const names = (props: VProperty[]) =>
-	props.map((p) => (p.group === null ? p.name : `${p.group}.${p.name}`));
+const names = (props: VProperty[]) => props.map(propertyId);
 
 function source(version: VCardVersion | null, ...lines: string[]): VCard {
 	const head = version === null ? [] : [`VERSION:${version}`];

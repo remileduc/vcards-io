@@ -1,7 +1,7 @@
+import { IssueCollector } from "../issues.js";
 import type { Issue, ParseOptions, ParseResult, VCard } from "../types.js";
 import { toUtf8Bytes } from "./bytes.js";
 import { groupCards, type RawCard } from "./cards.js";
-import { IssueCollector } from "./issues.js";
 import { readLogicalLines } from "./lines.js";
 import { PropertyDecoder } from "./properties.js";
 

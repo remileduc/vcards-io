@@ -1,4 +1,6 @@
-import { excerpt } from "../parse/issues.js";
+import { excerpt } from "../issues.js";
+import { firstParam, textOf } from "../model.js";
+import type { LegacyImProperty } from "../registry.js";
 import type { VProperty, VValue } from "../types.js";
 import { formatDateAndOrTime, parseDateAndOrTime } from "../values/date.js";
 import { URI_SCHEME } from "../values/uri.js";
@@ -7,7 +9,6 @@ import {
 	derive,
 	drop,
 	findProperty,
-	firstParam,
 	groupAllocator,
 	groupIndex,
 	hasProperty,
@@ -16,7 +17,6 @@ import {
 	type Rule,
 	removeTypes,
 	rewrite,
-	textOf,
 	type UpgradeContext,
 } from "./context.js";
 import { relationTypeForAndroid, relationTypeForLabel } from "./relations.js";
@@ -44,8 +44,13 @@ const ANDROID_EVENT_TARGETS: ReadonlyMap<number, string | null> = new Map([
 	[3, "BDAY"],
 ]);
 
+interface LegacyIm {
+	scheme: string;
+	service?: string;
+}
+
 /** Legacy IM properties: the URI scheme and SERVICE-TYPE each becomes; X-SIP's scheme says it all. */
-const LEGACY_IM: ReadonlyMap<string, { scheme: string; service?: string }> = new Map([
+const LEGACY_IM: ReadonlyMap<string, LegacyIm> = new Map<LegacyImProperty, LegacyIm>([
 	["X-SIP", { scheme: "sip" }],
 	["X-AIM", { service: "AIM", scheme: "aim" }],
 	["X-MSN", { service: "MSN", scheme: "msnim" }],

@@ -103,6 +103,28 @@ describe("writer round trip", () => {
 		);
 	});
 
+	test("any finite float is written in plain digits and read back as the same number", () => {
+		fc.assert(
+			fc.property(fc.double({ noNaN: true, noDefaultInfinity: true }), (value) => {
+				const float: VProperty = {
+					group: null,
+					name: "X-F",
+					params: new Map(),
+					value: { kind: "float", value },
+				};
+				const text = serializeVCards([{ version: "4.0", properties: [float] }], {
+					version: "4.0",
+				}).text;
+				expect(text.split("\r\n")[2]).toMatch(/^X-F;VALUE=float:-?\d+(?:\.\d+)?$/);
+				const back = parseVCards(text);
+				expect(back.issues).toEqual([]);
+				const read = back.cards[0]?.properties[0]?.value;
+				// === on purpose: -0 is written as 0.
+				expect(read?.kind === "float" && read.value === value).toBe(true);
+			}),
+		);
+	});
+
 	test("the 3.0 writer is a fixed point after one parse and upgrade", () => {
 		fc.assert(
 			fc.property(card, (c) => {

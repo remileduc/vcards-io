@@ -1,21 +1,12 @@
-import { excerpt } from "../parse/issues.js";
-import { FLOAT } from "../parse/properties.js";
-import { isMediaProperty, nearestValueKind, TEXT_FAMILY, VALUE_TOKENS } from "../registry.js";
+import { excerpt } from "../issues.js";
+import { cloneParams, firstParam, textOf } from "../model.js";
+import { isMediaProperty, nearestValueKind, sameValueKind, VALUE_TOKENS } from "../registry.js";
 import { unescapeText21 } from "../text/escape.js";
 import type { VProperty, VValue } from "../types.js";
 import { mediaTypeFromName } from "../values/media.js";
+import { FLOAT } from "../values/number.js";
 import { buildDataUri, parseGeoUri, URI_SCHEME } from "../values/uri.js";
-import {
-	cloneParams,
-	derive,
-	drop,
-	firstParam,
-	hasType,
-	type Rule,
-	removeTypes,
-	rewrite,
-	textOf,
-} from "./context.js";
+import { derive, drop, hasType, type Rule, removeTypes, rewrite } from "./context.js";
 
 // A reference to another vCard: a hierarchical URI or one of the schemes a contact can point with.
 const REFERENCE_URI = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|(?:urn|cid|mailto|tel|data|xmpp|sip):)/i;
@@ -304,8 +295,7 @@ const canonicalValueParam: Rule = (card, ctx) => {
 			}
 			continue;
 		}
-		const same = kind === expected || (TEXT_FAMILY.has(kind) && TEXT_FAMILY.has(expected));
-		if (same) {
+		if (sameValueKind(kind, expected)) {
 			p.params.delete("VALUE");
 			continue;
 		}

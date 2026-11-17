@@ -546,6 +546,8 @@ describe("typing", () => {
 			["4.0", "X-N;VALUE=integer:1.5"],
 			["4.0", "X-N;VALUE=integer:99999999999999999999"],
 			["4.0", "X-F;VALUE=float:1e5"],
+			// More digits than a double holds: Number() gives Infinity, which nothing can write.
+			["4.0", `X-F;VALUE=float:${"9".repeat(400)}`],
 			["4.0", "X-B;VALUE=boolean:yes"],
 			["4.0", "X-O;VALUE=utc-offset:+25:00"],
 		] as const;

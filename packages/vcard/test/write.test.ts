@@ -135,6 +135,9 @@ describe("serializeVCards envelope", () => {
 		expect(line(prop("tel", text("1"), { type: ["cell"] }, "Item1"))).toBe(
 			"item1.TEL;TYPE=cell:1",
 		);
+		// Issues name the property as the caller wrote it, so their own propertyId matches.
+		const ranked = prop("tel", text("1"), { pref: ["2"] }, "Item1");
+		expect(issuesOf(ranked, { version: "3.0" })).toMatchObject([{ property: "Item1.tel" }]);
 		// Lowercase keys must still hit the transport filter, the 3.0 allow-list and PREF.
 		expect(line(prop("fn", text("é"), { charset: ["UTF-8"], encoding: ["8BIT"] }))).toBe(
 			"FN:é",
@@ -203,14 +206,25 @@ describe("values", () => {
 		);
 	});
 
-	test("rejects an unsafe integer or a float outside the grammar", () => {
+	test("writes a float in plain digits where String() would use an exponent", () => {
+		const float = (value: number) => line(prop("X-F", { kind: "float", value }));
+		expect(float(1e21)).toBe("X-F;VALUE=float:1000000000000000000000");
+		expect(float(-1.5e-7)).toBe("X-F;VALUE=float:-0.00000015");
+		for (const text of ["0.0000001", "100000000000000000000000", "-0.000000000123"]) {
+			const source = `BEGIN:VCARD\r\nVERSION:4.0\r\nX-F;VALUE=float:${text}\r\nEND:VCARD\r\n`;
+			const { cards, issues } = parseVCards(source);
+			expect(issues).toEqual([]);
+			expect(serializeVCards(cards, { version: "4.0" }).text).toBe(source);
+		}
+	});
+
+	test("rejects an unsafe integer or a float that is not finite", () => {
 		expect(() => line(prop("X-N", { kind: "integer", value: 2 ** 53 }))).toThrow(
 			SerializeError,
 		);
-		expect(() => line(prop("X-F", { kind: "float", value: 1e21 }))).toThrow(SerializeError);
-		expect(() => line(prop("X-F", { kind: "float", value: Number.NaN }))).toThrow(
-			SerializeError,
-		);
+		for (const value of [Number.NaN, Number.POSITIVE_INFINITY]) {
+			expect(() => line(prop("X-F", { kind: "float", value }))).toThrow(SerializeError);
+		}
 	});
 
 	test("formats dates in the basic form for 4.0 and the extended form for 3.0", () => {

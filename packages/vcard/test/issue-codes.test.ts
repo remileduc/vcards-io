@@ -9,9 +9,10 @@ import {
 	UPGRADE_ISSUE_CODES,
 } from "../src/index.js";
 
-/** Each list with the directory of the stage that may raise its codes. */
+/** Each list with the stage that may raise its codes: a directory, or the collector's file. */
 const STAGES: readonly (readonly [string, readonly IssueCode[]])[] = [
-	["parse/", [...COMMON_ISSUE_CODES, ...PARSE_ISSUE_CODES]],
+	["issues.ts", COMMON_ISSUE_CODES],
+	["parse/", PARSE_ISSUE_CODES],
 	["upgrade/", UPGRADE_ISSUE_CODES],
 	["write/", SERIALIZE_ISSUE_CODES],
 ];
@@ -20,6 +21,7 @@ const ALL = STAGES.flatMap(([, codes]) => codes);
 const SRC = `${fileURLToPath(import.meta.url).replace(/[^/]*$/, "")}../src/`;
 
 function sources(directory: string): string {
+	if (directory.endsWith(".ts")) return readFileSync(`${SRC}${directory}`, "utf-8");
 	return readdirSync(`${SRC}${directory}`, { recursive: true, encoding: "utf-8" })
 		.filter((file) => file.endsWith(".ts"))
 		.map((file) => readFileSync(`${SRC}${directory}${file}`, "utf-8"))

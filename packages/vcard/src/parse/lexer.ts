@@ -1,5 +1,7 @@
-import { excerpt, info, latin1, warn } from "./issues.js";
-import type { IssueSink, LogicalLine } from "./lines.js";
+import { excerpt, type IssueSink, latin1 } from "../issues.js";
+import { NAME_RE } from "../model.js";
+import type { LogicalLine } from "./lines.js";
+import { info, warn } from "./report.js";
 
 const HTAB = 0x09;
 const SP = 0x20;
@@ -13,8 +15,6 @@ const EQUALS = 0x3d;
 const ENCODINGS = new Set(["QUOTED-PRINTABLE", "BASE64", "8BIT", "7BIT"]);
 const CHARSET_RE =
 	/^(?:UTF-?(?:8|16|32)(?:LE|BE)?|ISO-?8859-\d{1,2}|WINDOWS-\d{3,4}|CP\d{3,5}|US-ASCII|ASCII|LATIN-?\d|SHIFT[-_]JIS|EUC-[A-Z]{2}|GB\d{4,5}|GBK|BIG5(?:-HKSCS)?|KOI8-?[RU]?|MAC(?:INTOSH|-?ROMAN))$/i;
-/** RFC 6350 `name = 1*(ALPHA / DIGIT / "-")` after uppercasing; the writer checks the same. */
-export const NAME_RE = /^[A-Z0-9-]+$/;
 
 /** A parameter as written: name uppercased, values undecoded (charset and caret are version matters). */
 export interface RawParam {

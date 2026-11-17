@@ -1,11 +1,15 @@
-import type { IssueCode, ParseIssueCode } from "../issue-codes.js";
-import type { Issue, IssueSeverity } from "../types.js";
-import type { IssueSink } from "./lines.js";
+import type { IssueCode } from "./issue-codes.js";
+import type { Issue, IssueSeverity } from "./types.js";
 
 export const DEFAULT_MAX_ISSUES_PER_CODE = 1000;
 
 // Headers and names are ASCII; a lossless single-byte decoding keeps odd bytes visible in diagnostics.
 export const latin1 = new TextDecoder("windows-1252");
+
+/** Anything with a `push`: a plain array in tests, the capped collector in the pipeline. */
+export interface IssueSink {
+	push(issue: Issue): void;
+}
 
 /** For lexing runs whose diagnostics are repeated or irrelevant elsewhere. */
 export const discardIssues: IssueSink = { push() {} };
@@ -22,21 +26,6 @@ export function issue(
 	if (line !== undefined) out.line = line;
 	if (property !== undefined) out.property = property;
 	return out;
-}
-
-export function error(code: ParseIssueCode, message: string, line?: number): Issue {
-	return issue("error", code, message, line);
-}
-
-/** `card` is for what the grouper reports on a line two cards share; the rest is placed by line. */
-export function warn(code: ParseIssueCode, message: string, line?: number, card?: number): Issue {
-	const out = issue("warning", code, message, line);
-	if (card !== undefined) out.card = card;
-	return out;
-}
-
-export function info(code: ParseIssueCode, message: string, line?: number): Issue {
-	return issue("info", code, message, line);
 }
 
 /** The start of a value for a message, quoted; bytes are shown as windows-1252. */

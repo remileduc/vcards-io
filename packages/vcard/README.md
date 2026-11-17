@@ -117,10 +117,12 @@ as both RFCs require.
 `SerializeError` is thrown for what no version can express: a `binary` value
 in 4.0, a control character a 4.0 parameter cannot caret-encode, a `TYPE`
 value holding a comma (readers split it even when quoted), a date shape
-outside the grammar, a property or parameter name outside `[A-Za-z0-9-]`,
-`BEGIN`, `END` or `VERSION` as a property, a line break the escaping cannot
-absorb, or a value without the fields of its kind. It carries the card index
-and the `group.NAME`. These are defects of the caller's model, never of
+outside the grammar, an integer that is not safe or a float that is not
+finite, a property or parameter name outside `[A-Za-z0-9-]`, `BEGIN`, `END`
+or `VERSION` as a property, a line break the escaping cannot absorb, or a
+value without the fields of its kind. It carries the card index and the
+`group.NAME` as the caller wrote them, which is also what the warnings in
+`issues` carry. These are defects of the caller's model, never of
 input that went through the parser and the normaliser, with two exceptions
 the caller must filter: a property whose name the parser flagged as invalid,
 and a bare `END:` line kept as a property.
@@ -138,7 +140,8 @@ major release.
 | Model              | `VCard`, `VProperty`, `VParams`, `VValue`, `VValueKind`,     |
 |                    | `VCardVersion`, `DateAndOrTime`, `Timestamp`, `UtcOffset`    |
 | Issues             | `Issue`, `IssueSeverity`, `IssueCode`, the four              |
-|                    | `*_ISSUE_CODES` lists and their per-stage types              |
+|                    | `*_ISSUE_CODES` lists and their per-stage types,             |
+|                    | `propertyId` (the `group.NAME` form of `Issue.property`)     |
 | Text               | `escapeText` / `unescapeText` / `splitEscaped`, `foldLine`,  |
 |                    | `caretEncode` / `caretDecode`, `encodeBase64` /              |
 |                    | `decodeBase64`, `decodeQuotedPrintable`                      |

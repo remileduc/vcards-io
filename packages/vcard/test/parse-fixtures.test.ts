@@ -1,15 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { encodeBase64, type ParseResult, PROPERTY_REGISTRY, parseVCards } from "../src/index.js";
-
-const root = `${fileURLToPath(import.meta.url).replace(/[^/]*$/, "")}../../../fixtures/`;
-// Every .vcf present, so an untracked local export is tested too without being named here.
-const files = readdirSync(root, { withFileTypes: true })
-	.filter((entry) => entry.isDirectory())
-	.flatMap((dir) => readdirSync(`${root}${dir.name}`).map((f) => `${dir.name}/${f}`))
-	.filter((f) => f.endsWith(".vcf"))
-	.sort();
+import { fixtureFiles as files, fixtureRoot as root } from "./helpers/fixtures.js";
 
 // Every warning a fixture is allowed to raise, each a defect of the input itself.
 // A fixture not listed here must parse without a warning.

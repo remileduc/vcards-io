@@ -1,6 +1,6 @@
-import type { Issue } from "../types.js";
-import { discardIssues, error, latin1, warn } from "./issues.js";
+import { discardIssues, type IssueSink, latin1 } from "../issues.js";
 import { lexContentLine } from "./lexer.js";
+import { error, warn } from "./report.js";
 
 export const DEFAULT_MAX_LINE_LENGTH = 1024 * 1024;
 
@@ -16,11 +16,6 @@ const DOT = 0x2e;
 const COLON = 0x3a;
 const SEMICOLON = 0x3b;
 const EQUALS = 0x3d;
-
-/** Anything with a `push`: a plain array in tests, the capped collector in the parser. */
-export interface IssueSink {
-	push(issue: Issue): void;
-}
 
 /** One unfolded content line as raw bytes, with the physical line it started on. */
 export interface LogicalLine {

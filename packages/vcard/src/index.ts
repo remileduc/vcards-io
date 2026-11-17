@@ -17,6 +17,7 @@ export {
 	UPGRADE_ISSUE_CODES,
 	type UpgradeIssueCode,
 } from "./issue-codes.js";
+export { propertyId } from "./model.js";
 export { parseVCards } from "./parse/parser.js";
 export { decodeBase64, encodeBase64 } from "./text/base64.js";
 export { caretDecode, caretEncode } from "./text/caret.js";

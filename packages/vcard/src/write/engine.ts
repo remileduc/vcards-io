@@ -1,6 +1,5 @@
-import { IssueCollector, issue } from "../parse/issues.js";
-import { NAME_RE } from "../parse/lexer.js";
-import { FLOAT } from "../parse/properties.js";
+import { IssueCollector, issue } from "../issues.js";
+import { NAME_RE, propertyId } from "../model.js";
 import { encodeBase64 } from "../text/base64.js";
 import { escapeText } from "../text/escape.js";
 import { assertFoldAt, foldLine } from "../text/fold.js";
@@ -12,8 +11,8 @@ import type {
 	VProperty,
 	VValue,
 } from "../types.js";
-import { propertyId } from "../upgrade/context.js";
 import { formatDateAndOrTime, formatTimestamp, formatUtcOffset } from "../values/date.js";
+import { formatFloatValue } from "../values/number.js";
 import { SerializeError } from "./error.js";
 import { type SyntaxTable, valueParam, type Warn } from "./syntax.js";
 import { V30 } from "./v30.js";
@@ -103,8 +102,10 @@ function contentLine(
 	if (p.name === "BEGIN" || p.name === "END" || p.name === "VERSION") {
 		throw new SerializeError(`${p.name} is not a property`);
 	}
+	// The id of the caller's property, not of the canonical copy: it is what their propertyId gives.
+	const id = propertyId(source);
 	const warn: Warn = (code, message) => {
-		const filed = issue("warning", code, message, p.line, propertyId(p));
+		const filed = issue("warning", code, message, p.line, id);
 		filed.card = card;
 		issues.push(filed);
 	};
@@ -165,7 +166,7 @@ function canonical(p: VProperty): VProperty {
 	return out;
 }
 
-/** Groups, property and parameter names all follow the lexer's name grammar. */
+/** Groups, property and parameter names all follow the name grammar the lexer reads. */
 function identifier(text: string, what: string): string {
 	if (!NAME_RE.test(text.toUpperCase())) {
 		throw new SerializeError(`Invalid ${what} ${JSON.stringify(text)}`);
@@ -195,11 +196,8 @@ function formatValue(value: VValue, table: SyntaxTable): string {
 				throw new SerializeError(`Not a safe integer: ${value.value}`);
 			}
 			return String(value.value);
-		case "float": {
-			const text = String(value.value);
-			if (!FLOAT.test(text)) throw new SerializeError(`Not a vCard float: ${text}`);
-			return text;
-		}
+		case "float":
+			return formatFloatValue(value.value);
 		case "boolean":
 			return value.value ? "TRUE" : "FALSE";
 		case "binary":

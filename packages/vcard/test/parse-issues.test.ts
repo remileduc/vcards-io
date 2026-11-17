@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { IssueCollector } from "../src/issues.js";
 import { groupCards } from "../src/parse/cards.js";
-import { IssueCollector } from "../src/parse/issues.js";
 import { readLogicalLines } from "../src/parse/lines.js";
 
 const utf8 = (s: string) => new TextEncoder().encode(s);

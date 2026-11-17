@@ -228,10 +228,11 @@ interface UtcOffset     { sign: 1 | -1; hours: number; minutes: number }
 
 The exports come in two tiers, listed in the package README. The stable
 contract is everything above plus the helpers a consumer of the model
-needs: `escapeText`, `unescapeText`, `splitEscaped` (split on an
-unescaped separator, escapes kept), `foldLine` (there is no public
-unfolder: a plain RFC 6350 one would disagree with the parser's tolerant
-one on 2.1 input), `caretEncode`/`caretDecode` (RFC 6868),
+needs: `propertyId` (`group.NAME`, the form `Issue.property` uses, so an
+issue can be matched to its property), `escapeText`, `unescapeText`,
+`splitEscaped` (split on an unescaped separator, escapes kept), `foldLine`
+(there is no public unfolder: a plain RFC 6350 one would disagree with the
+parser's tolerant one on 2.1 input), `caretEncode`/`caretDecode` (RFC 6868),
 `decodeQuotedPrintable` (the encoder is a test helper in
 `packages/vcard/test/helpers/`, the library never writes QP),
 `encodeBase64`/`decodeBase64` (`Uint8Array.fromBase64` with fallback;
@@ -567,12 +568,13 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
   parsed 2.1 card must go through `upgradeTo40` first or its escapes are
   doubled): `binary` in 4.0, a control character a 4.0 parameter cannot
   caret-encode, a `TYPE` value holding a comma (readers split it even when
-  quoted), a date shape outside the grammar (the formatters' `RangeError`,
-  rethrown), a name outside `[A-Za-z0-9-]`, `BEGIN`/`END` as a property, a
-  line break escaping cannot absorb (URI, raw), a value without the fields
-  of its kind (the `TypeError`, rethrown). It carries the card index
-  and `group.NAME`. A missing FN is not checked here: 2.1 cards legally
-  lack one, and `convert` always builds it.
+  quoted), a date shape outside the grammar or a float that is not finite
+  (the formatters' `RangeError`, rethrown), a name outside `[A-Za-z0-9-]`,
+  `BEGIN`/`END` as a property, a line break escaping cannot absorb (URI,
+  raw), a value without the fields of its kind (the `TypeError`,
+  rethrown). It carries the card index and `group.NAME` as the caller
+  wrote them, the same id the warnings carry. A missing FN is not checked
+  here: 2.1 cards legally lack one, and `convert` always builds it.
 
 ### Human-readable output rules
 

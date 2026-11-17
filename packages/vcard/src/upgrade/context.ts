@@ -1,5 +1,6 @@
 import type { UpgradeIssueCode } from "../issue-codes.js";
-import { IssueCollector, issue } from "../parse/issues.js";
+import { IssueCollector, issue } from "../issues.js";
+import { cloneParams, propertyId } from "../model.js";
 import type { Issue, VCard, VParams, VProperty, VValue } from "../types.js";
 
 /** One normalisation step over a whole card: may rewrite, add or remove properties in place. */
@@ -21,10 +22,6 @@ export class UpgradeContext {
 	warn(code: UpgradeIssueCode, message: string, source: VProperty): void {
 		this.collector.push(issue("warning", code, message, source.line, propertyId(source)));
 	}
-}
-
-export function propertyId(p: VProperty): string {
-	return p.group === null ? p.name : `${p.group}.${p.name}`;
 }
 
 // The callback returns nothing to keep a property, or its replacements (none removes it).
@@ -60,14 +57,6 @@ export function derive(
 	return p;
 }
 
-export function cloneParams(params: VParams): VParams {
-	return new Map([...params].map(([name, values]) => [name, [...values]]));
-}
-
-export function firstParam(p: VProperty, name: string): string | undefined {
-	return p.params.get(name)?.[0];
-}
-
 export function hasProperty(card: VCard, name: string): boolean {
 	return card.properties.some((p) => p.name === name);
 }
@@ -98,19 +87,6 @@ export function removeTypes(p: VProperty, drop: (type: string) => boolean): stri
 	if (kept.length === 0) p.params.delete("TYPE");
 	else p.params.set("TYPE", kept);
 	return removed;
-}
-
-/** The plain text of a text, uri or unknown value; other kinds have none. */
-export function textOf(p: VProperty): string | undefined {
-	switch (p.value.kind) {
-		case "text":
-		case "uri":
-			return p.value.value;
-		case "unknown":
-			return p.value.raw;
-		default:
-			return undefined;
-	}
 }
 
 /** Properties by group, built once per rule so a card with many groups stays linear. */

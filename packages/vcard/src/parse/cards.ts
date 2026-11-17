@@ -1,7 +1,8 @@
+import { discardIssues, type IssueSink, latin1 } from "../issues.js";
 import type { VCardVersion } from "../types.js";
-import { discardIssues, info, latin1, warn } from "./issues.js";
 import { lexContentLine, type RawLine } from "./lexer.js";
-import type { IssueSink, LogicalLine } from "./lines.js";
+import type { LogicalLine } from "./lines.js";
+import { info, warn } from "./report.js";
 
 const LF = new Uint8Array([0x0a]);
 const HASH = 0x23;

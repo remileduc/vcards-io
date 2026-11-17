@@ -455,3 +455,31 @@ model types, issue codes, text and value helpers) and which exist for the
 sibling packages with no stability promise (`PROPERTY_REGISTRY` and its
 lookups, `COMMON_PARAMS`, `TEXT_FAMILY`, `VALUE_TOKENS`, the media word
 tables, `declaredMediaType`, the relation table, `URI_SCHEME`).
+
+2026-11-17 Pre-release cleanup: shared modules, `propertyId`, floats in plain digits
+-----------------------------------------------------------------------------------
+
+The three stages (`parse/`, `upgrade/`, `write/`) no longer import from one
+another: what they share lives in `issues.ts` (sink, capped collector,
+`excerpt`) and `model.ts` (`NAME_RE`, `propertyId`, parameter helpers), and
+value syntax stays in `values/`. `propertyId` joins the stable contract
+because `Issue.property` already exposes its `group.NAME` form and a
+consumer needs the same function to match an issue to a property. The float
+sentence of the 2026-11-09 writer review is superseded: validating
+`String(number)` with the parser's `FLOAT` made the writer throw on values
+the reader accepts without an issue (`0.0000001` is `1e-7` as a number), so
+one odd property aborted an export. `values/number.ts` now holds the pair:
+`parseFloatValue` rejects text that overflows a double (kept as `unknown`,
+`invalid-value`), `formatFloatValue` writes plain digits whatever the
+magnitude, and only NaN and the infinities are a `SerializeError`. The
+reader takes a property's fallback kind from `nearestValueKind`, the
+function the writer and the normaliser use, so the three cannot disagree on
+it; the `property-not-in-version` message no longer names the version it
+was read as. The registry check "is this kind the property's default" is
+one predicate, `sameValueKind`, and the normaliser's legacy IM table is
+keyed by the registry's `LegacyImProperty` type, so a name the registry
+lacks does not compile. The parse stage's severity helpers live in
+`parse/report.ts`, so only one module is called `issues.ts`. Writer
+warnings carry the id of the property as the caller wrote it, like
+`SerializeError`, not of the canonical copy: it is what `propertyId`
+returns for the caller's own object.

@@ -30,7 +30,7 @@ const INDEXED = ["LEVEL", "INDEX"];
 
 const MEDIATYPE = ["MEDIATYPE"];
 const DATE_PARAMS = ["CALSCALE"];
-const V3_LEGACY_IM = [
+const LEGACY_IM_PROPERTIES = [
 	"X-AIM",
 	"X-MSN",
 	"X-YAHOO",
@@ -45,7 +45,9 @@ const V3_LEGACY_IM = [
 	"X-NETMEETING",
 	"X-TWITTER",
 	"X-SIP",
-];
+] as const;
+/** Lets the normaliser's table be checked against this list: an unregistered name is read as `unknown`. */
+export type LegacyImProperty = (typeof LEGACY_IM_PROPERTIES)[number];
 
 const text = (
 	versions: readonly VCardVersion[],
@@ -221,7 +223,7 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 	["X-PHONETIC-MIDDLE-NAME", text(ALL, "*1")],
 	["X-PHONETIC-LAST-NAME", text(ALL, "*1")],
 	["X-SKYPE-PSTNNUMBER", text(ALL)],
-	...V3_LEGACY_IM.map((name): [string, PropertySpec] => [name, text(ALL)]),
+	...LEGACY_IM_PROPERTIES.map((name): [string, PropertySpec] => [name, text(ALL)]),
 	// Apple (iOS / macOS Contacts) and Google "vCard for iOS"
 	["X-ABLABEL", text(ALL)],
 	["X-ABADR", text(ALL)],
@@ -253,6 +255,11 @@ export const COMMON_PARAMS: Readonly<Record<VCardVersion, readonly string[]>> = 
 
 /** Kinds VALUE=text covers: N;VALUE=text is still structured, NICKNAME;VALUE=text still a list. */
 export const TEXT_FAMILY: ReadonlySet<VValueKind> = new Set(["text", "text-list", "structured"]);
+
+/** Whether a value has the kind its property expects; the text family counts as one kind. */
+export function sameValueKind(kind: VValueKind, expected: VValueKind): boolean {
+	return kind === expected || (TEXT_FAMILY.has(kind) && TEXT_FAMILY.has(expected));
+}
 
 /** PHOTO, LOGO, SOUND, KEY: inline binary in some version, so a base64 payload is the media itself. */
 export function isMediaProperty(name: string): boolean {
