@@ -1,7 +1,11 @@
 vcards-io
 =========
 
-[![CI][ci-badge]][ci] [![Coverage][coverage-badge]][ci]
+[![CI][ci-badge]][ci]
+[![Coverage][coverage-badge]][ci]
+[![App][app-badge]][app]
+[![Network][network-badge]][csp]
+[![Licence][licence-badge]](LICENSE)
 
 Offline, browser-only tool to back up phone contacts to a `.vcf` file,
 inspect and edit them, and restore them on another phone. Built on
@@ -68,6 +72,11 @@ Supporting formats:
 [ci]: https://github.com/remileduc/vcards-io/actions/workflows/ci.yml
 [ci-badge]: https://github.com/remileduc/vcards-io/actions/workflows/ci.yml/badge.svg?branch=main
 [coverage-badge]: https://img.shields.io/endpoint?url=https%3A%2F%2Fremileduc.github.io%2Fvcards-io%2Fcoverage.json
+[app]: https://remileduc.github.io/vcards-io/
+[app-badge]: https://img.shields.io/badge/app-live-blue
+[csp]: apps/web/vite.config.ts
+[network-badge]: https://img.shields.io/badge/network-none-success
+[licence-badge]: https://img.shields.io/github/license/remileduc/vcards-io
 
 [vcard21]: https://web.archive.org/web/20160402232011/https://www.imc.org/pdi/vcard-21.rtf
 [rfc2425]: https://www.rfc-editor.org/rfc/rfc2425
