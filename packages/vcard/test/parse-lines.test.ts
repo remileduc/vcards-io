@@ -108,14 +108,14 @@ describe("readLogicalLines", () => {
 			]);
 		});
 
-		test("does not swallow a card delimiter after a dangling soft break", () => {
+		test("does not swallow a card delimiter after a dangling soft break, reported on its line", () => {
 			const issues: Issue[] = [];
 			expect(lines("NOTE;ENCODING=QUOTED-PRINTABLE:a=\r\nEND:VCARD\r\n", issues)).toEqual([
 				[1, "NOTE;ENCODING=QUOTED-PRINTABLE:a"],
 				[2, "END:VCARD"],
 			]);
 			expect(issues).toEqual([
-				expect.objectContaining({ code: "qp-soft-break-dangling", line: 2 }),
+				expect.objectContaining({ code: "qp-soft-break-dangling", line: 1 }),
 			]);
 		});
 

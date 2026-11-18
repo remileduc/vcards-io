@@ -1,7 +1,8 @@
+import { discardIssues, type IssueSink, latin1 } from "../issues.js";
 import type { VCardVersion } from "../types.js";
-import { discardIssues, info, latin1, warn } from "./issues.js";
 import { lexContentLine, type RawLine } from "./lexer.js";
-import type { IssueSink, LogicalLine } from "./lines.js";
+import type { LogicalLine } from "./lines.js";
+import { info, warn } from "./report.js";
 
 const LF = new Uint8Array([0x0a]);
 const HASH = 0x23;
@@ -10,16 +11,20 @@ export interface RawCard {
 	version: VCardVersion;
 	/** "guessed" when the card had no usable VERSION line. */
 	versionSource: "explicit" | "guessed";
-	/** Every lexed line between BEGIN and END, VERSION included, in source order. */
+	/** Every lexed line between BEGIN and END but VERSION, in source order. */
 	lines: RawLine[];
 	/** Physical line of BEGIN:VCARD. */
 	line: number;
+	/** Physical line that closed the card: its END, a nested BEGIN, Infinity at end of input. */
+	endLine: number;
 }
 
 interface OpenCard {
 	lines: RawLine[];
 	line: number;
 	versions: RawLine[];
+	/** Line read last, VERSION or not: an inline AGENT is told by the line right before its BEGIN. */
+	last: RawLine | null;
 	/** 2.1 markers: bare parameters or quoted-printable encoding seen. */
 	legacy: boolean;
 }
@@ -35,22 +40,18 @@ interface OpenAgent {
  * closes the card at EOF, a 2.1 AGENT's nested vCard (after an empty `AGENT:` as in the
  * versit example, or right after the colon as in its grammar) becomes that AGENT's raw text
  * value, any other nested BEGIN closes the current card. VERSION may sit anywhere in the
- * card; without one, 2.1 is assumed when 2.1 syntax was seen, 3.0 otherwise. Lines starting
- * with "#" are comments to AOSP and skipped here too.
+ * card and is consumed here, never kept as a line; without one, 2.1 is assumed when 2.1
+ * syntax was seen, 3.0 otherwise. Lines starting with "#" are comments to AOSP and skipped
+ * here too.
  */
 export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 	const cards: RawCard[] = [];
 	let card: OpenCard | null = null;
 	let agent: OpenAgent | null = null;
 
-	const close = (eofLine?: number): void => {
+	const close = (endLine: number): void => {
 		if (card === null) return;
-		if (eofLine !== undefined) {
-			issues.push(
-				warn("missing-end", "Card closed at end of input without END:VCARD", eofLine),
-			);
-		}
-		cards.push(finish(card, issues));
+		cards.push(finish(card, cards.length, endLine, issues));
 		card = null;
 	};
 	const openAgent = (target: RawLine, first: Uint8Array, line: number): OpenAgent => {
@@ -80,7 +81,7 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 		if (raw === null) continue;
 		if (isDelimiter(raw, "BEGIN")) {
 			if (card !== null) {
-				const previous = card.lines.at(-1);
+				const previous = card.last;
 				if (previous?.name === "AGENT" && latin1.decode(previous.value).trim() === "") {
 					agent = openAgent(previous, logical.bytes, raw.line);
 					continue;
@@ -90,24 +91,26 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 						"nested-begin",
 						"BEGIN:VCARD inside a card, previous card closed",
 						raw.line,
+						cards.length,
 					),
 				);
-				close();
+				close(raw.line);
 			}
-			card = { lines: [], line: raw.line, versions: [], legacy: false };
+			card = { lines: [], line: raw.line, versions: [], last: null, legacy: false };
 		} else if (isDelimiter(raw, "END")) {
 			if (card === null) {
 				issues.push(warn("unexpected-end", "END:VCARD outside a card ignored", raw.line));
 			} else {
-				close();
+				close(raw.line);
 			}
 		} else if (card === null) {
 			issues.push(
 				warn("line-outside-card", `${raw.name} outside BEGIN/END ignored`, raw.line),
 			);
 		} else {
-			card.lines.push(raw);
 			if (raw.name === "VERSION") card.versions.push(raw);
+			else card.lines.push(raw);
+			card.last = raw;
 			if (!card.legacy) card.legacy = hasLegacySyntax(raw);
 			// versit 2.9: `"AGENT" [params] ":" vcard`, the nested card starts after the colon.
 			if (raw.name === "AGENT" && isBeginVCard(raw.value)) {
@@ -121,11 +124,15 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 		);
 		closeAgent();
 	}
-	close(lines.at(-1)?.line);
+	if (card !== null) {
+		const last = lines.at(-1)?.line;
+		issues.push(warn("missing-end", "Card closed at end of input without END:VCARD", last));
+		close(Number.POSITIVE_INFINITY);
+	}
 	return cards;
 }
 
-function finish(card: OpenCard, issues: IssueSink): RawCard {
+function finish(card: OpenCard, index: number, endLine: number, issues: IssueSink): RawCard {
 	let version: VCardVersion | null = null;
 	for (const raw of card.versions) {
 		const text = latin1.decode(raw.value).trim();
@@ -133,15 +140,26 @@ function finish(card: OpenCard, issues: IssueSink): RawCard {
 			issues.push(warn("version-unknown", `Unknown VERSION "${text}" ignored`, raw.line));
 		} else if (version === null) {
 			version = text;
+			if (raw.group !== null || raw.params.length > 0) {
+				issues.push(
+					info(
+						"version-extras-dropped",
+						"Group and parameters of the VERSION line dropped",
+						raw.line,
+					),
+				);
+			}
 		} else {
 			issues.push(warn("version-duplicate", `Second VERSION "${text}" ignored`, raw.line));
 		}
 	}
-	if (version !== null)
-		return { version, versionSource: "explicit", lines: card.lines, line: card.line };
+	if (version !== null) {
+		return { version, versionSource: "explicit", lines: card.lines, line: card.line, endLine };
+	}
 	version = card.legacy ? "2.1" : "3.0";
-	issues.push(warn("version-missing", `No VERSION, assuming ${version}`, card.line));
-	return { version, versionSource: "guessed", lines: card.lines, line: card.line };
+	// Reported on the BEGIN line, which after a nested BEGIN is also where the card before ends.
+	issues.push(warn("version-missing", `No VERSION, assuming ${version}`, card.line, index));
+	return { version, versionSource: "guessed", lines: card.lines, line: card.line, endLine };
 }
 
 function isDelimiter(raw: RawLine, name: "BEGIN" | "END"): boolean {

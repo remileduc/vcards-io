@@ -1,9 +1,11 @@
-import { nearestValueKind, TEXT_FAMILY } from "../registry.js";
+import type { SerializeIssueCode } from "../issue-codes.js";
+import { firstParam } from "../model.js";
+import { nearestValueKind, sameValueKind } from "../registry.js";
 import type { VParams, VProperty, VValue } from "../types.js";
 import type { DateFormatOptions } from "../values/date.js";
 
 /** Reports one loss the version forced on the property being written; the engine files it. */
-export type Warn = (code: string, message: string) => void;
+export type Warn = (code: SerializeIssueCode, message: string) => void;
 
 /** What a property looks like in one version, before the engine formats and folds it. */
 export interface Prepared {
@@ -42,16 +44,12 @@ export interface SyntaxTable {
  * caller's model declared.
  */
 export function valueParam(table: SyntaxTable, p: VProperty, value: VValue): string | undefined {
-	const declared = p.params.get("VALUE")?.[0];
-	if (value.kind === "unknown") return declared;
+	if (value.kind === "unknown") return firstParam(p, "VALUE");
 	const known = nearestValueKind(p.name, table.version);
 	if (value.kind === "binary") {
 		return known === undefined || known === "binary" ? undefined : table.valueToken(value);
 	}
-	const expected = known ?? "text";
-	const same =
-		value.kind === expected || (TEXT_FAMILY.has(value.kind) && TEXT_FAMILY.has(expected));
-	return same ? undefined : table.valueToken(value);
+	return sameValueKind(value.kind, known ?? "text") ? undefined : table.valueToken(value);
 }
 
 /** True for a C0 control (tab excepted) or DEL: a parameter value has no encoding for them. */

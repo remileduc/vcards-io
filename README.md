@@ -14,9 +14,10 @@ JSContact (RFC 9553) with reusable libraries:
 |                        | export profiles                                              |
 | `apps/web`             | the Vite + Lit web app                                       |
 
-Status: milestone 0 (scaffolding). The specification, architecture and
-milestones are in `docs/plan.md`; device behaviour in `docs/interop.md`;
-decisions in `docs/decisions.md`.
+Status: milestones 0 to 2 are done (`@vcards-io/vcard` reads, normalises
+and writes); milestone 3 (`@vcards-io/jscontact`) is next. The
+specification, architecture and milestones are in `docs/plan.md`; device
+behaviour in `docs/interop.md`; decisions in `docs/decisions.md`.
 
 Specifications
 --------------

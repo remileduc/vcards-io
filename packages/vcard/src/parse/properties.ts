@@ -1,4 +1,13 @@
-import { defaultValueKind, isMediaProperty, PROPERTY_REGISTRY, TEXT_FAMILY } from "../registry.js";
+import type { ParseIssueCode } from "../issue-codes.js";
+import { excerpt, type IssueSink, issue, latin1 } from "../issues.js";
+import { propertyId } from "../model.js";
+import {
+	defaultValueKind,
+	isMediaProperty,
+	nearestValueKind,
+	PROPERTY_REGISTRY,
+	TEXT_FAMILY,
+} from "../registry.js";
 import { decodeBase64 } from "../text/base64.js";
 import { caretDecode } from "../text/caret.js";
 import { splitEscaped, unescapeText, unescapeText21 } from "../text/escape.js";
@@ -14,10 +23,10 @@ import type {
 import { parseDateAndOrTime, parseTimestamp, parseUtcOffset } from "../values/date.js";
 import { guessImageType } from "../values/image.js";
 import { declaredMediaType, mediaTypeFromName } from "../values/media.js";
+import { parseFloatValue } from "../values/number.js";
 import { URI_SCHEME } from "../values/uri.js";
-import { excerpt, info, issue, latin1 } from "./issues.js";
 import type { RawLine } from "./lexer.js";
-import type { IssueSink } from "./lines.js";
+import { info } from "./report.js";
 
 /** VALUE parameter values and the kind they select; `vcard` and `inline` defer to the registry. */
 const VALUE_KINDS: ReadonlyMap<string, VValueKind | "registry"> = new Map([
@@ -46,8 +55,6 @@ const VALUE_KINDS: ReadonlyMap<string, VValueKind | "registry"> = new Map([
 const ASCII_PARAMS: ReadonlySet<string> = new Set(["CHARSET", "ENCODING", "VALUE"]);
 
 const INTEGER = /^[+-]?\d+$/;
-/** A FLOAT value, also the shape of each GEO coordinate the upgrade turns into a geo: URI. */
-export const FLOAT = /^[+-]?\d+(?:\.\d+)?$/;
 const LANGUAGE_TAG = /^[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*$/;
 
 /**
@@ -230,10 +237,10 @@ class Context {
 		this.name = raw.name;
 		this.version = version;
 		this.line = raw.line;
-		this.property = raw.group === null ? raw.name : `${raw.group}.${raw.name}`;
+		this.property = propertyId(raw);
 	}
 
-	report(severity: IssueSeverity, code: string, message: string): void {
+	report(severity: IssueSeverity, code: ParseIssueCode, message: string): void {
 		this.issues.push(issue(severity, code, message, this.line, this.property));
 	}
 }
@@ -278,16 +285,14 @@ function mediaTypeOf(data: Uint8Array, params: VParams): string | undefined {
 
 /** VALUE parameter first, then the registry default for the version, else unknown. */
 function resolveKind(ctx: Context, params: VParams): VValueKind {
-	let kind = defaultValueKind(ctx.name, ctx.version);
-	const spec = PROPERTY_REGISTRY.get(ctx.name);
-	if (kind === undefined && spec !== undefined) {
-		// Defined for other versions only: NICKNAME in 2.1, LABEL in 4.0. Read it as there.
-		const nearest = spec.versions.at(-1) ?? ctx.version;
-		kind = typeof spec.kind === "string" ? spec.kind : spec.kind[nearest];
+	const own = defaultValueKind(ctx.name, ctx.version);
+	let kind = own ?? nearestValueKind(ctx.name, ctx.version);
+	if (own === undefined && kind !== undefined) {
+		// Defined for other versions only: NICKNAME in 2.1, LABEL in 4.0.
 		ctx.report(
 			"info",
 			"property-not-in-version",
-			`${ctx.name} is not a vCard ${ctx.version} property, read as in ${nearest}`,
+			`${ctx.name} is not a vCard ${ctx.version} property`,
 		);
 	}
 	const requested = params.get("VALUE")?.[0];
@@ -337,7 +342,7 @@ function typeValue(text: string, kind: VValueKind, params: VParams, ctx: Context
 		case "utc-offset": {
 			const offset = parseUtcOffset(text.trim());
 			if (offset === null) return invalid(text, kind, ctx);
-			return { kind, ...offset };
+			return { kind, value: offset };
 		}
 		case "language-tag": {
 			const tag = text.trim();
@@ -351,10 +356,8 @@ function typeValue(text: string, kind: VValueKind, params: VParams, ctx: Context
 			return { kind, value };
 		}
 		case "float": {
-			const trimmed = text.trim();
-			return FLOAT.test(trimmed)
-				? { kind, value: Number(trimmed) }
-				: invalid(text, kind, ctx);
+			const value = parseFloatValue(text.trim());
+			return value === null ? invalid(text, kind, ctx) : { kind, value };
 		}
 		case "boolean": {
 			const word = text.trim().toLowerCase();

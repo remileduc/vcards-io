@@ -1,10 +1,15 @@
-import type { Issue, IssueSeverity } from "../types.js";
-import type { IssueSink } from "./lines.js";
+import type { IssueCode } from "./issue-codes.js";
+import type { Issue, IssueSeverity } from "./types.js";
 
 export const DEFAULT_MAX_ISSUES_PER_CODE = 1000;
 
 // Headers and names are ASCII; a lossless single-byte decoding keeps odd bytes visible in diagnostics.
 export const latin1 = new TextDecoder("windows-1252");
+
+/** Anything with a `push`: a plain array in tests, the capped collector in the pipeline. */
+export interface IssueSink {
+	push(issue: Issue): void;
+}
 
 /** For lexing runs whose diagnostics are repeated or irrelevant elsewhere. */
 export const discardIssues: IssueSink = { push() {} };
@@ -12,7 +17,7 @@ export const discardIssues: IssueSink = { push() {} };
 /** `line` and `property` are only set when given, so issues compare equal by content. */
 export function issue(
 	severity: IssueSeverity,
-	code: string,
+	code: IssueCode,
 	message: string,
 	line?: number,
 	property?: string,
@@ -21,14 +26,6 @@ export function issue(
 	if (line !== undefined) out.line = line;
 	if (property !== undefined) out.property = property;
 	return out;
-}
-
-export function warn(code: string, message: string, line?: number): Issue {
-	return issue("warning", code, message, line);
-}
-
-export function info(code: string, message: string, line?: number): Issue {
-	return issue("info", code, message, line);
 }
 
 /** The start of a value for a message, quoted; bytes are shown as windows-1252. */
@@ -44,7 +41,7 @@ export function excerpt(value: string | Uint8Array): string {
  */
 export class IssueCollector implements IssueSink {
 	readonly issues: Issue[] = [];
-	private readonly counts = new Map<string, number>();
+	private readonly counts = new Map<IssueCode, number>();
 
 	constructor(private readonly maxPerCode = DEFAULT_MAX_ISSUES_PER_CODE) {
 		if (!Number.isInteger(maxPerCode) || maxPerCode < 1) {
@@ -52,17 +49,14 @@ export class IssueCollector implements IssueSink {
 		}
 	}
 
-	push(issue: Issue): void {
-		const count = (this.counts.get(issue.code) ?? 0) + 1;
-		this.counts.set(issue.code, count);
+	push(pushed: Issue): void {
+		const count = (this.counts.get(pushed.code) ?? 0) + 1;
+		this.counts.set(pushed.code, count);
 		if (count <= this.maxPerCode) {
-			this.issues.push(issue);
+			this.issues.push(pushed);
 		} else if (count === this.maxPerCode + 1) {
-			this.issues.push({
-				severity: "warning",
-				code: "issues-truncated",
-				message: `More than ${this.maxPerCode} "${issue.code}" issues, further ones not recorded`,
-			});
+			const message = `More than ${this.maxPerCode} "${pushed.code}" issues, further ones not recorded`;
+			this.issues.push(issue("warning", "issues-truncated", message));
 		}
 	}
 }

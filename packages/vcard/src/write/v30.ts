@@ -1,4 +1,4 @@
-import { excerpt } from "../parse/issues.js";
+import { excerpt } from "../issues.js";
 import { isMediaProperty, VALUE_TOKENS } from "../registry.js";
 import type { DateAndOrTime, VParams, VProperty, VValue } from "../types.js";
 import { declaredMediaType, mediaTypeName } from "../values/media.js";

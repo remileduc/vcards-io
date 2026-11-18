@@ -26,6 +26,7 @@ function wellFormed(result: ParseResult): void {
 		for (const p of card.properties) {
 			expect(p.name).toBe(p.name.toUpperCase());
 			expect(p.name).not.toBe("");
+			expect(p.name).not.toBe("VERSION");
 			expect(KINDS.has(p.value.kind)).toBe(true);
 			expect(p.line).toBeGreaterThan(0);
 			for (const [name] of p.params) expect(name).toBe(name.toUpperCase());
@@ -34,6 +35,7 @@ function wellFormed(result: ParseResult): void {
 	for (const issue of result.issues) {
 		expect(SEVERITIES.has(issue.severity)).toBe(true);
 		expect(issue.code).not.toBe("");
+		if (issue.card !== undefined) expect(result.cards[issue.card]).toBeDefined();
 	}
 }
 
@@ -72,7 +74,7 @@ describe("parseVCards fuzz", () => {
 					`BEGIN:VCARD\r\nVERSION:4.0\r\nNOTE:${escapeText(s)}\r\nEND:VCARD`,
 				);
 				expect(issues).toEqual([]);
-				expect(cards[0]?.properties[1]?.value).toEqual({ kind: "text", value: s });
+				expect(cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: s });
 			}),
 		);
 	});
@@ -91,7 +93,7 @@ describe("parseVCards fuzz", () => {
 			fc.property(components, (parts) => {
 				const line = `N:${parts.map(escapeText).join(";")}`;
 				const { cards } = parseVCards(`BEGIN:VCARD\nVERSION:3.0\n${line}\nEND:VCARD`);
-				expect(cards[0]?.properties[1]?.value).toEqual({
+				expect(cards[0]?.properties[0]?.value).toEqual({
 					kind: "structured",
 					components: parts.map((p) => [p]),
 				});
@@ -134,10 +136,10 @@ describe("parseVCards fuzz", () => {
 				expect(result.cards.map((c) => c.version)).toEqual(cards.map((c) => c.version));
 				result.cards.forEach((parsed, k) => {
 					const expected = cards[k];
-					expect(parsed.properties.slice(1).map((p) => p.name)).toEqual(
+					expect(parsed.properties.map((p) => p.name)).toEqual(
 						expected?.properties.map((p) => p.name),
 					);
-					for (const [i, p] of parsed.properties.slice(1).entries()) {
+					for (const [i, p] of parsed.properties.entries()) {
 						const types = expected?.properties[i]?.types ?? [];
 						if (types.length > 0)
 							expect(p.params.get("TYPE")).toEqual(

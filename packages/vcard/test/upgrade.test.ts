@@ -3,6 +3,7 @@ import {
 	encodeBase64,
 	type Issue,
 	parseVCards,
+	serializeVCards,
 	upgradeTo40,
 	type VCard,
 	type VCardVersion,
@@ -20,14 +21,9 @@ function source(version: VCardVersion | null, ...lines: string[]): VCard {
 	return card;
 }
 
-/** Upgrades one card; `props` leaves VERSION out. */
 function upgrade(version: VCardVersion | null, ...lines: string[]) {
 	const result = upgradeTo40(source(version, ...lines));
-	return {
-		card: result.card,
-		props: result.card.properties.filter((p) => p.name !== "VERSION"),
-		issues: result.issues,
-	};
+	return { card: result.card, props: result.card.properties, issues: result.issues };
 }
 
 function only(version: VCardVersion | null, ...lines: string[]): VProperty {
@@ -39,16 +35,33 @@ function only(version: VCardVersion | null, ...lines: string[]): VProperty {
 const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0]);
 
 describe("upgradeTo40", () => {
-	test("sets version 4.0 and rewrites the VERSION property, adding one when missing", () => {
-		const explicit = upgrade("3.0", "FN:A");
-		expect(explicit.card.version).toBe("4.0");
-		expect(explicit.card.properties[0]).toMatchObject({
-			name: "VERSION",
-			value: { kind: "text", value: "4.0" },
-		});
+	test("sets version 4.0 whether the source version was declared or guessed", () => {
+		expect(upgrade("3.0", "FN:A").card.version).toBe("4.0");
 		const inferred = upgrade(null, "FN:A", "TEL;CELL:1");
-		expect(inferred.card.properties.map((p) => p.name)).toEqual(["VERSION", "FN", "TEL"]);
-		expect(inferred.card.properties[0]?.line).toBeUndefined();
+		expect(inferred.card.version).toBe("4.0");
+		expect(inferred.card.properties.map((p) => p.name)).toEqual(["FN", "TEL"]);
+	});
+
+	test("drops a VERSION property of a hand-built model, so the result can be written", () => {
+		const text = (value: string) => ({ kind: "text", value }) as const;
+		const built: VCard = {
+			version: "3.0",
+			properties: [
+				{ group: null, name: "VERSION", params: new Map(), value: text("3.0") },
+				{ group: null, name: "FN", params: new Map(), value: text("A") },
+				{ group: "item1", name: "version", params: new Map(), value: text("2.1") },
+			],
+		};
+		const first = upgradeTo40(built);
+		expect(first.card.properties.map((p) => p.name)).toEqual(["FN"]);
+		expect(first.issues.map((i) => [i.severity, i.code, i.property])).toEqual([
+			["info", "version-dropped", "VERSION"],
+			["info", "version-dropped", "item1.version"],
+		]);
+		expect(serializeVCards([first.card], { version: "4.0" }).text).toBe(
+			"BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nEND:VCARD\r\n",
+		);
+		expect(upgradeTo40(first.card)).toEqual({ card: first.card, issues: [] });
 	});
 
 	test("does not modify the input card", () => {
@@ -103,11 +116,7 @@ describe("upgradeTo40", () => {
 	test("vendor: false leaves vendor properties alone", () => {
 		const line = "X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;Bob;1;;;;;;;;;;;;;";
 		const result = upgradeTo40(source("2.1", "FN:A", line), { vendor: false });
-		expect(result.card.properties.map((p) => p.name)).toEqual([
-			"VERSION",
-			"FN",
-			"X-ANDROID-CUSTOM",
-		]);
+		expect(result.card.properties.map((p) => p.name)).toEqual(["FN", "X-ANDROID-CUSTOM"]);
 		expect(result.issues).toEqual([]);
 	});
 });
@@ -379,11 +388,11 @@ describe("standard rules", () => {
 });
 
 describe("review regressions", () => {
-	test("a card with several VERSION lines ends with exactly one", () => {
+	test("several VERSION lines are the parser's to report, the upgrade never sees one", () => {
 		const { card, issues } = upgrade("3.0", "VERSION:2.1", "FN:A");
-		expect(card.properties.map((p) => p.name)).toEqual(["VERSION", "FN"]);
-		expect(card.properties[0]?.line).toBe(2);
-		expect(codes(issues)).toEqual(["version-dropped"]);
+		expect(card.version).toBe("4.0");
+		expect(card.properties.map((p) => p.name)).toEqual(["FN"]);
+		expect(issues).toEqual([]);
 	});
 
 	test("an 8th or later ADR component in a 4.0 card is RFC 9554 data, not a Google label", () => {

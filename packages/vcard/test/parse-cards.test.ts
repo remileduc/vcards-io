@@ -11,13 +11,14 @@ function cards(input: string, issues: Issue[] = []) {
 		version: c.version,
 		versionSource: c.versionSource,
 		line: c.line,
+		endLine: c.endLine,
 		names: c.lines.map((l) => l.name),
 	}));
 }
 const codes = (issues: Issue[]) => issues.map((i) => i.code);
 
 describe("groupCards", () => {
-	test("groups BEGIN..END case-insensitively, VERSION kept among the lines", () => {
+	test("groups BEGIN..END case-insensitively, VERSION is read and not kept as a line", () => {
 		const issues: Issue[] = [];
 		expect(
 			cards(
@@ -25,8 +26,8 @@ describe("groupCards", () => {
 				issues,
 			),
 		).toEqual([
-			{ version: "4.0", versionSource: "explicit", line: 1, names: ["VERSION", "FN"] },
-			{ version: "2.1", versionSource: "explicit", line: 6, names: ["FN", "VERSION"] },
+			{ version: "4.0", versionSource: "explicit", line: 1, endLine: 4, names: ["FN"] },
+			{ version: "2.1", versionSource: "explicit", line: 6, endLine: 9, names: ["FN"] },
 		]);
 		expect(issues).toEqual([]);
 	});
@@ -37,7 +38,7 @@ describe("groupCards", () => {
 			"BEGIN:VCARD\nVERSION:2.1\n# exported by foo\n# note: bar\nFN:x\nEND:VCARD",
 			issues,
 		);
-		expect(result[0]?.names).toEqual(["VERSION", "FN"]);
+		expect(result[0]?.names).toEqual(["FN"]);
 		expect(issues.map((i) => [i.severity, i.code])).toEqual([
 			["info", "comment-skipped"],
 			["info", "comment-skipped"],
@@ -50,7 +51,8 @@ describe("groupCards", () => {
 
 	test("closes a card without END at end of input with a warning", () => {
 		const issues: Issue[] = [];
-		expect(cards("BEGIN:VCARD\nVERSION:3.0\nFN:A\n", issues)).toHaveLength(1);
+		const result = cards("BEGIN:VCARD\nVERSION:3.0\nFN:A\n", issues);
+		expect(result.map((c) => c.endLine)).toEqual([Number.POSITIVE_INFINITY]);
 		expect(issues).toEqual([expect.objectContaining({ code: "missing-end", line: 3 })]);
 	});
 
@@ -60,7 +62,7 @@ describe("groupCards", () => {
 			"FN:lost\nEND:VCARD\nBEGIN:VCARD\nVERSION:3.0\ngarbage\nFN:A\nEND:VCARD",
 			issues,
 		);
-		expect(result[0]?.names).toEqual(["VERSION", "FN"]);
+		expect(result[0]?.names).toEqual(["FN"]);
 		expect(codes(issues)).toEqual(["line-outside-card", "unexpected-end", "invalid-line"]);
 	});
 
@@ -82,6 +84,29 @@ describe("groupCards", () => {
 				version: "3.0",
 				versionSource: "guessed",
 			});
+		});
+
+		test("reports the group and parameters lost with the VERSION line", () => {
+			for (const version of [
+				"item1.VERSION:3.0",
+				"VERSION;X-FOO=bar:3.0",
+				"VERSION;FOO:3.0",
+			]) {
+				const issues: Issue[] = [];
+				const [card] = cards(`BEGIN:VCARD\n${version}\nFN:A\nEND:VCARD`, issues);
+				expect(card).toMatchObject({
+					version: "3.0",
+					versionSource: "explicit",
+					names: ["FN"],
+				});
+				expect(issues).toEqual([
+					expect.objectContaining({
+						severity: "info",
+						code: "version-extras-dropped",
+						line: 2,
+					}),
+				]);
+			}
 		});
 
 		test("ignores an unknown VERSION and a duplicate one", () => {
@@ -122,8 +147,8 @@ describe("groupCards", () => {
 			].join("\r\n");
 			const issues: Issue[] = [];
 			const [card] = groupCards(readLogicalLines(utf8(input), issues), issues);
-			expect(card?.lines.map((l) => l.name)).toEqual(["VERSION", "FN", "AGENT", "NOTE"]);
-			expect(text(card?.lines[2]?.value ?? new Uint8Array())).toBe(
+			expect(card?.lines.map((l) => l.name)).toEqual(["FN", "AGENT", "NOTE"]);
+			expect(text(card?.lines[1]?.value ?? new Uint8Array())).toBe(
 				"BEGIN:VCARD\nVERSION:2.1\nFN:Assistant\nTEL;WORK:+1\nEND:VCARD",
 			);
 			expect(issues).toEqual([
@@ -147,8 +172,8 @@ describe("groupCards", () => {
 			const issues: Issue[] = [];
 			const result = groupCards(readLogicalLines(utf8(input), issues), issues);
 			expect(result).toHaveLength(1);
-			expect(result[0]?.lines.map((l) => l.name)).toEqual(["VERSION", "N", "AGENT", "TEL"]);
-			expect(text(result[0]?.lines[2]?.value ?? new Uint8Array())).toBe(
+			expect(result[0]?.lines.map((l) => l.name)).toEqual(["N", "AGENT", "TEL"]);
+			expect(text(result[0]?.lines[1]?.value ?? new Uint8Array())).toBe(
 				"BEGIN:VCARD\nVERSION:2.1\nN:Friday;Fred\nTEL;WORK;VOICE:+1-213-555-1234\nEND:VCARD",
 			);
 			expect(issues).toEqual([
@@ -187,7 +212,7 @@ describe("groupCards", () => {
 		test("an unterminated AGENT vCard is closed at end of input", () => {
 			const issues: Issue[] = [];
 			const result = cards("BEGIN:VCARD\nVERSION:2.1\nAGENT:\nBEGIN:VCARD\nFN:x\n", issues);
-			expect(result[0]?.names).toEqual(["VERSION", "AGENT"]);
+			expect(result[0]?.names).toEqual(["AGENT"]);
 			expect(codes(issues)).toEqual(["agent-inline-vcard", "missing-end", "missing-end"]);
 		});
 
@@ -197,11 +222,23 @@ describe("groupCards", () => {
 				"BEGIN:VCARD\nVERSION:3.0\nFN:A\nBEGIN:VCARD\nVERSION:3.0\nFN:B\nEND:VCARD",
 				issues,
 			);
-			expect(result.map((c) => c.names)).toEqual([
-				["VERSION", "FN"],
-				["VERSION", "FN"],
+			expect(result.map((c) => c.names)).toEqual([["FN"], ["FN"]]);
+			// The first card ends on the BEGIN that closed it, so the warning is filed under it.
+			expect(result.map((c) => [c.line, c.endLine])).toEqual([
+				[1, 4],
+				[4, 7],
 			]);
 			expect(issues).toEqual([expect.objectContaining({ code: "nested-begin", line: 4 })]);
+		});
+
+		test("a VERSION between an empty AGENT and a BEGIN keeps them apart", () => {
+			const issues: Issue[] = [];
+			const result = cards(
+				"BEGIN:VCARD\nAGENT:\nVERSION:2.1\nBEGIN:VCARD\nVERSION:2.1\nFN:B\nEND:VCARD",
+				issues,
+			);
+			expect(result.map((c) => c.names)).toEqual([["AGENT"], ["FN"]]);
+			expect(codes(issues)).toEqual(["nested-begin"]);
 		});
 	});
 });

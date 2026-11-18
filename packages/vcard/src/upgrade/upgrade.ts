@@ -21,22 +21,6 @@ export function upgradeTo40(card: VCard, options: UpgradeOptions = {}): UpgradeR
 	for (const rule of STANDARD_RULES) rule(work, ctx);
 	if (options.vendor ?? true) for (const rule of VENDOR_RULES) rule(work, ctx);
 	for (const rule of FINAL_RULES) rule(work, ctx);
-	setVersion(work, ctx);
+	work.version = "4.0";
 	return { card: work, issues: ctx.issues };
-}
-
-/** One VERSION:4.0 first; a card with several VERSION lines (the parser warned) keeps only one. */
-function setVersion(card: VCard, ctx: UpgradeContext): void {
-	card.version = "4.0";
-	const versions = card.properties.filter((p) => p.name === "VERSION");
-	for (const extra of versions.slice(1))
-		ctx.info("version-dropped", "Extra VERSION dropped", extra);
-	card.properties = card.properties.filter((p) => p.name !== "VERSION");
-	card.properties.unshift({
-		group: null,
-		name: "VERSION",
-		params: new Map(),
-		value: { kind: "text", value: "4.0" },
-		...(versions[0]?.line === undefined ? {} : { line: versions[0].line }),
-	});
 }

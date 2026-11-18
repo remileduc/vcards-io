@@ -1,6 +1,5 @@
-import { IssueCollector, issue } from "../parse/issues.js";
-import { NAME_RE } from "../parse/lexer.js";
-import { FLOAT } from "../parse/properties.js";
+import { IssueCollector, issue } from "../issues.js";
+import { NAME_RE, propertyId } from "../model.js";
 import { encodeBase64 } from "../text/base64.js";
 import { escapeText } from "../text/escape.js";
 import { assertFoldAt, foldLine } from "../text/fold.js";
@@ -12,8 +11,8 @@ import type {
 	VProperty,
 	VValue,
 } from "../types.js";
-import { propertyId } from "../upgrade/context.js";
 import { formatDateAndOrTime, formatTimestamp, formatUtcOffset } from "../values/date.js";
+import { formatFloatValue } from "../values/number.js";
 import { SerializeError } from "./error.js";
 import { type SyntaxTable, valueParam, type Warn } from "./syntax.js";
 import { V30 } from "./v30.js";
@@ -30,10 +29,10 @@ const LINE_BREAK = /[\r\n]/;
 /**
  * Writes cards in vCard 3.0 or 4.0 syntax: `BEGIN:VCARD`, `VERSION`, the properties in model
  * order, `END:VCARD`, CRLF, no BOM, raw UTF-8, names uppercased, lines over `foldAt` octets
- * folded, `blankLinesBetweenCards` empty lines between cards (none by default). Any VERSION
- * property in the model is replaced by the requested one. Every loss the
- * version forces is a warning in `issues`. Throws SerializeError for what no version can
- * express (see the class) and RangeError for options that make no sense.
+ * folded, `blankLinesBetweenCards` empty lines between cards (none by default). VERSION is the
+ * requested one whatever `card.version` says. Every loss the version forces is a warning in
+ * `issues`. Throws SerializeError for what no version can express (see the class) and
+ * RangeError for options that make no sense.
  */
 export function serializeVCards(
 	cards: readonly VCard[],
@@ -52,7 +51,6 @@ export function serializeVCards(
 		if (index > 0) text += separator;
 		text += `BEGIN:VCARD\r\nVERSION:${table.version}\r\n`;
 		for (const p of card.properties) {
-			if (p.name.toUpperCase() === "VERSION") continue;
 			text += `${foldLine(writeProperty(p, table, index, issues), fold)}\r\n`;
 		}
 		text += "END:VCARD\r\n";
@@ -81,9 +79,13 @@ function writeProperty(
 	try {
 		return contentLine(p, table, card, issues);
 	} catch (error) {
-		if (error instanceof SerializeError || error instanceof RangeError) {
-			const id = propertyId(p);
-			throw new SerializeError(`${error.message} (card ${card}, ${id})`, card, id);
+		// A TypeError is a value that lacks the fields of its kind: JSON read without the types.
+		const malformed = error instanceof TypeError;
+		if (malformed || error instanceof SerializeError || error instanceof RangeError) {
+			// `p` itself may be what is malformed: a null entry has no name to report.
+			const id = typeof p?.name === "string" ? propertyId(p) : undefined;
+			const what = malformed ? `Malformed property: ${error.message}` : error.message;
+			throw new SerializeError(`${what} (card ${card}, ${id ?? "no name"})`, card, id);
 		}
 		throw error;
 	}
@@ -96,11 +98,14 @@ function contentLine(
 	issues: IssueCollector,
 ): string {
 	const p = canonical(source);
-	if (p.name === "BEGIN" || p.name === "END") {
+	// VERSION is `card.version` in the model; one more here would be a second VERSION line.
+	if (p.name === "BEGIN" || p.name === "END" || p.name === "VERSION") {
 		throw new SerializeError(`${p.name} is not a property`);
 	}
+	// The id of the caller's property, not of the canonical copy: it is what their propertyId gives.
+	const id = propertyId(source);
 	const warn: Warn = (code, message) => {
-		const filed = issue("warning", code, message, p.line, propertyId(p));
+		const filed = issue("warning", code, message, p.line, id);
 		filed.card = card;
 		issues.push(filed);
 	};
@@ -161,7 +166,7 @@ function canonical(p: VProperty): VProperty {
 	return out;
 }
 
-/** Groups, property and parameter names all follow the lexer's name grammar. */
+/** Groups, property and parameter names all follow the name grammar the lexer reads. */
 function identifier(text: string, what: string): string {
 	if (!NAME_RE.test(text.toUpperCase())) {
 		throw new SerializeError(`Invalid ${what} ${JSON.stringify(text)}`);
@@ -185,17 +190,14 @@ function formatValue(value: VValue, table: SyntaxTable): string {
 		case "timestamp":
 			return formatTimestamp(value.value, table.dateFormat);
 		case "utc-offset":
-			return formatUtcOffset(value, table.dateFormat);
+			return formatUtcOffset(value.value, table.dateFormat);
 		case "integer":
 			if (!Number.isSafeInteger(value.value)) {
 				throw new SerializeError(`Not a safe integer: ${value.value}`);
 			}
 			return String(value.value);
-		case "float": {
-			const text = String(value.value);
-			if (!FLOAT.test(text)) throw new SerializeError(`Not a vCard float: ${text}`);
-			return text;
-		}
+		case "float":
+			return formatFloatValue(value.value);
 		case "boolean":
 			return value.value ? "TRUE" : "FALSE";
 		case "binary":

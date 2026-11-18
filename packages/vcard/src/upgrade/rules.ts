@@ -1,20 +1,12 @@
-import { excerpt } from "../parse/issues.js";
-import { FLOAT } from "../parse/properties.js";
-import { isMediaProperty, nearestValueKind, TEXT_FAMILY, VALUE_TOKENS } from "../registry.js";
+import { excerpt } from "../issues.js";
+import { cloneParams, firstParam, textOf } from "../model.js";
+import { isMediaProperty, nearestValueKind, sameValueKind, VALUE_TOKENS } from "../registry.js";
 import { unescapeText21 } from "../text/escape.js";
 import type { VProperty, VValue } from "../types.js";
 import { mediaTypeFromName } from "../values/media.js";
+import { FLOAT } from "../values/number.js";
 import { buildDataUri, parseGeoUri, URI_SCHEME } from "../values/uri.js";
-import {
-	cloneParams,
-	derive,
-	firstParam,
-	hasType,
-	type Rule,
-	removeTypes,
-	rewrite,
-	textOf,
-} from "./context.js";
+import { derive, drop, hasType, type Rule, removeTypes, rewrite } from "./context.js";
 
 // A reference to another vCard: a hierarchical URI or one of the schemes a contact can point with.
 const REFERENCE_URI = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|(?:urn|cid|mailto|tel|data|xmpp|sip):)/i;
@@ -24,6 +16,20 @@ const COMPONENTS_40: ReadonlyMap<string, number> = new Map([
 	["N", 7],
 	["ADR", 18],
 ]);
+
+// `card.version` is the only copy; the writer refuses the property a hand-built model may hold.
+// Matched in any case, as the writer canonicalises names before it checks.
+const dropVersionProperty: Rule = (card, ctx) => {
+	const doomed = new Set(card.properties.filter((p) => p.name.toUpperCase() === "VERSION"));
+	for (const p of doomed) {
+		ctx.info(
+			"version-dropped",
+			"VERSION property dropped, the card's version field is used",
+			p,
+		);
+	}
+	drop(card, doomed);
+};
 
 // The parser keeps 2.1 text as written; resolving AOSP's escape set here (never `\n`, as AOSP)
 // keeps the model equal to what a 3.0 writer meant. An inline AGENT vCard must stay verbatim.
@@ -289,8 +295,7 @@ const canonicalValueParam: Rule = (card, ctx) => {
 			}
 			continue;
 		}
-		const same = kind === expected || (TEXT_FAMILY.has(kind) && TEXT_FAMILY.has(expected));
-		if (same) {
+		if (sameValueKind(kind, expected)) {
 			p.params.delete("VALUE");
 			continue;
 		}
@@ -324,6 +329,7 @@ const padComponents: Rule = (card) => {
 
 /** Standard rules, in the order they run; vendor rules follow, then FINAL_RULES. */
 export const STANDARD_RULES: readonly Rule[] = [
+	dropVersionProperty,
 	unescapeLegacyText,
 	dropTransportParams,
 	prefToParam,

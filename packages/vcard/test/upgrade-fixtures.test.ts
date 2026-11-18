@@ -1,33 +1,23 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { type Issue, parseVCards, upgradeTo40, type VCard, type VProperty } from "../src/index.js";
-
-const root = `${fileURLToPath(import.meta.url).replace(/[^/]*$/, "")}../../../fixtures/`;
-// Every .vcf present, so an untracked local export is tested too without being named here.
-const files = readdirSync(root, { withFileTypes: true })
-	.filter((entry) => entry.isDirectory())
-	.flatMap((dir) => readdirSync(`${root}${dir.name}`).map((f) => `${dir.name}/${f}`))
-	.filter((f) => f.endsWith(".vcf"))
-	.sort();
+import {
+	type Issue,
+	propertyId as id,
+	parseVCards,
+	upgradeTo40,
+	type VCard,
+	type VProperty,
+} from "../src/index.js";
+import { fixtureFiles as files, fixtureRoot as root, upgradeAll } from "./helpers/fixtures.js";
 
 const codes = (issues: Issue[]) => issues.map((i) => i.code).sort();
 const params = (p: VProperty | undefined) => Object.fromEntries(p?.params ?? []);
 const first = (p: VProperty, name: string) => p.params.get(name)?.[0];
 const names = (card: VCard | undefined, name: string) =>
 	(card?.properties ?? []).filter((p) => p.name === name);
-const id = (p: VProperty) => (p.group === null ? p.name : `${p.group}.${p.name}`);
 
 function load(file: string): { cards: VCard[]; issues: Issue[] } {
-	const parsed = parseVCards(readFileSync(`${root}${file}`));
-	const cards: VCard[] = [];
-	const issues: Issue[] = [];
-	for (const card of parsed.cards) {
-		const result = upgradeTo40(card);
-		cards.push(result.card);
-		issues.push(...result.issues);
-	}
-	return { cards, issues };
+	return upgradeAll(parseVCards(readFileSync(`${root}${file}`)).cards);
 }
 
 describe("every fixture upgrades to 4.0", () => {
@@ -40,10 +30,6 @@ describe("every fixture upgrades to 4.0", () => {
 			expect(first.card.version).toBe("4.0");
 			// Fixtures are well-formed: rules apply or stay silent, nothing is malformed for them.
 			expect(first.issues.filter((i) => i.severity !== "info")).toEqual([]);
-			expect(first.card.properties[0]).toMatchObject({
-				name: "VERSION",
-				value: { value: "4.0" },
-			});
 			for (const p of first.card.properties) {
 				expect(p.value.kind, id(p)).not.toBe("binary");
 				for (const name of ["CHARSET", "ENCODING", "X-SERVICE-TYPE", "X-APPLE-OMIT-YEAR"]) {

@@ -1,24 +1,15 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
 	type Issue,
 	parseVCards,
 	SerializeError,
 	serializeVCards,
-	upgradeTo40,
 	type VCard,
 	type VProperty,
 	type VValue,
 } from "../src/index.js";
-
-const root = `${fileURLToPath(import.meta.url).replace(/[^/]*$/, "")}../../../fixtures/`;
-// Every .vcf present, so an untracked local export is tested too without being named here.
-const files = readdirSync(root, { withFileTypes: true })
-	.filter((entry) => entry.isDirectory())
-	.flatMap((dir) => readdirSync(`${root}${dir.name}`).map((f) => `${dir.name}/${f}`))
-	.filter((f) => f.endsWith(".vcf"))
-	.sort();
+import { fixtureFiles as files, fixtureRoot as root, upgradeAll } from "./helpers/fixtures.js";
 
 /**
  * Properties the tolerant parser keeps but no writer can name: a Google line whose name is
@@ -92,17 +83,6 @@ function comparableValue(value: VValue): VValue {
 		default:
 			return value;
 	}
-}
-
-function upgradeAll(cards: VCard[]): { cards: VCard[]; issues: Issue[] } {
-	const out: VCard[] = [];
-	const issues: Issue[] = [];
-	for (const card of cards) {
-		const result = upgradeTo40(card);
-		out.push(result.card);
-		issues.push(...result.issues);
-	}
-	return { cards: out, issues };
 }
 
 function without(cards: VCard[], names: readonly string[]): VCard[] {

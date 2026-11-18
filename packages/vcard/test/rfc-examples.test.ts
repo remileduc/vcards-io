@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import { parseVCards, type VCard, type VProperty } from "../src/index.js";
+import { fixtureRoot } from "./helpers/fixtures.js";
 
 // Decoded values and allowed warnings are pinned per fixture in parse-fixtures.test.ts.
 // This file keeps the parser rules the RFC examples exercise.
-const root = `${fileURLToPath(import.meta.url).replace(/[^/]*$/, "")}../../../fixtures/rfc/`;
+const root = `${fixtureRoot}rfc/`;
 
 /** Parses a fixture; infos are allowed (RFC 2426 writes a date-only REV), nothing stronger. */
 function load(file: string): VCard[] {

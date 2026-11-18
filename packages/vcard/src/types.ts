@@ -1,6 +1,8 @@
+import type { IssueCode } from "./issue-codes.js";
+
 export type VCardVersion = "2.1" | "3.0" | "4.0";
 
-/** One parsed card. `properties` keeps the source order, including VERSION. */
+/** One card. `properties` keeps the source order; VERSION is not among them, `version` holds it. */
 export interface VCard {
 	version: VCardVersion;
 	properties: VProperty[];
@@ -59,7 +61,7 @@ export type VValue =
 	| { kind: "uri"; value: string }
 	| { kind: "date-and-or-time"; value: DateAndOrTime; raw: string }
 	| { kind: "timestamp"; value: Timestamp; raw: string }
-	| { kind: "utc-offset"; sign: 1 | -1; hours: number; minutes: number }
+	| { kind: "utc-offset"; value: UtcOffset }
 	| { kind: "language-tag"; value: string }
 	| { kind: "integer"; value: number }
 	| { kind: "float"; value: number }
@@ -71,13 +73,17 @@ export type VValueKind = VValue["kind"];
 
 export type IssueSeverity = "error" | "warning" | "info";
 
-export interface Issue {
+/** `Code` lets a package built on this one add its own codes to the same shape. */
+export interface Issue<Code extends string = IssueCode> {
 	severity: IssueSeverity;
-	code: string;
+	code: Code;
 	message: string;
 	line?: number;
 	property?: string;
-	/** Index of the card in the `cards` argument, on issues raised by `serializeVCards`. */
+	/**
+	 * Index of the card the issue is about: in `ParseResult.cards` from `parseVCards`, in the
+	 * `cards` argument from `serializeVCards`. Absent for lines outside a card and whole-input issues.
+	 */
 	card?: number;
 }
 

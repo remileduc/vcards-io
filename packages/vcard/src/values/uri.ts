@@ -15,8 +15,10 @@ export const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/;
 
 const DATA_URI = /^data:([^,]*),([\s\S]*)$/i;
 
+const encoder = new TextEncoder();
+
 function percentDecode(text: string): Uint8Array | null {
-	const encoded = new TextEncoder().encode(text);
+	const encoded = encoder.encode(text);
 	const out = new Uint8Array(encoded.length);
 	let n = 0;
 	for (let i = 0; i < encoded.length; i++) {

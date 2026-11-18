@@ -2,12 +2,26 @@
   "name": "@vcards-io/convert",
   "version": "0.1.0",
   "description": "vCard <-> JSContact conversion (RFC 9555) with Android, Apple and RFC export profiles",
+  "keywords": [
+    "vcard",
+    "jscontact",
+    "contacts",
+    "converter",
+    "android",
+    "apple",
+    "rfc9555"
+  ],
   "license": "MIT",
   "author": "Rémi Ducceschi",
+  "homepage": "https://github.com/remileduc/vcards-io/tree/main/packages/convert#readme",
+  "bugs": "https://github.com/remileduc/vcards-io/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/remileduc/vcards-io.git",
     "directory": "packages/convert"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "type": "module",
   "sideEffects": false,
@@ -27,6 +41,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist *.tsbuildinfo",
+    "prepack": "pnpm run clean && pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --root ../.. --project convert"
   },
