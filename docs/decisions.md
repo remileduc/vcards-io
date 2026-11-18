@@ -517,3 +517,126 @@ third-party action or write token is involved, and the workflows stay
 read-only. The tests run a second time in the deploy rather than reusing
 the CI artifact, so a manual deploy publishes the badge too. The colour
 scale starts at yellow: under 80 % the gate fails and nothing deploys.
+
+2026-11-18 M3 in three checkpoints, tested against `@sdxc/jscontact`
+-------------------------------------------------------------------
+
+`@vcards-io/jscontact` is built like the vcard package: three checkpoints
+(types and vendor; pointer, patch and utilities; validator and API freeze),
+one session each, a cold review agent at the end, then a stop for review
+and commit. `@sdxc/jscontact` is the only JSContact implementation on npm
+and is not taken as a runtime dependency: it peer-depends on the `remix`
+framework for its validation, was first published on 2026-10-25 by one
+maintainer, and its README promises no compatibility between releases. It
+is MIT and a useful second opinion, so it is a dev dependency of the
+jscontact package alone (not of the root), pinned to an exact release,
+and used only by differential tests (`remix` is not listed: pnpm installs
+a missing peer by itself, `autoInstallPeers` being on by default): both
+implementations must agree on accept or reject and on the result of a
+patch, and each intended divergence is listed with its reason. The price,
+accepted: about 90 packages in the lockfile for one test oracle, some of
+them native build tools; none of it is shipped, and `src` never imports
+it. `jmapio/jscontact-tests`, which the plan hoped to use as a corpus, is
+a Python harness with no data and is dropped.
+
+2026-11-18 The validator stays hand-written
+-------------------------------------------
+
+RFC 9553 ships no JSON Schema and no CDDL; the one JSON Schema found for
+JSContact is GPL-3.0 and older than RFC 9982. Writing our own schema and
+running it through a validator was considered (`ajv` compiles with
+`new Function`, which the app's CSP forbids, so it would also need a
+build-time step; `@cfworker/json-schema` interprets), and so was a
+TypeScript schema library (`valibot`). None of them carries severities,
+our issue codes or the cross-field rules (a localization patch that must
+resolve inside its Card, `sortAs` keys against the name components, case
+variants of known names), which would stay hand-written beside the first
+runtime dependency of a library. The validator is therefore a table per
+object type read by a small checker of our own; a JSON Schema document can
+be generated from those tables later if one is worth publishing.
+
+2026-11-18 Platform globals shared at the root, relation table renamed
+----------------------------------------------------------------------
+
+Two changes to the vcard package, made with the first M3 checkpoint while
+nothing is published. `platform-globals.d.ts` was only in vcard's own
+`include`, so a sibling package importing vcard from source failed to
+typecheck (`TextDecoder`, `structuredClone` not found); it would have
+stopped `convert`. The published package was never affected: built and
+typechecked from a consumer with no DOM lib and `skipLibCheck` off, it
+passes. The file moves to the repository root, gains `crypto` for
+`newUid`, and every library tsconfig lists it; the app keeps the DOM lib
+instead. And vcard's `RELATION_TYPES` / `RelationType` become
+`RELATION_MAPPINGS` / `RelationMapping`: RFC 9553 has a relation enum,
+which jscontact exports under the RFC's name like every other enum, and
+`convert` imports both packages.
+
+2026-11-18 Ids are deterministic
+--------------------------------
+
+The plan had `newId()` return ten random characters. Android exports carry
+no `PROP-ID`, so every import of the same file would have produced
+different Ids: unstable fixture snapshots, a JSON export full of noise, and
+a diff that sees every phone as removed and added. `nextId(map, prefix)`
+returns the smallest unused `<prefix><n>` instead (`p1`, `p2`, the form the
+RFC 9553 examples use), and the converter numbers entries in property
+order. Ids are then stable for one file but still not comparable between
+two backups (removing the first phone shifts the rest), which is why the
+diff matches map entries by content before it looks at their Id.
+
+2026-11-18 The validator reports issues with severities
+-------------------------------------------------------
+
+The plan's `validateCard` answered valid or not with a list of errors. It
+now returns `{ card, issues }` in the shape the vcard stages use: an
+`as const` code list, a JSON Pointer `path`, a cap per code, and three
+severities. An `error` is what would make our own code misread the value;
+what RFC 9553 calls invalid but can be kept and written back untouched (an
+unknown property, an unknown enum value, a case variant, the reserved
+`extra`) is a `warning`, because the readers of this project are tolerant
+and a backup edited by hand must not be refused for a typo. The package
+declares its own `CardIssue` type: it does not depend on
+`@vcards-io/vcard`, and `convert` wraps one into the other. JSON is hostile
+input like a `.vcf`: depth and size caps are issues, pointer and patch code
+walks own properties only and never assigns `__proto__`.
+
+2026-11-18 Match, diff and merge move to a milestone 4.5
+--------------------------------------------------------
+
+The diff was the library half of M8, after the app. It moves to a new
+milestone between the two converter milestones and gains card matching and
+merge. After M4, because matching cards and entries has to be tuned on real
+converted cards, which do not exist before; before M5, because a
+structured diff makes the round-trip tests readable; before M6, because the
+import dialog needs matching for its duplicate policy, where "merge" joins
+"replace / keep both / skip". The merge is two-way, two backups having no
+common ancestor: map entries and sets are unioned, a single-valued field
+that differs is a conflict resolved by a `prefer` option and always
+reported, and a card with several candidates is never merged on its own.
+
+2026-11-18 Dev tooling is declared once, in the root
+----------------------------------------------------
+
+Each sub-package listed `typescript` and `vitest` beside the root, while
+`fast-check`, `@types/node`, Biome, `publint` and `attw` were only in the
+root and used from below anyway: pnpm puts the workspace root's
+`node_modules/.bin` on the `PATH` of every package script, and Node finds
+an import in a parent `node_modules`. The mix had no rule behind it, so
+there is one now: what several packages share is declared in the root
+`package.json` alone, and a package declares only what it alone uses
+(`vite` in the app, `@sdxc/jscontact` in jscontact). One
+version per tool with nothing to keep in sync, and published manifests
+that list no dev tooling. The price is that a package folder cannot be
+installed on its own (`--filter`, `--ignore-workspace`); it could not
+before either, since the Vitest config, the lint config and half the test
+imports live in the root, and a plain `pnpm install` run anywhere in the
+workspace installs everything.
+
+2026-11-18 Each library carries its own copy of the licence
+-----------------------------------------------------------
+
+npm always packs a `LICENSE` file, but only one found in the package
+folder: the three libraries had none, so their tarballs would have shipped
+the `"license": "MIT"` field without the text the MIT licence requires to
+accompany copies. `packages/*/LICENSE` are plain copies of the root file.
+The app is not published and has none.
