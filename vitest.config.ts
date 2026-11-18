@@ -27,6 +27,8 @@ export default defineConfig({
 		],
 		coverage: {
 			provider: "v8",
+			// json-summary feeds the README coverage badge written by pages.yml.
+			reporter: ["text", "html", "json-summary"],
 			// Matched from the repo root, or from the project root under --project: both forms.
 			include: [...sourceRoots.map((root) => `${root}/src/**/*.ts`), "src/**/*.ts"],
 			exclude: webExcludes.flatMap((path) => [`apps/web/${path}`, path]),

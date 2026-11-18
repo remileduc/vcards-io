@@ -28,7 +28,17 @@ jobs:
           node-version: latest
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm test:coverage
       - run: pnpm build
+      # Shields endpoint behind the README coverage badge; after the build, which empties dist.
+      - run: |
+          jq '.total.lines.pct as $pct | {
+                schemaVersion: 1, label: "coverage", message: "\($pct | floor)%",
+                color: (if   $pct >= 95 then "brightgreen"
+                        elif $pct >= 90 then "green"
+                        elif $pct >= 85 then "yellowgreen"
+                        else "yellow" end)
+              }' coverage/coverage-summary.json > apps/web/dist/coverage.json
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist

@@ -1,6 +1,8 @@
 vcards-io
 =========
 
+[![CI][ci-badge]][ci] [![Coverage][coverage-badge]][ci]
+
 Offline, browser-only tool to back up phone contacts to a `.vcf` file,
 inspect and edit them, and restore them on another phone. Built on
 JSContact (RFC 9553) with reusable libraries:
@@ -62,6 +64,10 @@ Supporting formats:
 | [RFC 2397][rfc2397] | The "data" URL scheme                                              | inline photos in 4.0                                    |
 | [RFC 3966][rfc3966] | The tel URI for Telephone Numbers                                  | TEL;VALUE=uri                                           |
 | [RFC 5870][rfc5870] | A Uniform Resource Identifier for Geographic Locations ('geo' URI) | GEO in 4.0                                              |
+
+[ci]: https://github.com/remileduc/vcards-io/actions/workflows/ci.yml
+[ci-badge]: https://github.com/remileduc/vcards-io/actions/workflows/ci.yml/badge.svg?branch=main
+[coverage-badge]: https://img.shields.io/endpoint?url=https%3A%2F%2Fremileduc.github.io%2Fvcards-io%2Fcoverage.json
 
 [vcard21]: https://web.archive.org/web/20160402232011/https://www.imc.org/pdi/vcard-21.rtf
 [rfc2425]: https://www.rfc-editor.org/rfc/rfc2425

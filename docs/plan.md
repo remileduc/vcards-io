@@ -937,7 +937,8 @@ pnpm test && pnpm build` clean, docs updated.
 - Three empty packages + app with `exports`, `publint` and `attw` passing.
 - CI (`ci.yml`): `setup-node` with `node-version: latest` so new Node releases break CI first, pnpm cache, `lint`,
   `typecheck`, `test --coverage` (80 % gate), `build`, `publint`.
-  `pages.yml`: build app with `base: '/vcards-io/'`, `deploy-pages`.
+  `pages.yml`: build app with `base: '/vcards-io/'`, `deploy-pages`; also
+  publishes `coverage.json`, the endpoint behind the README coverage badge.
   `permissions: {}` at top. Dependabot monthly.
 - `fixtures/` seeded with RFC examples and the MIT cozy-vcard samples
   (android-full, ios-full, ios-complex-types, google-full); you add yours.

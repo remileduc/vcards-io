@@ -505,3 +505,15 @@ config throws when a source root does not exist; the `apps/web` gate has
 nothing to measure until the app has modules outside the Lit shell. Each
 package's `VERSION` constant is checked against its `package.json` by a
 test.
+
+2026-11-18 README badges: coverage served from Pages
+----------------------------------------------------
+
+The README shows the CI status with GitHub's own workflow badge and the
+line coverage with a Shields endpoint badge. `pages.yml` runs the tests
+with coverage, then writes `coverage.json` (label, floored percentage,
+colour by threshold) into the deployed site with `jq`. No coverage service,
+third-party action or write token is involved, and the workflows stay
+read-only. The tests run a second time in the deploy rather than reusing
+the CI artifact, so a manual deploy publishes the badge too. The colour
+scale starts at yellow: under 80 % the gate fails and nothing deploys.
