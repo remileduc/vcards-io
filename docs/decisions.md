@@ -483,3 +483,25 @@ lacks does not compile. The parse stage's severity helpers live in
 warnings carry the id of the property as the caller wrote it, like
 `SerializeError`, not of the canonical copy: it is what `propertyId`
 returns for the caller's own object.
+
+2026-11-17 Publish hygiene: no source maps, per-package coverage gate
+---------------------------------------------------------------------
+
+The libraries no longer emit `.js.map` or `.d.ts.map`. `files` ships `dist`
+without `src`, so the maps pointed at files a consumer does not have, and
+they were half of the tarball; the output is unminified ES2025, close
+enough to the source to debug as is. The app is unaffected: it resolves the
+libraries from `src` and Vite writes its own maps. Each library gets a
+`prepack` that cleans and rebuilds, so a publish cannot ship a stale or
+leftover file, and `publishConfig.access: public`, which a scoped package
+needs on its first publish. The 80 % coverage gate now also applies to each
+package's `src/**`, so a well-covered library cannot mask a weak one.
+Vitest matches the coverage include and exclude from the repo root in a
+full run but from the project root under `--project`, where the
+root-anchored include matched no file, reported 0/0 and passed; both are
+now listed in the two forms, anchored so that a nested checkout is not
+swept in. A threshold glob that matches no file passes silently, so the
+config throws when a source root does not exist; the `apps/web` gate has
+nothing to measure until the app has modules outside the Lit shell. Each
+package's `VERSION` constant is checked against its `package.json` by a
+test.

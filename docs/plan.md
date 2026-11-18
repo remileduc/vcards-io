@@ -72,7 +72,7 @@ Decisions already taken (with you)
 | UI          | Lit 3 web components, no other UI dependency                        |
 | Storage     | IndexedDB (JSContact JSON as values), `navigator.storage.persist()` |
 | Fixtures    | You provide anonymised real exports (Android, iOS, Google, Outlook, |
-|             | Thunderbird) under `fixtures/real/<source>/`                        |
+|             | Thunderbird) under `fixtures/<source>/`                             |
 | Deploy      | GitHub Pages via Actions on push to `main`, MIT licence             |
 | Lint/format | Biome 2 (no ESLint/Prettier)                                        |
 | Node        | Node 24 installed by you on the host via apt; pnpm 12 via npm       |

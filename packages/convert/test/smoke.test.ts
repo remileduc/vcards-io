@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
+import manifest from "../package.json" with { type: "json" };
 import { VERSION } from "../src/index.js";
 
-test("package exports its version", () => {
-	expect(VERSION).toMatch(/^\d+\.\d+\.\d+$/);
+test("VERSION matches package.json", () => {
+	expect(VERSION).toBe(manifest.version);
 });

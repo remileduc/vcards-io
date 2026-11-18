@@ -8,6 +8,18 @@ TypeScript, ES2025, no runtime dependency. Part of
 [vcards-io](https://github.com/remileduc/vcards-io); the full
 specification is `docs/plan.md` at the repository root.
 
+Install
+-------
+
+```
+npm install @vcards-io/vcard
+```
+
+ESM only. Needs Node 24 or later, or a current browser: the output is
+ES2025 with no down-levelling and no polyfill, and relies on the platform
+`TextEncoder`, `TextDecoder` (with the legacy encodings of the WHATWG
+Encoding Standard) and `structuredClone`.
+
 Usage
 -----
 
