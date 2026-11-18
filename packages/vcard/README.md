@@ -92,9 +92,9 @@ groups, `X-ABDATE`, `X-SOCIALPROFILE`, legacy `X-AIM` style IM, ...).
 Writer
 ------
 
-`serializeVCards(cards, { version, foldAt? })` returns `{ text, issues }`:
-`BEGIN:VCARD`, `VERSION` (the requested one, whatever `card.version`
-says), the properties in model order, `END:VCARD`.
+`serializeVCards(cards, { version, foldAt?, blankLinesBetweenCards? })`
+returns `{ text, issues }`: `BEGIN:VCARD`, `VERSION` (the requested one,
+whatever `card.version` says), the properties in model order, `END:VCARD`.
 CRLF, raw UTF-8, no BOM, no `CHARSET`, never quoted-printable, lines
 folded at 75 octets without splitting a UTF-8 sequence or an escape.
 Properties are written in the order the model holds them: whoever builds
@@ -122,9 +122,17 @@ absent when the kind is the property's default in that version, set
 otherwise (`VALUE=binary` appears only on a text property, where readers
 would otherwise take the base64 as a transfer encoding). The input is a card in 4.0 semantics: run
 `upgradeTo40` on anything parsed, or a 2.1 card's escapes are doubled.
-Names, groups and parameter keys are normalised before writing; `version`
-and `foldAt` are validated with a `RangeError`. Lines always end in CRLF,
-as both RFCs require.
+Names, groups and parameter keys are normalised before writing. Lines
+always end in CRLF, as both RFCs require.
+
+| Option                   | Values                                                 |
+| ------------------------ | ------------------------------------------------------ |
+| `version`                | `"3.0"` or `"4.0"`, required                           |
+| `foldAt`                 | octets per line, default 75; `"none"` disables folding |
+| `blankLinesBetweenCards` | 0 to 9, default 0; Android skips them, Apple's reader  |
+|                          | is unverified                                          |
+
+A value outside these is a `RangeError`.
 
 `SerializeError` is thrown for what no version can express: a `binary` value
 in 4.0, a control character a 4.0 parameter cannot caret-encode, a `TYPE`

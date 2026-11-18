@@ -164,8 +164,8 @@ vcards-io/
 ```
 
 Each package: `src/`, `test/`, `package.json` (`"type": "module"`, `exports`
-map with `types` first, `sideEffects: false`, `files: ["dist"]`), own
-`tsconfig.json` extending the base. Dependencies between packages use
+map with `types` first, `sideEffects: false`,
+`files: ["dist", "README.md"]`), own `tsconfig.json` extending the base. Dependencies between packages use
 `workspace:^`. No runtime dependency in any library.
 
 Package 1: `@vcards-io/vcard`
@@ -245,11 +245,15 @@ caller types it as date-and-or-time and reports), `parseUtcOffset`/
 second tier exists for the sibling packages and carries no stability
 promise, since these tables follow the registry and the importers:
 `PROPERTY_REGISTRY` (default value type, structure, cardinality, allowed
-params, per version), `defaultValueKind(name, version)` and
+params, per version), `defaultValueKind(name, version)`,
+`nearestValueKind` (the same, falling back to the last version the
+property is defined in) and
 `COMMON_PARAMS` (parameters any property may carry; property-specific ones
 are only in `PropertySpec.params`, the two never overlap), `isMediaProperty`,
-`TEXT_FAMILY` (the kinds `VALUE=text` covers), `URI_SCHEME`,
-`MEDIA_TYPE_NAMES` / `mediaTypeFromName` (legacy `TYPE=JPEG` words),
+`TEXT_FAMILY` (the kinds `VALUE=text` covers), `VALUE_TOKENS` (the 4.0
+`VALUE` token of each kind), `URI_SCHEME`,
+`MEDIA_TYPE_NAMES` / `mediaTypeFromName` / `mediaTypeName` (legacy
+`TYPE=JPEG` words, both ways),
 `declaredMediaType` (a `MEDIATYPE` value with its parameters), and the
 relation table `RELATION_TYPES` with its two lookups. Parsers return
 `null` on bad input, including mixed basic/extended forms such as
@@ -569,7 +573,8 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
   doubled): `binary` in 4.0, a control character a 4.0 parameter cannot
   caret-encode, a `TYPE` value holding a comma (readers split it even when
   quoted), a date shape outside the grammar or a float that is not finite
-  (the formatters' `RangeError`, rethrown), a name outside `[A-Za-z0-9-]`,
+  (the formatters' `RangeError`, rethrown), an integer that is not safe,
+  a name outside `[A-Za-z0-9-]`,
   `BEGIN`/`END` as a property, a line break escaping cannot absorb (URI,
   raw), a value without the fields of its kind (the `TypeError`,
   rethrown). It carries the card index and `group.NAME` as the caller
@@ -957,6 +962,7 @@ pnpm test && pnpm build` clean, docs updated.
   and Apple 1604 forms.
 - Property registry with per-version defaults.
 - Tests: RFC examples, hostile inputs, every fixture parses without `error`.
+- Done 2026-11-08.
 
 ### M2. `@vcards-io/vcard`: upgrade normaliser + writer 3.0/4.0 (large)
 
@@ -965,7 +971,9 @@ pnpm test && pnpm build` clean, docs updated.
 - Writer engine + 3.0 and 4.0 syntax tables, octet folding, base64
   re-encoding of `data:` for 3.0.
 - Round-trip and idempotence tests. `README.md` with usage.
-- Done 2026-11-09. Known hand-offs to M4/M5: the convert layer must drop
+- Done 2026-11-09; public API settled 2026-11-11 and the package prepared
+  for 0.1.0 on 2026-11-18 (decisions.md), not published yet.
+  Known hand-offs to M4/M5: the convert layer must drop
   a property whose name the parser flagged invalid and a bare `END:` kept
   as a property (the writer refuses both), surface the writer's 3.0
   warnings in the profile's loss report, and map for 3.0 what the writer
