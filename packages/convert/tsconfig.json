@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": ".",
+    // The repo root: this package imports its two siblings, which resolve to their sources.
+    "rootDir": "../..",
     "noEmit": true
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "../../platform-globals.d.ts"]
 }

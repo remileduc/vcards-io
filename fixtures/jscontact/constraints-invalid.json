@@ -1,0 +1,2335 @@
+{
+  "i-json-lone-surrogate": {
+    "section": "1.3",
+    "rule": "Data MUST be valid I-JSON: no unpaired surrogate in a string",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John \ud800 Doe"
+      }
+    }
+  },
+  "type-missing-on-card": {
+    "section": "1.3.4",
+    "rule": "The topmost object MUST have the @type property set",
+    "card": {
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "type-mismatch": {
+    "section": "1.3.4",
+    "rule": "@type MUST match the type name of the object it is set on",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "@type": "Nickname",
+        "full": "John Doe"
+      }
+    }
+  },
+  "type-timestamp-missing": {
+    "section": "1.3.4",
+    "rule": "A Timestamp in Anniversary.date MUST have its @type set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "a1": {
+          "kind": "death",
+          "date": {
+            "utc": "2019-10-15T23:10:00Z"
+          }
+        }
+      }
+    }
+  },
+  "id-empty": {
+    "section": "1.4.1",
+    "rule": "An Id MUST be at least 1 octet long",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "": {
+          "number": "tel:+1-555-555-5555"
+        }
+      }
+    }
+  },
+  "id-too-long": {
+    "section": "1.4.1",
+    "rule": "An Id MUST be at most 255 octets long",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp": {
+          "number": "tel:+1-555-555-5555"
+        }
+      }
+    }
+  },
+  "id-bad-character": {
+    "section": "1.4.1",
+    "rule": "An Id MUST only contain A-Za-z0-9, hyphen and underscore",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "tel#1": {
+          "number": "tel:+1-555-555-5555"
+        }
+      }
+    }
+  },
+  "unsigned-int-negative": {
+    "section": "1.4.2",
+    "rule": "An UnsignedInt is an integer >= 0",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "a1": {
+          "kind": "birth",
+          "date": {
+            "year": -44
+          }
+        }
+      }
+    }
+  },
+  "unsigned-int-fraction": {
+    "section": "1.4.2",
+    "rule": "An UnsignedInt is an integer",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "pref": 1.5
+        }
+      }
+    }
+  },
+  "unsigned-int-unsafe": {
+    "section": "1.4.2",
+    "rule": "An UnsignedInt is at most 2^53-1",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "a1": {
+          "kind": "birth",
+          "date": {
+            "year": 9007199254740992
+          }
+        }
+      }
+    }
+  },
+  "unsigned-int-string": {
+    "section": "1.4.2",
+    "rule": "An UnsignedInt is a JSON Number",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "pref": "1"
+        }
+      }
+    }
+  },
+  "patch-array-index-null": {
+    "section": "1.4.3",
+    "rule": "A patch ending in an array index MUST NOT have a null value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ]
+      },
+      "localizations": {
+        "fr": {
+          "name/components/0": null
+        }
+      }
+    }
+  },
+  "patch-array-append": {
+    "section": "1.4.3",
+    "rule": "A pointer MUST NOT use \"-\" as an array index",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ]
+      },
+      "localizations": {
+        "fr": {
+          "name/components/-": {
+            "kind": "given2",
+            "value": "Jean"
+          }
+        }
+      }
+    }
+  },
+  "patch-parent-missing": {
+    "section": "1.4.3",
+    "rule": "All reference tokens before the last MUST already exist",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "Gabriel García Márquez"
+      },
+      "localizations": {
+        "es": {
+          "titles/t1/name": "escritor"
+        }
+      }
+    }
+  },
+  "patch-array-index-missing": {
+    "section": "1.4.3",
+    "rule": "A final array index MUST already exist in the array",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ]
+      },
+      "localizations": {
+        "fr": {
+          "name/components/2": {
+            "kind": "given2",
+            "value": "Jean"
+          }
+        }
+      }
+    }
+  },
+  "patch-prefix-conflict": {
+    "section": "1.4.3",
+    "rule": "No pointer of a PatchObject may be the prefix of another one",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "fr": {
+          "name": {
+            "full": "Jean Dupont"
+          },
+          "name/full": "Jean Dupont"
+        }
+      }
+    }
+  },
+  "patch-value-invalid": {
+    "section": "1.4.3",
+    "rule": "A patch value MUST be valid for the property being set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "fr": {
+          "name/full": 5
+        }
+      }
+    }
+  },
+  "patch-null-on-mandatory": {
+    "section": "1.4.3",
+    "rule": "A null patch value is only valid for an optional property",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555"
+        }
+      },
+      "localizations": {
+        "fr": {
+          "phones/p1/number": null
+        }
+      }
+    }
+  },
+  "resource-type-resource": {
+    "section": "1.4.4",
+    "rule": "@type MUST NOT be \"Resource\"",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "links": {
+        "l1": {
+          "@type": "Resource",
+          "uri": "https://example.com/"
+        }
+      }
+    }
+  },
+  "resource-uri-missing": {
+    "section": "1.4.4",
+    "rule": "Resource.uri is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "media": {
+        "m1": {
+          "kind": "photo"
+        }
+      }
+    }
+  },
+  "resource-uri-not-a-uri": {
+    "section": "1.4.4",
+    "rule": "Resource.uri MUST be a URI (RFC 3986)",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "links": {
+        "l1": {
+          "uri": "www.example.com/key"
+        }
+      }
+    }
+  },
+  "utc-date-time-offset": {
+    "section": "1.4.5",
+    "rule": "The time offset MUST be \"Z\"",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2022-09-30T14:35:10+02:00"
+    }
+  },
+  "utc-date-time-lowercase": {
+    "section": "1.4.5",
+    "rule": "Letters MUST be in uppercase",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2022-09-30t14:35:10Z"
+    }
+  },
+  "utc-date-time-zero-fraction": {
+    "section": "1.4.5",
+    "rule": "Fractional seconds MUST NOT be included unless non-zero",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "updated": "2010-10-10T10:10:10.000Z"
+    }
+  },
+  "utc-date-time-trailing-zero": {
+    "section": "1.4.5",
+    "rule": "Fractional seconds MUST NOT have trailing zeros",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "updated": "2010-10-10T10:10:10.300Z"
+    }
+  },
+  "utc-date-time-date-only": {
+    "section": "1.4.5",
+    "rule": "A UTCDateTime is in RFC 3339 \"date-time\" format",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2022-09-30"
+    }
+  },
+  "utc-date-time-impossible": {
+    "section": "1.4.5",
+    "rule": "A UTCDateTime is a valid RFC 3339 date-time",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2022-02-30T14:35:10Z"
+    }
+  },
+  "utc-date-time-hour-out-of-range": {
+    "section": "1.4.5",
+    "rule": "A UTCDateTime is in RFC 3339 \"date-time\" format",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2022-09-30T25:00:00Z"
+    }
+  },
+  "common-property-not-allowed": {
+    "section": "1.5",
+    "rule": "A common property MUST only be set where explicitly allowed",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "organizations": {
+        "o1": {
+          "name": "ABC, Inc.",
+          "pref": 1
+        }
+      }
+    }
+  },
+  "context-unknown": {
+    "section": "1.5.1",
+    "rule": "contexts keys are enumerated: private, work",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "contexts": {
+            "home": true
+          }
+        }
+      }
+    }
+  },
+  "context-not-boolean": {
+    "section": "1.5.1",
+    "rule": "contexts is of type String[Boolean]",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "contexts": {
+            "work": "yes"
+          }
+        }
+      }
+    }
+  },
+  "context-false": {
+    "section": "1.5.1",
+    "rule": "A context set to false: the RFC demands true for an Address only",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "contexts": {
+            "work": false
+          }
+        }
+      }
+    }
+  },
+  "pref-zero": {
+    "section": "1.5.3",
+    "rule": "pref MUST be in the range 1 to 100",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "pref": 0
+        }
+      }
+    }
+  },
+  "pref-above-100": {
+    "section": "1.5.3",
+    "rule": "pref MUST be in the range 1 to 100",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "pref": 101
+        }
+      }
+    }
+  },
+  "phonetic-script-invalid": {
+    "section": "1.5.4",
+    "rule": "phoneticScript MUST be a valid RFC 5646 script subtag",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John",
+            "phonetic": "dʒɑːn"
+          }
+        ],
+        "phoneticScript": "latin"
+      }
+    }
+  },
+  "phonetic-system-unknown": {
+    "section": "1.5.4",
+    "rule": "phoneticSystem values are enumerated: ipa, jyut, piny",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John",
+            "phonetic": "dZA:n"
+          }
+        ],
+        "phoneticSystem": "sampa"
+      }
+    }
+  },
+  "property-wrong-type": {
+    "section": "1.7",
+    "rule": "A property value MUST adhere to the data type of the property",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": "John Doe"
+    }
+  },
+  "property-null": {
+    "section": "1.7",
+    "rule": "A property value MUST adhere to the data type: null is no value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "language": null
+    }
+  },
+  "type-case-variant": {
+    "section": "1.7.1",
+    "rule": "A type name differing only in case from a known one is invalid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "@type": "name",
+        "full": "John Doe"
+      }
+    }
+  },
+  "property-case-variant": {
+    "section": "1.7.1",
+    "rule": "A property name differing only in case from a known one is invalid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "prodID": "ACME Contacts App version 1.23.5"
+    }
+  },
+  "property-case-variant-nested": {
+    "section": "1.7.1",
+    "rule": "A property name differing only in case is invalid in any object",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555",
+          "Label": "home"
+        }
+      }
+    }
+  },
+  "enum-case-variant": {
+    "section": "1.7.1",
+    "rule": "An enumerated value differing only in case from a known one is invalid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "Individual"
+    }
+  },
+  "property-name-not-camel-case": {
+    "section": "1.7.2",
+    "rule": "Registered property names are notated in lower camel case",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "ShoeSize": 43
+    }
+  },
+  "reserved-id": {
+    "section": "1.7.3",
+    "rule": "\"id\" is reserved in a Card (RFC 9610, JMAP for Contacts)",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "id": "M1f2a"
+    }
+  },
+  "reserved-address-book-ids": {
+    "section": "1.7.3",
+    "rule": "\"addressBookIds\" is reserved in a Card (RFC 9610)",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "addressBookIds": {
+        "062adcfa-105d-455c-bc60-6db68b69c3f3": true
+      }
+    }
+  },
+  "reserved-blob-id": {
+    "section": "1.7.3",
+    "rule": "\"blobId\" is reserved in a Media (RFC 9610)",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "media": {
+        "res1": {
+          "kind": "photo",
+          "uri": "https://www.example.com/pub/photos/jqpublic.gif",
+          "blobId": "G4c5d"
+        }
+      }
+    }
+  },
+  "reserved-extra": {
+    "section": "1.7.3.1",
+    "rule": "An object with the reserved property \"extra\" is invalid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "extra": {
+        "nickname": "Johnny"
+      }
+    }
+  },
+  "reserved-extra-nested": {
+    "section": "1.7.3.1",
+    "rule": "\"extra\" is reserved in every JSContact object",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555",
+          "extra": true
+        }
+      }
+    }
+  },
+  "property-name-invalid": {
+    "section": "1.7.4",
+    "rule": "A name neither of registered syntax nor a v-extension is no property",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "shoe-size": 43
+    }
+  },
+  "enum-unknown-value": {
+    "section": "1.7.5",
+    "rule": "An enumerated value MUST be IANA-registered or vendor-specific",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "robot"
+    }
+  },
+  "vendor-property-name-solidus": {
+    "section": "1.8.1",
+    "rule": "A vendor property name MUST NOT contain the SOLIDUS",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example.com:foo/bar": "baz"
+    }
+  },
+  "vendor-property-name-tilde": {
+    "section": "1.8.1",
+    "rule": "A vendor property name MUST NOT contain the TILDE",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example.com:foo~bar": "baz"
+    }
+  },
+  "vendor-property-prefix-invalid": {
+    "section": "1.8.1",
+    "rule": "The vendor prefix MUST follow the v-prefix ABNF",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example..com:foo": "bar"
+    }
+  },
+  "vendor-property-name-empty": {
+    "section": "1.8.1",
+    "rule": "The name after the vendor prefix MUST NOT be empty",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example.com:": "bar"
+    }
+  },
+  "vendor-property-name-quotation-mark": {
+    "section": "1.8.1",
+    "rule": "A vendor property name MUST NOT contain the QUOTATION MARK",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example.com:foo\"bar": "baz"
+    }
+  },
+  "vendor-value-invalid": {
+    "section": "1.8.2",
+    "rule": "A vendor-specific value MUST be a valid v-extension",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "-example.com:baz"
+    }
+  },
+  "card-type-wrong": {
+    "section": "2.1.1",
+    "rule": "Card @type MUST be \"Card\"",
+    "card": {
+      "@type": "Contact",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "version-missing": {
+    "section": "2.1.2",
+    "rule": "Card.version is mandatory",
+    "card": {
+      "@type": "Card",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "version-unregistered": {
+    "section": "2.1.2",
+    "rule": "version MUST be an IANA-registered JSContact version",
+    "card": {
+      "@type": "Card",
+      "version": "3.0"
+    }
+  },
+  "version-not-a-string": {
+    "section": "2.1.2",
+    "rule": "version is of type String",
+    "card": {
+      "@type": "Card",
+      "version": 2
+    }
+  },
+  "language-not-a-language-tag": {
+    "section": "2.1.5",
+    "rule": "language is an RFC 5646 language tag",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "language": "german (austria)"
+    }
+  },
+  "members-value-false": {
+    "section": "2.1.6",
+    "rule": "Each value of members MUST be true",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "group",
+      "members": {
+        "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af": false
+      }
+    }
+  },
+  "members-in-non-group": {
+    "section": "2.1.6",
+    "rule": "If members is set, kind MUST be \"group\"",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "org",
+      "members": {
+        "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af": true
+      }
+    }
+  },
+  "members-without-kind": {
+    "section": "2.1.6",
+    "rule": "If members is set, kind MUST be \"group\": the default is \"individual\"",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "members": {
+        "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af": true
+      }
+    }
+  },
+  "prod-id-empty": {
+    "section": "2.1.7",
+    "rule": "prodId MUST be at least one character long",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "prodId": ""
+    }
+  },
+  "relation-value-false": {
+    "section": "2.1.8",
+    "rule": "Each value of Relation.relation MUST be true",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "relatedTo": {
+        "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6": {
+          "relation": {
+            "friend": false
+          }
+        }
+      }
+    }
+  },
+  "relation-type-unknown": {
+    "section": "2.1.8",
+    "rule": "Relation types are enumerated",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "relatedTo": {
+        "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6": {
+          "relation": {
+            "nemesis": true
+          }
+        }
+      }
+    }
+  },
+  "uid-missing-in-1.0": {
+    "section": "2.1.9",
+    "rule": "uid is mandatory in a Card of version \"1.0\" (RFC 9982 section 4)",
+    "card": {
+      "@type": "Card",
+      "version": "1.0",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "uid-not-a-string": {
+    "section": "2.1.9",
+    "rule": "uid is of type String",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "uid": 42
+    }
+  },
+  "name-neither-components-nor-full": {
+    "section": "2.2.1.1",
+    "rule": "components MUST be set if full is not set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {}
+    }
+  },
+  "name-components-empty": {
+    "section": "2.2.1.1",
+    "rule": "components MUST have at least one entry that is not a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [],
+        "full": "John Doe"
+      }
+    }
+  },
+  "name-components-only-separators": {
+    "section": "2.2.1.1",
+    "rule": "components MUST have at least one entry that is not a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "separator",
+            "value": " "
+          }
+        ],
+        "isOrdered": true
+      }
+    }
+  },
+  "name-unordered-with-separator": {
+    "section": "2.2.1.1",
+    "rule": "If isOrdered is false, components MUST NOT contain a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ]
+      }
+    }
+  },
+  "name-default-separator-unordered": {
+    "section": "2.2.1.1",
+    "rule": "defaultSeparator MUST NOT be set if isOrdered is false",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ],
+        "isOrdered": false,
+        "defaultSeparator": " "
+      }
+    }
+  },
+  "name-default-separator-without-components": {
+    "section": "2.2.1.1",
+    "rule": "defaultSeparator MUST NOT be set if components is not set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe",
+        "isOrdered": true,
+        "defaultSeparator": " "
+      }
+    }
+  },
+  "name-sort-as-without-components": {
+    "section": "2.2.1.1",
+    "rule": "sortAs MUST NOT be set if components is not set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe",
+        "sortAs": {
+          "surname": "Doe"
+        }
+      }
+    }
+  },
+  "name-sort-as-key-not-a-kind": {
+    "section": "2.2.1.1",
+    "rule": "Each sortAs key MUST be a valid name component kind",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ],
+        "sortAs": {
+          "family": "Doe"
+        }
+      }
+    }
+  },
+  "name-sort-as-kind-not-in-components": {
+    "section": "2.2.1.1",
+    "rule": "For each sortAs key a component of that kind MUST exist",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ],
+        "sortAs": {
+          "surname2": "Doe"
+        }
+      }
+    }
+  },
+  "name-consecutive-separators": {
+    "section": "2.2.1.2",
+    "rule": "Two consecutive separator components MUST NOT be inserted",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "separator",
+            "value": ","
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ],
+        "isOrdered": true
+      }
+    }
+  },
+  "name-component-value-missing": {
+    "section": "2.2.1.2",
+    "rule": "NameComponent.value is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given"
+          }
+        ]
+      }
+    }
+  },
+  "name-component-kind-missing": {
+    "section": "2.2.1.2",
+    "rule": "NameComponent.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "value": "John"
+          }
+        ]
+      }
+    }
+  },
+  "name-component-kind-unknown": {
+    "section": "2.2.1.2",
+    "rule": "NameComponent.kind values are enumerated",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "middle",
+            "value": "Quincy"
+          }
+        ]
+      }
+    }
+  },
+  "name-phonetic-without-system-or-script": {
+    "section": "2.2.1.2",
+    "rule": "With phonetic set, Name phoneticSystem or phoneticScript MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John",
+            "phonetic": "/ˈdʒɑːn/"
+          }
+        ]
+      }
+    }
+  },
+  "nickname-name-missing": {
+    "section": "2.2.2",
+    "rule": "Nickname.name is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "nicknames": {
+        "k391": {
+          "pref": 1
+        }
+      }
+    }
+  },
+  "organization-neither-name-nor-units": {
+    "section": "2.2.3",
+    "rule": "At least one of Organization name and units MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "organizations": {
+        "o1": {
+          "sortAs": "ABC"
+        }
+      }
+    }
+  },
+  "organization-units-empty": {
+    "section": "2.2.3",
+    "rule": "units, if set, MUST contain at least one entry",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "organizations": {
+        "o1": {
+          "name": "ABC, Inc.",
+          "units": []
+        }
+      }
+    }
+  },
+  "org-unit-name-missing": {
+    "section": "2.2.3",
+    "rule": "OrgUnit.name is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "organizations": {
+        "o1": {
+          "name": "ABC, Inc.",
+          "units": [
+            {
+              "sortAs": "Marketing"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "speak-to-as-empty": {
+    "section": "2.2.4",
+    "rule": "At least one of grammaticalGender and pronouns MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "speakToAs": {}
+    }
+  },
+  "grammatical-gender-unknown": {
+    "section": "2.2.4",
+    "rule": "grammaticalGender values are enumerated",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "speakToAs": {
+        "grammaticalGender": "female"
+      }
+    }
+  },
+  "pronouns-missing": {
+    "section": "2.2.4",
+    "rule": "Pronouns.pronouns is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "speakToAs": {
+        "pronouns": {
+          "k19": {
+            "pref": 1
+          }
+        }
+      }
+    }
+  },
+  "id-reference-bad-character": {
+    "section": "2.2.5",
+    "rule": "Title.organizationId is an Id",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "organizations": {
+        "o1": {
+          "name": "ABC, Inc."
+        }
+      },
+      "titles": {
+        "t1": {
+          "name": "Project Leader",
+          "organizationId": "o 1"
+        }
+      }
+    }
+  },
+  "title-name-missing": {
+    "section": "2.2.5",
+    "rule": "Title.name is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "titles": {
+        "le9": {
+          "kind": "title"
+        }
+      }
+    }
+  },
+  "title-kind-unknown": {
+    "section": "2.2.5",
+    "rule": "Title.kind values are enumerated: title, role",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "titles": {
+        "le9": {
+          "kind": "position",
+          "name": "Research Scientist"
+        }
+      }
+    }
+  },
+  "email-address-missing": {
+    "section": "2.3.1",
+    "rule": "EmailAddress.address is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "contexts": {
+            "work": true
+          }
+        }
+      }
+    }
+  },
+  "email-address-not-addr-spec": {
+    "section": "2.3.1",
+    "rule": "address MUST be an RFC 5322 addr-spec",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "Jane Doe <jane_doe@example.com>"
+        }
+      }
+    }
+  },
+  "online-service-neither-uri-nor-user": {
+    "section": "2.3.2",
+    "rule": "At least uri or user MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "onlineServices": {
+        "x1": {
+          "service": "Mastodon"
+        }
+      }
+    }
+  },
+  "online-service-uri-not-a-uri": {
+    "section": "2.3.2",
+    "rule": "OnlineService.uri MUST be a URI",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "onlineServices": {
+        "x1": {
+          "uri": "@alice at example2.com"
+        }
+      }
+    }
+  },
+  "phone-number-missing": {
+    "section": "2.3.3",
+    "rule": "Phone.number is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "tel0": {
+          "features": {
+            "voice": true
+          }
+        }
+      }
+    }
+  },
+  "phone-feature-false": {
+    "section": "2.3.3",
+    "rule": "Each value of features MUST be true",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "tel0": {
+          "number": "tel:+1-555-555-5555",
+          "features": {
+            "voice": false
+          }
+        }
+      }
+    }
+  },
+  "phone-feature-unknown": {
+    "section": "2.3.3",
+    "rule": "Phone features are enumerated",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "tel0": {
+          "number": "tel:+1-555-555-5555",
+          "features": {
+            "cell": true
+          }
+        }
+      }
+    }
+  },
+  "language-pref-language-missing": {
+    "section": "2.3.4",
+    "rule": "LanguagePref.language is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "preferredLanguages": {
+        "l1": {
+          "pref": 1
+        }
+      }
+    }
+  },
+  "language-pref-not-a-language-tag": {
+    "section": "2.3.4",
+    "rule": "language MUST be an RFC 5646 language tag",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "preferredLanguages": {
+        "l1": {
+          "language": "french (canada)"
+        }
+      }
+    }
+  },
+  "calendar-kind-missing": {
+    "section": "2.4.1",
+    "rule": "Calendar.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "calendars": {
+        "calA": {
+          "uri": "webcal://calendar.example.com/calA.ics"
+        }
+      }
+    }
+  },
+  "calendar-kind-unknown": {
+    "section": "2.4.1",
+    "rule": "Calendar.kind values are enumerated: calendar, freeBusy",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "calendars": {
+        "calA": {
+          "kind": "freebusy-lookup",
+          "uri": "https://calendar.example.com/busy/project-a"
+        }
+      }
+    }
+  },
+  "scheduling-address-uri-missing": {
+    "section": "2.4.2",
+    "rule": "SchedulingAddress.uri is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "schedulingAddresses": {
+        "sched1": {
+          "label": "work"
+        }
+      }
+    }
+  },
+  "scheduling-address-uri-not-a-uri": {
+    "section": "2.4.2",
+    "rule": "SchedulingAddress.uri MUST be a URI",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "schedulingAddresses": {
+        "sched1": {
+          "uri": "jane doe"
+        }
+      }
+    }
+  },
+  "context-of-address-elsewhere": {
+    "section": "2.5.1.1",
+    "rule": "billing and delivery are contexts of an Address only",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jane_doe@example.com",
+          "contexts": {
+            "billing": true
+          }
+        }
+      }
+    }
+  },
+  "address-empty": {
+    "section": "2.5.1.1",
+    "rule": "One of components, coordinates, countryCode, full, timeZone MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "contexts": {
+            "work": true
+          }
+        }
+      }
+    }
+  },
+  "address-components-only-separators": {
+    "section": "2.5.1.1",
+    "rule": "components MUST have at least one entry that is not a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "separator",
+              "value": ", "
+            }
+          ],
+          "isOrdered": true
+        }
+      }
+    }
+  },
+  "address-unordered-with-separator": {
+    "section": "2.5.1.1",
+    "rule": "If isOrdered is false, components MUST NOT contain a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "number",
+              "value": "54321"
+            },
+            {
+              "kind": "separator",
+              "value": " "
+            },
+            {
+              "kind": "name",
+              "value": "Oak St"
+            }
+          ],
+          "isOrdered": false
+        }
+      }
+    }
+  },
+  "address-default-separator-unordered": {
+    "section": "2.5.1.1",
+    "rule": "defaultSeparator MUST NOT be set if isOrdered is false",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "number",
+              "value": "54321"
+            },
+            {
+              "kind": "name",
+              "value": "Oak St"
+            }
+          ],
+          "defaultSeparator": ", "
+        }
+      }
+    }
+  },
+  "address-default-separator-without-components": {
+    "section": "2.5.1.1",
+    "rule": "defaultSeparator MUST NOT be set if components is not set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "full": "54321 Oak St",
+          "isOrdered": true,
+          "defaultSeparator": ", "
+        }
+      }
+    }
+  },
+  "address-time-zone-unknown": {
+    "section": "2.5.1.1",
+    "rule": "timeZone MUST be a name of the IANA Time Zone Database",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "timeZone": "Mars/Olympus_Mons"
+        }
+      }
+    }
+  },
+  "address-context-false": {
+    "section": "2.5.1.1",
+    "rule": "Each value of Address.contexts MUST be true",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "full": "54321 Oak St",
+          "contexts": {
+            "billing": false
+          }
+        }
+      }
+    }
+  },
+  "address-country-code-not-alpha-2": {
+    "section": "2.5.1.1",
+    "rule": "countryCode is an ISO 3166-1 alpha-2 code",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "countryCode": "USA"
+        }
+      }
+    }
+  },
+  "address-coordinates-not-a-geo-uri": {
+    "section": "2.5.1.1",
+    "rule": "coordinates is a \"geo:\" URI",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "coordinates": "46.772673,-71.282945"
+        }
+      }
+    }
+  },
+  "address-components-empty": {
+    "section": "2.5.1.1",
+    "rule": "components MUST have at least one entry that is not a separator",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [],
+          "full": "54321 Oak St"
+        }
+      }
+    }
+  },
+  "address-consecutive-separators": {
+    "section": "2.5.1.2",
+    "rule": "Two consecutive separator components MUST NOT be inserted",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "number",
+              "value": "54321"
+            },
+            {
+              "kind": "separator",
+              "value": ","
+            },
+            {
+              "kind": "separator",
+              "value": " "
+            },
+            {
+              "kind": "name",
+              "value": "Oak St"
+            }
+          ],
+          "isOrdered": true
+        }
+      }
+    }
+  },
+  "address-component-value-missing": {
+    "section": "2.5.1.2",
+    "rule": "AddressComponent.value is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "locality"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "address-component-kind-missing": {
+    "section": "2.5.1.2",
+    "rule": "AddressComponent.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "value": "Reston"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "address-component-kind-unknown": {
+    "section": "2.5.1.2",
+    "rule": "AddressComponent.kind values are enumerated",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k23": {
+          "components": [
+            {
+              "kind": "city",
+              "value": "Reston"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "address-phonetic-without-system-or-script": {
+    "section": "2.5.1.2",
+    "rule": "With phonetic set, Address phoneticSystem or phoneticScript MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "k26": {
+          "components": [
+            {
+              "kind": "region",
+              "value": "東京都",
+              "phonetic": "とうきょうと"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "crypto-key-kind-not-vendor": {
+    "section": "2.6.1",
+    "rule": "No kind is registered for a CryptoKey: only a vendor value fits",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "cryptoKeys": {
+        "mykey1": {
+          "kind": "pgp",
+          "uri": "https://www.example.com/keys/jdoe.cer"
+        }
+      }
+    }
+  },
+  "directory-kind-missing": {
+    "section": "2.6.2",
+    "rule": "Directory.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "directories": {
+        "dir1": {
+          "uri": "https://dir.example.com/addrbook/jdoe/Jean%20Dupont.vcf"
+        }
+      }
+    }
+  },
+  "directory-kind-unknown": {
+    "section": "2.6.2",
+    "rule": "Directory.kind values are enumerated: directory, entry",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "directories": {
+        "dir1": {
+          "kind": "ldap",
+          "uri": "ldap://ldap.example/o=Example%20Tech,ou=Engineering"
+        }
+      }
+    }
+  },
+  "directory-list-as-zero": {
+    "section": "2.6.2",
+    "rule": "listAs, if set, MUST be higher than zero",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "directories": {
+        "dir1": {
+          "kind": "entry",
+          "uri": "https://dir.example.com/addrbook/jdoe",
+          "listAs": 0
+        }
+      }
+    }
+  },
+  "link-kind-unknown": {
+    "section": "2.6.3",
+    "rule": "Link.kind values are enumerated: contact",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "links": {
+        "link3": {
+          "kind": "homepage",
+          "uri": "https://www.example.com/"
+        }
+      }
+    }
+  },
+  "media-kind-missing": {
+    "section": "2.6.4",
+    "rule": "Media.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "media": {
+        "res47": {
+          "uri": "https://www.example.com/pub/logos/abccorp.jpg"
+        }
+      }
+    }
+  },
+  "media-kind-unknown": {
+    "section": "2.6.4",
+    "rule": "Media.kind values are enumerated: photo, sound, logo",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "media": {
+        "res47": {
+          "kind": "video",
+          "uri": "https://www.example.com/pub/intro.mp4"
+        }
+      }
+    }
+  },
+  "patch-result-invalid": {
+    "section": "2.7.1",
+    "rule": "The localized Card is invalid: a Name without components or full",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "fr": {
+          "name/full": null
+        }
+      }
+    }
+  },
+  "patch-targets-localizations": {
+    "section": "2.7.1",
+    "rule": "A patch MUST NOT target the localizations property",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "fr": {
+          "localizations/de": {}
+        }
+      }
+    }
+  },
+  "localizations-not-a-patch-object": {
+    "section": "2.7.1",
+    "rule": "localizations is of type String[PatchObject]",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "fr": "Jean Dupont"
+      }
+    }
+  },
+  "localizations-key-not-a-language-tag": {
+    "section": "2.7.1",
+    "rule": "The keys of localizations are RFC 5646 language tags",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      },
+      "localizations": {
+        "not a tag": {
+          "name/full": "Jean Dupont"
+        }
+      }
+    }
+  },
+  "anniversary-kind-missing": {
+    "section": "2.8.1",
+    "rule": "Anniversary.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "date": {
+            "year": 1953,
+            "month": 4,
+            "day": 15
+          }
+        }
+      }
+    }
+  },
+  "anniversary-kind-unknown": {
+    "section": "2.8.1",
+    "rule": "Anniversary.kind values are enumerated: birth, death, wedding",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "graduation",
+          "date": {
+            "year": 1975
+          }
+        }
+      }
+    }
+  },
+  "anniversary-date-missing": {
+    "section": "2.8.1",
+    "rule": "Anniversary.date is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth"
+        }
+      }
+    }
+  },
+  "anniversary-date-not-an-object": {
+    "section": "2.8.1",
+    "rule": "date is a PartialDate or a Timestamp object",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": "1953-04-15"
+        }
+      }
+    }
+  },
+  "partial-date-empty": {
+    "section": "2.8.1",
+    "rule": "A PartialDate is a date, a year, a month in a year or a day in a month",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {}
+        }
+      }
+    }
+  },
+  "partial-date-month-out-of-range": {
+    "section": "2.8.1",
+    "rule": "month is an integer from 1 to 12",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "month": 13
+          }
+        }
+      }
+    }
+  },
+  "partial-date-month-alone": {
+    "section": "2.8.1",
+    "rule": "If month is set, year or day MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "month": 4
+          }
+        }
+      }
+    }
+  },
+  "partial-date-day-out-of-range": {
+    "section": "2.8.1",
+    "rule": "day is an integer from 1 to 31",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "month": 4,
+            "day": 32
+          }
+        }
+      }
+    }
+  },
+  "partial-date-day-invalid-in-month": {
+    "section": "2.8.1",
+    "rule": "day depends on the validity within the month and year",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "month": 2,
+            "day": 29
+          }
+        }
+      }
+    }
+  },
+  "partial-date-day-without-month": {
+    "section": "2.8.1",
+    "rule": "If day is set, month MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "day": 15
+          }
+        }
+      }
+    }
+  },
+  "partial-date-calendar-scale-uppercase": {
+    "section": "2.8.1",
+    "rule": "calendarScale is written in lowercase",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "calendarScale": "Hebrew"
+          }
+        }
+      }
+    }
+  },
+  "partial-date-calendar-scale-unknown": {
+    "section": "2.8.1",
+    "rule": "calendarScale MUST be a CLDR calendar name or a vendor value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "calendarScale": "martian"
+          }
+        }
+      }
+    }
+  },
+  "timestamp-utc-missing": {
+    "section": "2.8.1",
+    "rule": "Timestamp.utc is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k9": {
+          "kind": "death",
+          "date": {
+            "@type": "Timestamp"
+          }
+        }
+      }
+    }
+  },
+  "partial-date-month-zero": {
+    "section": "2.8.1",
+    "rule": "month is an integer from 1 to 12",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "month": 0
+          }
+        }
+      }
+    }
+  },
+  "partial-date-day-zero": {
+    "section": "2.8.1",
+    "rule": "day is an integer from 1 to 31",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "k8": {
+          "kind": "birth",
+          "date": {
+            "month": 4,
+            "day": 0
+          }
+        }
+      }
+    }
+  },
+  "keyword-value-false": {
+    "section": "2.8.2",
+    "rule": "Each value of keywords MUST be true",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "keywords": {
+        "internet": true,
+        "IETF": false
+      }
+    }
+  },
+  "note-missing": {
+    "section": "2.8.3",
+    "rule": "Note.note is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "notes": {
+        "n1": {
+          "created": "2022-11-23T15:01:32Z"
+        }
+      }
+    }
+  },
+  "author-empty": {
+    "section": "2.8.3",
+    "rule": "At least one Author property other than @type MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "notes": {
+        "n1": {
+          "note": "Open office hours are 1600 to 1715 EST, Mon-Fri",
+          "author": {
+            "@type": "Author"
+          }
+        }
+      }
+    }
+  },
+  "personal-info-kind-missing": {
+    "section": "2.8.4",
+    "rule": "PersonalInfo.kind is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "personalInfo": {
+        "pi2": {
+          "value": "chemistry"
+        }
+      }
+    }
+  },
+  "personal-info-kind-unknown": {
+    "section": "2.8.4",
+    "rule": "PersonalInfo.kind values are enumerated: expertise, hobby, interest",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "personalInfo": {
+        "pi2": {
+          "kind": "skill",
+          "value": "chemistry"
+        }
+      }
+    }
+  },
+  "personal-info-value-missing": {
+    "section": "2.8.4",
+    "rule": "PersonalInfo.value is mandatory",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "personalInfo": {
+        "pi2": {
+          "kind": "expertise"
+        }
+      }
+    }
+  },
+  "personal-info-level-unknown": {
+    "section": "2.8.4",
+    "rule": "PersonalInfo.level values are enumerated: high, medium, low",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "personalInfo": {
+        "pi2": {
+          "kind": "expertise",
+          "value": "chemistry",
+          "level": "expert"
+        }
+      }
+    }
+  },
+  "personal-info-list-as-zero": {
+    "section": "2.8.4",
+    "rule": "listAs, if set, MUST be higher than zero",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "personalInfo": {
+        "pi2": {
+          "kind": "expertise",
+          "value": "chemistry",
+          "listAs": 0
+        }
+      }
+    }
+  },
+  "vcard-props-entry-too-short": {
+    "section": "RFC 9555 2.15.1",
+    "rule": "A JCardProp has a name, parameters, a type and at least one value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "vCardProps": [
+        [
+          "x-foo",
+          {
+            "group": "item1"
+          },
+          "unknown"
+        ]
+      ]
+    }
+  },
+  "vcard-props-not-an-array": {
+    "section": "RFC 9555 2.15.1",
+    "rule": "vCardProps is of type JCardProp[]",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "vCardProps": {
+        "x-foo": "World!"
+      }
+    }
+  },
+  "vcard-params-not-an-object": {
+    "section": "RFC 9555 2.15.2",
+    "rule": "vCardParams MUST be a JSON object",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "email1": {
+          "address": "jane_doe@example.com",
+          "vCardParams": [
+            "x-foo",
+            "Bar"
+          ]
+        }
+      }
+    }
+  },
+  "vcard-params-value-not-a-string": {
+    "section": "RFC 9555 2.15.2",
+    "rule": "Each vCardParams value is a String or a String[]",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "email1": {
+          "address": "jane_doe@example.com",
+          "vCardParams": {
+            "x-foo": 1
+          }
+        }
+      }
+    }
+  },
+  "vcard-name-invalid": {
+    "section": "RFC 9555 2.15.3",
+    "rule": "vCardName MUST be valid according to the \"name\" ABNF of RFC 6350",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "onlineServices": {
+        "os1": {
+          "uri": "xmpp:alice@example.com",
+          "vCardName": "im pp"
+        }
+      }
+    }
+  }
+}

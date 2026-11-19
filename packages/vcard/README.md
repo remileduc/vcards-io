@@ -185,8 +185,8 @@ change in any release; pin an exact version if you depend on them.
 |                      | `isMediaProperty`, `TEXT_FAMILY`, `VALUE_TOKENS`           |
 | Media type words     | `MEDIA_TYPE_NAMES`, `mediaTypeFromName`, `mediaTypeName`,  |
 |                      | `declaredMediaType`                                        |
-| Relations            | `RELATION_TYPES`, `RelationType`,                          |
-|                      | `relationTypeForAndroid`, `relationTypeForLabel`           |
+| Relations            | `RELATION_MAPPINGS`, `RelationMapping`,                    |
+|                      | `relationMappingForAndroid`, `relationMappingForLabel`     |
 | Grammar              | `URI_SCHEME`                                               |
 
 There is no public unfolder and no quoted-printable encoder: unfolding is

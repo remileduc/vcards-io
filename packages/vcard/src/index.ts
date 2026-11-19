@@ -63,10 +63,10 @@ export {
 	VALUE_TOKENS,
 } from "./registry.js";
 export {
-	RELATION_TYPES,
-	type RelationType,
-	relationTypeForAndroid,
-	relationTypeForLabel,
+	RELATION_MAPPINGS,
+	type RelationMapping,
+	relationMappingForAndroid,
+	relationMappingForLabel,
 } from "./upgrade/relations.js";
 export {
 	declaredMediaType,

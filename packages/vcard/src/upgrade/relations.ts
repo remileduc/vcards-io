@@ -2,7 +2,7 @@
  * One relation kind as the three worlds name it. Shared by the Android and Apple upgrade
  * rules, the JSContact converter and the export profiles (docs/plan.md, "Relation mapping").
  */
-export interface RelationType {
+export interface RelationMapping {
 	/** RELATED TYPE value in vCard 4.0; `x-` prefixed when RFC 6350 has no word for it. */
 	readonly type: string;
 	/** `vnd.android.cursor.item/relation` type number (`data2`). */
@@ -11,7 +11,7 @@ export interface RelationType {
 	readonly label?: string;
 }
 
-export const RELATION_TYPES: readonly RelationType[] = [
+export const RELATION_MAPPINGS: readonly RelationMapping[] = [
 	{ type: "x-assistant", android: 1, label: "Assistant" },
 	{ type: "x-brother", android: 2, label: "Brother" },
 	{ type: "child", android: 3, label: "Child" },
@@ -30,14 +30,14 @@ export const RELATION_TYPES: readonly RelationType[] = [
 	{ type: "x-custom", android: 0 },
 ];
 
-export function relationTypeForAndroid(type: number): RelationType | undefined {
-	return RELATION_TYPES.find((r) => r.android === type);
+export function relationMappingForAndroid(type: number): RelationMapping | undefined {
+	return RELATION_MAPPINGS.find((r) => r.android === type);
 }
 
 /** Matches Apple's `Mother` and Google's `REFERRED_BY` alike: case, `_` and `-` do not count. */
-export function relationTypeForLabel(label: string): RelationType | undefined {
+export function relationMappingForLabel(label: string): RelationMapping | undefined {
 	const wanted = foldLabel(label);
-	return RELATION_TYPES.find((r) => r.label !== undefined && foldLabel(r.label) === wanted);
+	return RELATION_MAPPINGS.find((r) => r.label !== undefined && foldLabel(r.label) === wanted);
 }
 
 function foldLabel(label: string): string {

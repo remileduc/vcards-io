@@ -3,9 +3,9 @@ import {
 	type Issue,
 	parseVCards,
 	propertyId,
-	RELATION_TYPES,
-	relationTypeForAndroid,
-	relationTypeForLabel,
+	RELATION_MAPPINGS,
+	relationMappingForAndroid,
+	relationMappingForLabel,
 	upgradeTo40,
 	type VCard,
 	type VCardVersion,
@@ -48,18 +48,20 @@ function android(mime: string, ...data: string[]): string {
 
 describe("relation table", () => {
 	test("covers every Android type number once and maps Apple and Google labels", () => {
-		expect(new Set(RELATION_TYPES.map((r) => r.android)).size).toBe(RELATION_TYPES.length);
-		expect([...RELATION_TYPES.map((r) => r.android)].sort((a, b) => a - b)).toEqual(
+		expect(new Set(RELATION_MAPPINGS.map((r) => r.android)).size).toBe(
+			RELATION_MAPPINGS.length,
+		);
+		expect([...RELATION_MAPPINGS.map((r) => r.android)].sort((a, b) => a - b)).toEqual(
 			Array.from({ length: 15 }, (_, i) => i),
 		);
-		expect(relationTypeForAndroid(8)?.type).toBe("x-mother");
-		expect(relationTypeForAndroid(12)?.type).toBe("kin");
-		expect(relationTypeForAndroid(99)).toBeUndefined();
-		expect(relationTypeForLabel("Mother")?.type).toBe("x-mother");
-		expect(relationTypeForLabel("REFERRED_BY")?.type).toBe("x-referred-by");
-		expect(relationTypeForLabel("domestic-partner")?.android).toBe(4);
-		expect(relationTypeForLabel("RELATIVE")?.type).toBe("kin");
-		expect(relationTypeForLabel("Other")).toBeUndefined();
+		expect(relationMappingForAndroid(8)?.type).toBe("x-mother");
+		expect(relationMappingForAndroid(12)?.type).toBe("kin");
+		expect(relationMappingForAndroid(99)).toBeUndefined();
+		expect(relationMappingForLabel("Mother")?.type).toBe("x-mother");
+		expect(relationMappingForLabel("REFERRED_BY")?.type).toBe("x-referred-by");
+		expect(relationMappingForLabel("domestic-partner")?.android).toBe(4);
+		expect(relationMappingForLabel("RELATIVE")?.type).toBe("kin");
+		expect(relationMappingForLabel("Other")).toBeUndefined();
 	});
 });
 
@@ -145,7 +147,7 @@ describe("Android X-ANDROID-CUSTOM", () => {
 	});
 
 	test("relation rows become RELATED;VALUE=text with the mapped TYPE", () => {
-		for (const relation of RELATION_TYPES.filter((r) => r.android !== 0)) {
+		for (const relation of RELATION_MAPPINGS.filter((r) => r.android !== 0)) {
 			const related = only("2.1", android("relation", "Someone", String(relation.android)));
 			expect(related, relation.type).toMatchObject({
 				group: null,

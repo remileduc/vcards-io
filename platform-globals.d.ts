@@ -1,5 +1,5 @@
-// Globals every browser and Node provide but TypeScript types only in lib.dom: the WHATWG
-// Encoding classes and HTML's structuredClone. Declaring just these keeps the library off lib.dom.
+// Globals of every browser and of Node that TypeScript types only in lib.dom. Declaring just
+// these keeps the libraries off lib.dom: every library tsconfig lists this file.
 declare class TextEncoder {
 	encode(input?: string): Uint8Array;
 	encodeInto(source: string, destination: Uint8Array): { read: number; written: number };
@@ -18,3 +18,6 @@ declare class TextDecoder {
 }
 
 declare function structuredClone<T>(value: T): T;
+
+// Web Crypto, global in every browser and in Node; only what the libraries call.
+declare const crypto: { randomUUID(): string };

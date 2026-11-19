@@ -142,10 +142,11 @@ Repository layout
 
 ```
 vcards-io/
-  package.json              private root; "engines": { "node": ">=24" }, "packageManager": "pnpm@12.x"
+  package.json              private root; "engines": { "node": ">=24.3" }, "packageManager": "pnpm@12.x"
   pnpm-workspace.yaml       packages/*, apps/*
   biome.json
   tsconfig.base.json        strict, ES2025 target, verbatimModuleSyntax, exactOptionalPropertyTypes
+  platform-globals.d.ts     TextEncoder/TextDecoder, structuredClone, crypto: in the `include` of every library
   .github/workflows/        ci.yml, pages.yml, (later) release.yml
   fixtures/
     rfc/                    examples lifted from the RFCs (.vcf + expected .json)
@@ -153,7 +154,7 @@ vcards-io/
     apple/                  iOS/macOS 3.0 samples (cozy-vcard ios-*.vcf) + yours
     google/                 Google web 3.0 export samples + yours
     other/                  Outlook 2.1, Thunderbird 4.0, Nextcloud/sabre 3.0, Fossify 4.0
-    jscontact/              RFC 9553 figures as JSON, valid and invalid Cards
+    jscontact/              RFC 9553 figures and registry tables as JSON, valid and invalid Cards
   packages/
     vcard/                  @vcards-io/vcard
     jscontact/              @vcards-io/jscontact
@@ -163,6 +164,7 @@ vcards-io/
   docs/
     plan.md                 this document, kept up to date
     decisions.md            short ADR log (one paragraph per decision)
+    jscontact-constraints.md  every MUST of RFC 9553/9982 with the fixture Card that shows it
     interop.md              the Android/Apple behaviour tables (from the research), updated by device tests
 ```
 
@@ -261,7 +263,7 @@ are only in `PropertySpec.params`, the two never overlap), `isMediaProperty`,
 `MEDIA_TYPE_NAMES` / `mediaTypeFromName` / `mediaTypeName` (legacy
 `TYPE=JPEG` words, both ways),
 `declaredMediaType` (a `MEDIATYPE` value with its parameters), and the
-relation table `RELATION_TYPES` with its two lookups. Parsers return
+relation table `RELATION_MAPPINGS` with its two lookups. Parsers return
 `null` on bad input, including mixed basic/extended forms such as
 `1985-0412`; formatters throw `RangeError` for a field out of range or a
 shape the grammar cannot express, so hostile JSContact never reaches the
@@ -477,9 +479,9 @@ This is where the "understand Android fields" requirement lives:
 | `X-WAB-GENDER` (1 female, 2 male), `X-GENDER` words       | `GENDER` (if none); `0`/empty kept silently, other values kept (warning)  |
 | `X-MS-*`, `X-ABUID`, `X-ACTIVITY-ALERT`, others           | untouched (lossless via `vCardProps`); revisit after fixtures             |
 
-Relation mapping (`upgrade/relations.ts`, exported as `RELATION_TYPES` with
-`relationTypeForAndroid` / `relationTypeForLabel`, shared by the Android and
-Apple rules, the converter and the export profiles):
+Relation mapping (`upgrade/relations.ts`, exported as `RELATION_MAPPINGS` with
+`relationMappingForAndroid` / `relationMappingForLabel`, shared by the Android
+and Apple rules, the converter and the export profiles):
 
 | Android type / Apple label                     | RELATED TYPE (4.0)   | JSContact relation key                 |
 | ---------------------------------------------- | -------------------- | -------------------------------------- |
@@ -635,7 +637,7 @@ reader and writer of the JSON backup format, and (milestone 4.5) card
 matching, structured diff and merge. No runtime dependency, and none on
 `@vcards-io/vcard`: `convert` is the only package that sees both.
 
-### Types (`types.ts`)
+### Types (`types.ts`, `enums.ts`)
 
 Hand-written interfaces for every RFC 9553 object (Card, Name,
 NameComponent, Nickname, Organization, OrgUnit, SpeakToAs, Pronouns, Title,
@@ -643,18 +645,42 @@ EmailAddress, OnlineService, Phone, LanguagePref, Calendar,
 SchedulingAddress, Address, AddressComponent, CryptoKey, Directory, Link,
 Media, Anniversary, PartialDate, Timestamp, Note, Author, PersonalInfo,
 Relation, Resource, JCardProp) plus RFC 9555 fields (`vCardProps`,
-`vCardParams`, `vCardName`). Every enum is an `as const` array with a
-derived union type (`CARD_KINDS`, `NAME_COMPONENT_KINDS`,
+`vCardParams`, `vCardName`). `types.ts` holds no runtime code. Every enum
+is an `as const` array in `enums.ts` with a derived union type
+(`CARD_VERSIONS`, `CARD_KINDS`, `NAME_COMPONENT_KINDS`,
 `ADDRESS_COMPONENT_KINDS`, `PHONE_FEATURES`, `CONTEXTS`,
 `ADDRESS_CONTEXTS`, `MEDIA_KINDS`, `CALENDAR_KINDS`, `DIRECTORY_KINDS`,
 `PERSONAL_INFO_KINDS`, `PERSONAL_INFO_LEVELS`, `RELATION_TYPES`,
 `GRAMMATICAL_GENDERS`, `PHONETIC_SYSTEMS`, `TITLE_KINDS`,
-`ANNIVERSARY_KINDS`, `LINK_KINDS`). Vendor properties pass through a
+`ANNIVERSARY_KINDS`, `LINK_KINDS`), in the order the RFC text lists the
+values, which is the order of a dropdown. Vendor properties pass through a
 pattern index signature, `` [vendor: `${string}:${string}`]: unknown ``,
 not a plain string one: `example.com:x` is accepted and a misspelt
 standard name in an object literal does not compile. A registered
 property this version does not know has no colon and no type; it is kept
 at runtime and reported by the validator.
+
+What the types settle:
+
+- An enumerated property is `Kind | VendorExtension` (the pattern above):
+  a vendor value is accepted anywhere, an unknown or miscased word is a
+  compile error.
+- A set (`contexts`, `features`, `relation`, `members`, `keywords`) maps
+  its keys to `true`, not to `boolean`: the RFC says "MUST be true" for
+  four of the five and nobody writes `false`. `FlagSet<Value>` is the map
+  over the standard keys and the vendor pattern.
+- `uid` is optional (RFC 9982); that "1.0" requires it is the validator's.
+- `Timestamp` has a mandatory `"@type": "Timestamp"`, since
+  `Anniversary.date` defaults to PartialDate: the union narrows on it.
+  Every other `@type` is optional, `Card`'s excepted.
+- `Resource` is the common base of Calendar, CryptoKey, Directory, Link
+  and Media, which narrow `@type` and `kind`; CryptoKey has no registered
+  kind, so only a vendor one.
+- "At least one of" and the other cross-field rules stay optional
+  properties with a one-line comment: unions for them make every edit in
+  the UI a type puzzle, and the validator checks them anyway.
+- `Nickname` declares the project's `remileduc.github.io:kind` with its
+  values, so the converter and the UI read it typed.
 
 ### Vendor extensions (`vendor.ts`)
 
@@ -667,11 +693,16 @@ map them back:
 | `remileduc.github.io:kind` on Nickname | Nickname object   | `maiden`, `short`, `initials`, `other`, `custom` |
 | vendor relation keys                   | Relation.relation | the nine vendor keys in the relation table above |
 
-The vendor relation names are listed here (`VENDOR_RELATIONS`); the vcard
-relation table only knows the `x-<name>` TYPE words, and `convert` maps
-`x-<name>` to `remileduc.github.io:<name>` and back. Nothing else: Android
-"other/custom" events, `X-PHONETIC-*`, `X-MS-*` stay in `vCardProps` until
-fixtures show they matter.
+The vendor relation names are listed here bare (`VENDOR_RELATIONS`:
+`mother`, not the whole key); the vcard relation table only knows the
+`x-<name>` TYPE words, and `convert` maps `x-<name>` to
+`remileduc.github.io:<name>` and back (a test in `convert` holds the
+words of the two libraries together, relations and nickname kinds, since
+they do not see each other). `NICKNAME_KIND` is
+the property name, `NICKNAME_KINDS` its values, `VendorKey<Name>` the type
+of a prefixed name. Nothing else: Android "other/custom" events,
+`X-PHONETIC-*`, `X-MS-*` stay in `vCardProps` until fixtures show they
+matter.
 
 ### Validator (`validate.ts`)
 
@@ -690,7 +721,9 @@ OnlineService, SpeakToAs), `isOrdered`/separator constraints, `pref`
 1..100, `sortAs` keys present, `members` requires `kind: group`,
 PartialDate dependencies, UTCDateTime format, `localizations` keys and
 patches, case-variant property names (§1.7.1), the reserved `extra`
-property (§1.7.3.1).
+property (§1.7.3.1) and the three names RFC 9610 reserves (`id` and
+`addressBookIds` in a Card, `blobId` in a Media: what a JMAP server adds
+and an export should have removed).
 
 It follows the conventions the vcard package settled, with its own types
 since it cannot import them:
@@ -703,6 +736,15 @@ since it cannot import them:
   variant, `extra`. The readers are tolerant, so a backup edited by hand
   is not refused for a typo. The split per rule is written down with the
   code list in checkpoint 3.
+- **A value outside its list is normal.** An unknown enum value stays a
+  `warning`, not an `error`: a later minor version of JSContact may
+  register new values (RFC 9553 section 1.9), and such a Card must still
+  load. So a Card typed `Card` can hold a word its union does not list,
+  exactly as it can hold a vendor value, and code reading an enumerated
+  property asks "is it in my list" (`isListed`, below), never "does it
+  have a colon". Whatever is not listed takes the same path as a vendor
+  value: kept, shown as it is, and reported as a loss by a profile that
+  cannot write it.
 - **Codes.** `CardIssueCode` is the union of exported `as const` lists;
   every check reports through a helper typed with its list, a test checks
   that every code is raised, and issues are capped at 1000 per code, then
@@ -719,7 +761,22 @@ since it cannot import them:
   library function calls it. `nextId(map, prefix)` → the smallest unused
   `<prefix><n>` (`p1`, `p2`, as the RFC examples write them). Ids are
   never random: converting the same file twice gives the same Card, the
-  fixture snapshots are stable and the JSON export reads well.
+  fixture snapshots are stable and the JSON export reads well. It scans
+  from 1 on every call, which suits the editor and the merge (one entry
+  at a time); the converter numbers a whole card with its own allocator
+  (Package 3, step 3).
+- `isListed(list, value)`: type guard, true when `value` is one of an
+  `as const` list. The one way to read an enumerated property, see "A
+  value outside its list is normal" above.
+- **Id references** (milestone 4.5, with the merge that needs them). An
+  Id is referenced from two places: `Title.organizationId`, and the paths
+  of `localizations` patches (`phones/p1/label`). `renameId(card,
+  collection, from, to)` moves an entry and rewrites both;
+  `removeEntry(card, collection, id)` deletes an entry, the
+  `organizationId` naming it and the patches at or under its path. The
+  editor deletes through `removeEntry` only: a dangling reference is an
+  invalid Card at once, and since `nextId` gives a freed Id to the next
+  entry added, it would then bind to an unrelated one.
 - `jsonPointer.get/set/remove/parse/escape`, `applyPatchObject(card,
   patch)` implementing §1.4.3 all-or-nothing on a copy and returning
   issues rather than throwing, `localize(card, lang)`.
@@ -738,8 +795,16 @@ since it cannot import them:
 
 ### Tests
 
-- The RFC 9553 figures, cut from the RFC text into `fixtures/jscontact/`,
-  with the invalid cases of §1.7.
+- The RFC 9553 figures, cut from the RFC text into `fixtures/jscontact/`
+  (`rfc9553-figures.json`), with the registry tables of its section 3
+  (`rfc9553-registry.json`) and one Card per MUST
+  (`constraints-invalid.json`, `constraints-valid.json`), the rows of
+  `docs/jscontact-constraints.md`.
+- Type tests: the figures again as literals checked against `Card` and
+  compared with the file; the properties of each interface, their type
+  and which are required, against the registry; each enumerated property
+  against its list; what must not compile under `@ts-expect-error`. `pnpm typecheck` runs them, Vitest only the runtime
+  half.
 - `fast-check`: no input makes the validator, the pointer or the patch
   code throw, and none can reach a prototype.
 - Differential tests against `@sdxc/jscontact` (MIT, the only other
@@ -763,7 +828,11 @@ mergeCardSets(a: Card[], b: Card[], opts?): { cards: Card[]; conflicts: { card: 
 ```
 
 A sketch: the signatures are settled in milestone 4.5, against real
-converted cards.
+converted cards. `prefer: 'newer'` compares `updated`; when either Card
+has none (every Android export) or both are equal it behaves as `'a'`.
+The conflicts are returned either way, so the caller sees what was
+chosen; for two Android backups the date that means something is the
+file's, which only the app knows and passes as `'a'` or `'b'`.
 
 - **Matching cards**: by `uid`, then by fingerprint (`cardDisplayName`
   lowercased + sorted emails + sorted phone digits), which is the normal
@@ -778,6 +847,13 @@ converted cards.
   and sets are unioned (a colliding Id is re-keyed with `nextId`); a
   single-valued field present on one side is taken; one that differs is a
   conflict, resolved by `prefer` and always returned, never silent.
+- **Ids of B are renamed before anything is copied.** Ids being
+  deterministic, both backups have a `p1` and an `o1`, so a collision is
+  the normal case, and an entry of B paired by content with an entry of A
+  takes A's Id whatever its own was. The merge builds one map per
+  collection from B's Ids to the merged ones and applies it to B with
+  `renameId`, so that B's `organizationId` and B's localization patches
+  follow their entry instead of landing on A's.
 - A `Change` can be applied as well as shown, so a merge the user edits
   in the UI is a list of changes.
 
@@ -809,8 +885,16 @@ exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] 
 1. Guard: `card.version === '4.0'` else throw (callers must `upgradeTo40`).
 2. Start `{ "@type": "Card", "version": "2.0" }`. `UID` → `uid` verbatim;
    never generate one (RFC 9982 §5).
-3. **Ids**: `PROP-ID` param if valid and unused, else `nextId()` with one
-   prefix per collection, in property order.
+3. **Ids**: an allocator per collection, in two passes. First every
+   valid `PROP-ID` of the collection is reserved, the first property
+   carrying it keeping it; a generated Id can then never take the Id a
+   later property states, which a JSPROP or a localization may address.
+   Then the others are numbered in property order from a counter that
+   only moves forward, skipping reserved Ids: linear, where calling
+   `nextId` per property rescans from 1 and is quadratic on a card of a
+   million `TEL` lines. One prefix per collection. Whether a card also
+   gets a cap on its properties, reported as an issue, is decided with
+   the hostile-input tests of M4.
 4. **ALTID sets**: group by `name + ALTID`; pick the base (no LANGUAGE;
    else LANGUAGE == card `LANGUAGE`; else first). `PHONETIC` members merge
    into the base object's `phonetic*` fields. Other members become
@@ -1003,7 +1087,9 @@ apps/web/src/
   panel lists line-level warnings and vendor rewrites.
 - **Edit**: dirty tracking; Save sets `updated`; Esc cancels with a confirm
   dialog when dirty; `beforeunload` guard.
-- **Dropdowns**: every enum-typed field is a `<select>` or checkbox group
+- **Dropdowns**: a current value that is in no list (vendor, or unknown
+  to this version) is shown as one more option and kept on save. Every
+  enum-typed field is a `<select>` or checkbox group
   built from the `as const` arrays plus the vendor values; "custom (vendor)"
   accepts `domain:value` only.
 - **Copy** = vCard text (current profile) and JSON to clipboard.
@@ -1087,9 +1173,15 @@ test + build green, docs updated, then stop for review and commit.
    names for the RFC 9553 enum. Then `types.ts`, the enums, `vendor.ts`;
    the RFC 9553 figures and every MUST of the data model extracted from
    the RFC text into `fixtures/jscontact/` and a constraint checklist;
-   type tests.
+   type tests. Done 2026-11-18. Left to checkpoint 3 by the checklist:
+   the severity and code of each row, and the points listed under "Where
+   the RFC leaves room". Left to M4: where the label of an Android custom
+   nickname goes (the normaliser writes `X-KIND=custom:<label>`) and the
+   one of a custom relation (the relation table above says `{}` +
+   `label`): neither Nickname nor Relation has a `label` in RFC 9553, so
+   both need a vendor property or `vCardParams`.
 2. **Pointer, patch, utilities.** JSON Pointer, `applyPatchObject`,
-   `localize`, `equal`, `nextId`/`newUid`, `cardDisplayName`,
+   `localize`, `equal`, `nextId`/`newUid`, `isListed`, `cardDisplayName`,
    `normalizeCard`; differential tests of patch and localize against
    `@sdxc/jscontact`.
 3. **Validator and API freeze.** `validateCard` with its code list and
@@ -1107,8 +1199,8 @@ test + build green, docs updated, then stop for review and commit.
 
 ### M4.5. `@vcards-io/jscontact`: match, diff, merge (medium)
 
-- `matchCardSets`, `diffCards`/`diffCardSets`, `mergeCards`/
-  `mergeCardSets`, tuned on the `*.jscontact.json` fixtures M4 produced
+- `renameId`/`removeEntry`, `matchCardSets`, `diffCards`/`diffCardSets`,
+  `mergeCards`/`mergeCardSets`, tuned on the `*.jscontact.json` fixtures M4 produced
   (two exports of the same phone are the reference case).
 - Placed here, not in M8, because M5's round-trip tests read far better
   as a structured diff than as a deep-equal failure, and M6's import

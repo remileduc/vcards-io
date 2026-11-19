@@ -50,7 +50,13 @@
             "paths": {
               "lit/directives/unsafe-html.js": "unsafeHTML is banned: card data is hostile.",
               "lit/directives/unsafe-svg.js": "unsafeSVG is banned: card data is hostile."
-            }
+            },
+            "patterns": [
+              {
+                "group": ["**/vcard/src/**", "**/jscontact/src/**", "**/convert/src/**"],
+                "message": "Import a sibling package by its name, never by its files."
+              }
+            ]
           }
         }
       },
