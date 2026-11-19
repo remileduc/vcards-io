@@ -11,13 +11,14 @@ as objects, binary data as base64), written by `toMatchFileSnapshot` in
 change run `pnpm test -- --project vcard -u` and review the diff before
 committing it. `.jscontact.json` arrives with the converter (M4).
 
-| Folder     | Content                                                     |
-|------------|-------------------------------------------------------------|
-| `rfc/`     | Examples embedded in the vCard specifications, see below    |
-| `android/` | AOSP-style 2.1 exports (stock / Google / Samsung Contacts)  |
-| `apple/`   | iOS / macOS Contacts 3.0 exports                            |
-| `google/`  | contacts.google.com "vCard for iOS" 3.0 exports             |
-| `other/`   | Outlook, Thunderbird, Nextcloud, DAVx5, Fossify, ...        |
+| Folder       | Content                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `rfc/`       | Examples embedded in the vCard specifications, see below   |
+| `android/`   | AOSP-style 2.1 exports (stock / Google / Samsung Contacts) |
+| `apple/`     | iOS / macOS Contacts 3.0 exports                           |
+| `google/`    | contacts.google.com "vCard for iOS" 3.0 exports            |
+| `other/`     | Outlook, Thunderbird, Nextcloud, DAVx5, Fossify, ...       |
+| `jscontact/` | JSContact Cards as JSON, see the last section              |
 
 Files prefixed `cozy-` come from the cozy/cozy-vcard test suite
 (Copyright 2012 Cozy Cloud, MIT/X11 licence, see `COZY-LICENSE`).
@@ -70,3 +71,52 @@ importer reads. The inline GIF and WAVE values are the first three base64
 lines the spec prints, so they decode to truncated files with intact magic
 bytes. The `PHOTO;GIF;MIME:<<…>` content-id reference in the transport
 example parses with a `binary-without-encoding` warning on purpose.
+
+JSContact
+---------
+
+`jscontact/` is not vCard: its files are JSON, each an object keyed by a
+name, used by the tests of `@vcards-io/jscontact` and later by the
+converter.
+
+| File                       | Content                                         |
+| -------------------------- | ----------------------------------------------- |
+| `rfc9553-figures.json`     | RFC 9553 figures, each as a complete Card       |
+| `rfc9553-registry.json`    | RFC 9553 section 3: types, properties, enums    |
+| `constraints-invalid.json` | one Card per rule of the RFC, breaking it       |
+| `constraints-valid.json`   | Cards a validator must accept                   |
+
+`rfc9553-figures.json` holds the JSON of every figure of RFC 9553, cut
+from the RFC text and re-indented. Most figures print the members of a
+Card without the Card: those are wrapped in `"@type": "Card"` and
+`"version": "2.0"`, which a figure's own members override (figure 6 keeps
+its "1.0" and its uid). Figure 18 prints a member of a Name and is wrapped
+in `name` as well. Left out: figures 2 and 5 (ABNF), and figure 7, a lone
+`"version": "1.0"`, which as a Card would lack the uid that version
+requires. Two misprints are corrected: the `data:` URI of figure 35, which
+the RFC breaks over eleven lines "only for demonstration purposes", is
+joined, and figure 36 gets the closing brace of `directories` back. The
+rest is as printed, the leading space of `" Watthana"` (figure 32), the
+language tag `jp` (figure 33) and the truncated photo of figure 38
+included.
+
+`rfc9553-registry.json` is section 3 of RFC 9553 turned inside out: for
+each object type its properties with their type signature (Table 2, plus
+`vCardName`, `vCardParams` and `vCardProps` from RFC 9555 section 5.3),
+the type names (Tables 4 and 5, plus `JCardProp`), the enum values (Tables
+6 to 22) and the versions (with "2.0" from RFC 9982). `reservedProperties`
+maps each reserved name to the types it is reserved in, `*` for `extra`,
+which is reserved everywhere; `id`, `addressBookIds` (Card) and `blobId`
+(Media) come from RFC 9610, JMAP for Contacts. The file was compared with
+the live registry at iana.org on 2026-11-19 (last updated 2026-09-22):
+nothing else has been registered since the RFCs. Table 2 contradicts
+sections 1 and 2 in four places, and the sections are the definition:
+`cryptoKeys` of Card and `pronouns` of Pronouns are missing and were
+added; `preferredLanguages` reads `String[LanguagePref]` and
+`organizationId` reads `String` where the sections say `Id[LanguagePref]`
+and `Id`. The live registry carries the same four slips.
+
+The two `constraints-*.json` files are written by hand. Each entry has the
+`section` and the `rule` it illustrates and a `card`; the same names are
+the rows of `docs/jscontact-constraints.md`, and a test keeps both in
+step. Add a case to the file and its row to the document together.

@@ -19,7 +19,7 @@ import {
 	rewrite,
 	type UpgradeContext,
 } from "./context.js";
-import { relationTypeForAndroid, relationTypeForLabel } from "./relations.js";
+import { relationMappingForAndroid, relationMappingForLabel } from "./relations.js";
 
 const ANDROID_MIME = "vnd.android.cursor.item/";
 const APPLE_BUILTIN = /^_\$!<(.*)>!\$_$/;
@@ -222,7 +222,7 @@ function androidRelation(
 	const name = component(p, 1);
 	if (name.trim() === "") return undefined;
 	const type = androidType(p, 0);
-	const relation = type === undefined ? undefined : relationTypeForAndroid(type);
+	const relation = type === undefined ? undefined : relationMappingForAndroid(type);
 	if (relation === undefined) {
 		ctx.warn(
 			"android-custom-unknown-type",
@@ -376,7 +376,7 @@ const appleRelatedNames: Rule = (card, ctx) => {
 		const label = labelOf(index, p.group);
 		const text = label === undefined ? undefined : textOf(label);
 		const builtin = builtinLabel(label);
-		const relation = text === undefined ? undefined : relationTypeForLabel(builtin ?? text);
+		const relation = text === undefined ? undefined : relationMappingForLabel(builtin ?? text);
 		p.name = "RELATED";
 		p.value = { kind: "text", value: name };
 		let type: string | undefined;

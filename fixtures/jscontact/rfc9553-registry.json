@@ -1,0 +1,592 @@
+{
+  "versions": [
+    "1.0",
+    "2.0"
+  ],
+  "types": [
+    "Address",
+    "AddressComponent",
+    "Anniversary",
+    "Author",
+    "Boolean",
+    "Calendar",
+    "Card",
+    "CryptoKey",
+    "Directory",
+    "EmailAddress",
+    "Id",
+    "Int",
+    "JCardProp",
+    "LanguagePref",
+    "Link",
+    "Media",
+    "Name",
+    "NameComponent",
+    "Nickname",
+    "Note",
+    "Number",
+    "OnlineService",
+    "OrgUnit",
+    "Organization",
+    "PartialDate",
+    "PatchObject",
+    "PersonalInfo",
+    "Phone",
+    "Pronouns",
+    "Relation",
+    "SchedulingAddress",
+    "SpeakToAs",
+    "String",
+    "Timestamp",
+    "Title",
+    "UTCDateTime",
+    "UnsignedInt"
+  ],
+  "reservedTypes": [
+    "Resource"
+  ],
+  "reservedProperties": {
+    "addressBookIds": [
+      "Card"
+    ],
+    "blobId": [
+      "Media"
+    ],
+    "extra": [
+      "*"
+    ],
+    "id": [
+      "Card"
+    ]
+  },
+  "properties": {
+    "Address": {
+      "@type": "String",
+      "components": "AddressComponent[]",
+      "contexts": "String[Boolean]",
+      "coordinates": "String",
+      "countryCode": "String",
+      "defaultSeparator": "String",
+      "full": "String",
+      "isOrdered": "Boolean",
+      "phoneticScript": "String",
+      "phoneticSystem": "String",
+      "pref": "UnsignedInt",
+      "timeZone": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "AddressComponent": {
+      "@type": "String",
+      "kind": "String",
+      "phonetic": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]",
+      "value": "String"
+    },
+    "Anniversary": {
+      "@type": "String",
+      "date": "PartialDate|Timestamp",
+      "kind": "String",
+      "place": "Address",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Author": {
+      "@type": "String",
+      "name": "String",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Calendar": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "kind": "String",
+      "label": "String",
+      "mediaType": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Card": {
+      "@type": "String",
+      "addresses": "Id[Address]",
+      "anniversaries": "Id[Anniversary]",
+      "calendars": "Id[Calendar]",
+      "created": "UTCDateTime",
+      "cryptoKeys": "Id[CryptoKey]",
+      "directories": "Id[Directory]",
+      "emails": "Id[EmailAddress]",
+      "keywords": "String[Boolean]",
+      "kind": "String",
+      "language": "String",
+      "links": "Id[Link]",
+      "localizations": "String[PatchObject]",
+      "media": "Id[Media]",
+      "members": "String[Boolean]",
+      "name": "Name",
+      "nicknames": "Id[Nickname]",
+      "notes": "Id[Note]",
+      "onlineServices": "Id[OnlineService]",
+      "organizations": "Id[Organization]",
+      "personalInfo": "Id[PersonalInfo]",
+      "phones": "Id[Phone]",
+      "preferredLanguages": "Id[LanguagePref]",
+      "prodId": "String",
+      "relatedTo": "String[Relation]",
+      "schedulingAddresses": "Id[SchedulingAddress]",
+      "speakToAs": "SpeakToAs",
+      "titles": "Id[Title]",
+      "uid": "String",
+      "updated": "UTCDateTime",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]",
+      "vCardProps": "JCardProp[]",
+      "version": "String"
+    },
+    "CryptoKey": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "kind": "String",
+      "label": "String",
+      "mediaType": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Directory": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "kind": "String",
+      "label": "String",
+      "listAs": "UnsignedInt",
+      "mediaType": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "EmailAddress": {
+      "@type": "String",
+      "address": "String",
+      "contexts": "String[Boolean]",
+      "label": "String",
+      "pref": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "LanguagePref": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "language": "String",
+      "pref": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Link": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "kind": "String",
+      "label": "String",
+      "mediaType": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Media": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "kind": "String",
+      "label": "String",
+      "mediaType": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Name": {
+      "@type": "String",
+      "components": "NameComponent[]",
+      "defaultSeparator": "String",
+      "full": "String",
+      "isOrdered": "Boolean",
+      "phoneticScript": "String",
+      "phoneticSystem": "String",
+      "sortAs": "String[String]",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "NameComponent": {
+      "@type": "String",
+      "kind": "String",
+      "phonetic": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]",
+      "value": "String"
+    },
+    "Nickname": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "name": "String",
+      "pref": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Note": {
+      "@type": "String",
+      "author": "Author",
+      "created": "UTCDateTime",
+      "note": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "OnlineService": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "label": "String",
+      "pref": "UnsignedInt",
+      "service": "String",
+      "uri": "String",
+      "user": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "OrgUnit": {
+      "@type": "String",
+      "name": "String",
+      "sortAs": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Organization": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "name": "String",
+      "sortAs": "String",
+      "units": "OrgUnit[]",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "PartialDate": {
+      "@type": "String",
+      "calendarScale": "String",
+      "day": "UnsignedInt",
+      "month": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]",
+      "year": "UnsignedInt"
+    },
+    "PersonalInfo": {
+      "@type": "String",
+      "kind": "String",
+      "label": "String",
+      "level": "String",
+      "listAs": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]",
+      "value": "String"
+    },
+    "Phone": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "features": "String[Boolean]",
+      "label": "String",
+      "number": "String",
+      "pref": "UnsignedInt",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Pronouns": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "pref": "UnsignedInt",
+      "pronouns": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Relation": {
+      "@type": "String",
+      "relation": "String[Boolean]",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "SchedulingAddress": {
+      "@type": "String",
+      "contexts": "String[Boolean]",
+      "label": "String",
+      "pref": "UnsignedInt",
+      "uri": "String",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "SpeakToAs": {
+      "@type": "String",
+      "grammaticalGender": "String",
+      "pronouns": "Id[Pronouns]",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Timestamp": {
+      "@type": "String",
+      "utc": "UTCDateTime",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    },
+    "Title": {
+      "@type": "String",
+      "kind": "String",
+      "name": "String",
+      "organizationId": "Id",
+      "vCardName": "String",
+      "vCardParams": "String[String|String[]]"
+    }
+  },
+  "enumValues": [
+    {
+      "property": "contexts",
+      "contexts": [
+        "Address"
+      ],
+      "values": [
+        "billing",
+        "delivery",
+        "private",
+        "work"
+      ]
+    },
+    {
+      "property": "contexts",
+      "contexts": [
+        "Calendar",
+        "CryptoKey",
+        "Directory",
+        "EmailAddress",
+        "LanguagePref",
+        "Link",
+        "Media",
+        "Nickname",
+        "OnlineService",
+        "Organization",
+        "Phone",
+        "Pronouns",
+        "SchedulingAddress"
+      ],
+      "values": [
+        "private",
+        "work"
+      ]
+    },
+    {
+      "property": "features",
+      "contexts": [
+        "Phone"
+      ],
+      "values": [
+        "fax",
+        "main-number",
+        "mobile",
+        "pager",
+        "text",
+        "textphone",
+        "video",
+        "voice"
+      ]
+    },
+    {
+      "property": "grammaticalGender",
+      "contexts": [
+        "SpeakToAs"
+      ],
+      "values": [
+        "animate",
+        "common",
+        "feminine",
+        "inanimate",
+        "masculine",
+        "neuter"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "AddressComponent"
+      ],
+      "values": [
+        "apartment",
+        "block",
+        "building",
+        "country",
+        "direction",
+        "district",
+        "floor",
+        "landmark",
+        "locality",
+        "name",
+        "number",
+        "postcode",
+        "postOfficeBox",
+        "region",
+        "room",
+        "separator",
+        "subdistrict"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Anniversary"
+      ],
+      "values": [
+        "birth",
+        "death",
+        "wedding"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Calendar"
+      ],
+      "values": [
+        "calendar",
+        "freeBusy"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Card"
+      ],
+      "values": [
+        "application",
+        "device",
+        "group",
+        "individual",
+        "location",
+        "org"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Directory"
+      ],
+      "values": [
+        "directory",
+        "entry"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Link"
+      ],
+      "values": [
+        "contact"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Media"
+      ],
+      "values": [
+        "logo",
+        "photo",
+        "sound"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "NameComponent"
+      ],
+      "values": [
+        "credential",
+        "generation",
+        "given",
+        "given2",
+        "separator",
+        "surname",
+        "surname2",
+        "title"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "PersonalInfo"
+      ],
+      "values": [
+        "expertise",
+        "hobby",
+        "interest"
+      ]
+    },
+    {
+      "property": "kind",
+      "contexts": [
+        "Title"
+      ],
+      "values": [
+        "role",
+        "title"
+      ]
+    },
+    {
+      "property": "level",
+      "contexts": [
+        "PersonalInfo"
+      ],
+      "values": [
+        "high",
+        "low",
+        "medium"
+      ]
+    },
+    {
+      "property": "phoneticSystem",
+      "contexts": [
+        "Address",
+        "Name"
+      ],
+      "values": [
+        "ipa",
+        "jyut",
+        "piny"
+      ]
+    },
+    {
+      "property": "relation",
+      "contexts": [
+        "Relation"
+      ],
+      "values": [
+        "acquaintance",
+        "agent",
+        "child",
+        "colleague",
+        "contact",
+        "co-resident",
+        "co-worker",
+        "crush",
+        "date",
+        "emergency",
+        "friend",
+        "kin",
+        "me",
+        "met",
+        "muse",
+        "neighbor",
+        "parent",
+        "sibling",
+        "spouse",
+        "sweetheart"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,750 @@
+{
+  "figure-01": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "components": [
+        {
+          "kind": "given",
+          "value": "John",
+          "phonetic": "/ˈdʒɑːn/"
+        },
+        {
+          "kind": "surname",
+          "value": "Smith",
+          "phonetic": "/smɪθ/"
+        }
+      ],
+      "phoneticSystem": "ipa"
+    }
+  },
+  "figure-03": {
+    "@type": "Card",
+    "version": "2.0",
+    "example.com:foo": "bar",
+    "example.com:foo2": {
+      "bar": "baz"
+    }
+  },
+  "figure-04": {
+    "@type": "Card",
+    "version": "2.0",
+    "kind": "example.com:baz"
+  },
+  "figure-06": {
+    "@type": "Card",
+    "version": "1.0",
+    "uid": "22B2C7DF-9120-4969-8460-05956FE6B065",
+    "kind": "individual",
+    "name": {
+      "components": [
+        {
+          "kind": "given",
+          "value": "John"
+        },
+        {
+          "kind": "surname",
+          "value": "Doe"
+        }
+      ],
+      "isOrdered": true
+    }
+  },
+  "figure-08": {
+    "@type": "Card",
+    "version": "2.0",
+    "created": "2022-09-30T14:35:10Z"
+  },
+  "figure-09": {
+    "@type": "Card",
+    "version": "2.0",
+    "kind": "individual"
+  },
+  "figure-10": {
+    "@type": "Card",
+    "version": "2.0",
+    "language": "de-AT"
+  },
+  "figure-11": {
+    "@type": "Card",
+    "version": "2.0",
+    "kind": "group",
+    "name": {
+      "full": "The Doe family"
+    },
+    "uid": "urn:uuid:ab4310aa-fa43-11e9-8f0b-362b9e155667",
+    "members": {
+      "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af": true,
+      "urn:uuid:b8767877-b4a1-4c70-9acc-505d3819e519": true
+    }
+  },
+  "figure-12": {
+    "@type": "Card",
+    "version": "2.0",
+    "prodId": "ACME Contacts App version 1.23.5"
+  },
+  "figure-13": {
+    "@type": "Card",
+    "version": "2.0",
+    "relatedTo": {
+      "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6": {
+        "relation": {
+          "friend": true
+        }
+      },
+      "8cacdfb7d1ffdb59@example.com": {
+        "relation": {}
+      }
+    }
+  },
+  "figure-14": {
+    "@type": "Card",
+    "version": "2.0",
+    "uid": "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+  },
+  "figure-15": {
+    "@type": "Card",
+    "version": "2.0",
+    "updated": "2021-10-31T22:27:10Z"
+  },
+  "figure-16": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "components": [
+        {
+          "kind": "given",
+          "value": "Vincent"
+        },
+        {
+          "kind": "surname",
+          "value": "van Gogh"
+        }
+      ],
+      "isOrdered": true
+    }
+  },
+  "figure-17": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "components": [
+        {
+          "kind": "given",
+          "value": "Diego"
+        },
+        {
+          "kind": "surname",
+          "value": "Rivera"
+        },
+        {
+          "kind": "surname2",
+          "value": "Barrientos"
+        }
+      ],
+      "isOrdered": true
+    }
+  },
+  "figure-18": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "full": "Mr. John Q. Public, Esq."
+    }
+  },
+  "figure-19": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "components": [
+        {
+          "kind": "given",
+          "value": "Robert"
+        },
+        {
+          "kind": "given2",
+          "value": "Pau"
+        },
+        {
+          "kind": "surname",
+          "value": "Shou Chang"
+        }
+      ],
+      "sortAs": {
+        "surname": "Pau Shou Chang",
+        "given": "Robert"
+      },
+      "isOrdered": true
+    }
+  },
+  "figure-20": {
+    "@type": "Card",
+    "version": "2.0",
+    "language": "zh-Hant",
+    "name": {
+      "components": [
+        {
+          "kind": "surname",
+          "value": "孫"
+        },
+        {
+          "kind": "given",
+          "value": "中山"
+        },
+        {
+          "kind": "given2",
+          "value": "文"
+        },
+        {
+          "kind": "given2",
+          "value": "逸仙"
+        }
+      ]
+    },
+    "localizations": {
+      "yue": {
+        "name/phoneticSystem": "jyut",
+        "name/phoneticScript": "Latn",
+        "name/components/0/phonetic": "syun1",
+        "name/components/1/phonetic": "zung1saan1",
+        "name/components/2/phonetic": "man4",
+        "name/components/3/phonetic": "jat6sin1"
+      }
+    }
+  },
+  "figure-21": {
+    "@type": "Card",
+    "version": "2.0",
+    "nicknames": {
+      "k391": {
+        "name": "Johnny"
+      }
+    }
+  },
+  "figure-22": {
+    "@type": "Card",
+    "version": "2.0",
+    "organizations": {
+      "o1": {
+        "name": "ABC, Inc.",
+        "units": [
+          {
+            "name": "North American Division"
+          },
+          {
+            "name": "Marketing"
+          }
+        ],
+        "sortAs": "ABC"
+      }
+    }
+  },
+  "figure-23": {
+    "@type": "Card",
+    "version": "2.0",
+    "speakToAs": {
+      "grammaticalGender": "neuter",
+      "pronouns": {
+        "k19": {
+          "pronouns": "they/them",
+          "pref": 2
+        },
+        "k32": {
+          "pronouns": "xe/xir",
+          "pref": 1
+        }
+      }
+    }
+  },
+  "figure-24": {
+    "@type": "Card",
+    "version": "2.0",
+    "titles": {
+      "le9": {
+        "kind": "title",
+        "name": "Research Scientist"
+      },
+      "k2": {
+        "kind": "role",
+        "name": "Project Leader",
+        "organizationId": "o2"
+      }
+    },
+    "organizations": {
+      "o2": {
+        "name": "ABC, Inc."
+      }
+    }
+  },
+  "figure-25": {
+    "@type": "Card",
+    "version": "2.0",
+    "emails": {
+      "e1": {
+        "contexts": {
+          "work": true
+        },
+        "address": "jqpublic@xyz.example.com"
+      },
+      "e2": {
+        "address": "jane_doe@example.com",
+        "pref": 1
+      }
+    }
+  },
+  "figure-26": {
+    "@type": "Card",
+    "version": "2.0",
+    "onlineServices": {
+      "x1": {
+        "uri": "xmpp:alice@example.com"
+      },
+      "x2": {
+        "service": "Mastodon",
+        "user": "@alice@example2.com",
+        "uri": "https://example2.com/@alice"
+      }
+    }
+  },
+  "figure-27": {
+    "@type": "Card",
+    "version": "2.0",
+    "phones": {
+      "tel0": {
+        "contexts": {
+          "private": true
+        },
+        "features": {
+          "voice": true
+        },
+        "number": "tel:+1-555-555-5555;ext=5555",
+        "pref": 1
+      },
+      "tel3": {
+        "contexts": {
+          "work": true
+        },
+        "number": "tel:+1-201-555-0123"
+      }
+    }
+  },
+  "figure-28": {
+    "@type": "Card",
+    "version": "2.0",
+    "preferredLanguages": {
+      "l1": {
+        "language": "en",
+        "contexts": {
+          "work": true
+        },
+        "pref": 1
+      },
+      "l2": {
+        "language": "fr",
+        "contexts": {
+          "work": true
+        },
+        "pref": 2
+      },
+      "l3": {
+        "language": "fr",
+        "contexts": {
+          "private": true
+        }
+      }
+    }
+  },
+  "figure-29": {
+    "@type": "Card",
+    "version": "2.0",
+    "calendars": {
+      "calA": {
+        "kind": "calendar",
+        "uri": "webcal://calendar.example.com/calA.ics"
+      },
+      "project-a": {
+        "kind": "freeBusy",
+        "uri": "https://calendar.example.com/busy/project-a"
+      }
+    }
+  },
+  "figure-30": {
+    "@type": "Card",
+    "version": "2.0",
+    "schedulingAddresses": {
+      "sched1": {
+        "uri": "mailto:janedoe@example.com"
+      }
+    }
+  },
+  "figure-31": {
+    "@type": "Card",
+    "version": "2.0",
+    "addresses": {
+      "k23": {
+        "contexts": {
+          "work": true
+        },
+        "components": [
+          {
+            "kind": "number",
+            "value": "54321"
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "name",
+            "value": "Oak St"
+          },
+          {
+            "kind": "locality",
+            "value": "Reston"
+          },
+          {
+            "kind": "region",
+            "value": "VA"
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "postcode",
+            "value": "20190"
+          },
+          {
+            "kind": "country",
+            "value": "USA"
+          }
+        ],
+        "countryCode": "US",
+        "defaultSeparator": ", ",
+        "isOrdered": true
+      }
+    }
+  },
+  "figure-32": {
+    "@type": "Card",
+    "version": "2.0",
+    "addresses": {
+      "k25": {
+        "components": [
+          {
+            "kind": "number",
+            "value": "46"
+          },
+          {
+            "kind": "name",
+            "value": "1 Sukhumvit 51 Alley"
+          },
+          {
+            "kind": "subdistrict",
+            "value": "Khlong Tan Nuea"
+          },
+          {
+            "kind": "district",
+            "value": " Watthana"
+          },
+          {
+            "kind": "locality",
+            "value": "Bangkok"
+          },
+          {
+            "kind": "country",
+            "value": "Thailand"
+          },
+          {
+            "kind": "postcode",
+            "value": "10110"
+          }
+        ],
+        "defaultSeparator": ", ",
+        "isOrdered": true
+      }
+    }
+  },
+  "figure-33": {
+    "@type": "Card",
+    "version": "2.0",
+    "addresses": {
+      "k26": {
+        "components": [
+          {
+            "kind": "block",
+            "value": "2-7"
+          },
+          {
+            "kind": "separator",
+            "value": "-"
+          },
+          {
+            "kind": "number",
+            "value": "2"
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "district",
+            "value": "Marunouchi"
+          },
+          {
+            "kind": "locality",
+            "value": "Chiyoda-ku"
+          },
+          {
+            "kind": "region",
+            "value": "Tokyo"
+          },
+          {
+            "kind": "separator",
+            "value": " "
+          },
+          {
+            "kind": "postcode",
+            "value": "100-8994"
+          }
+        ],
+        "defaultSeparator": ", ",
+        "full": "2-7-2 Marunouchi, Chiyoda-ku, Tokyo 100-8994",
+        "isOrdered": true
+      }
+    },
+    "localizations": {
+      "jp": {
+        "addresses/k26": {
+          "components": [
+            {
+              "kind": "region",
+              "value": "東京都"
+            },
+            {
+              "kind": "locality",
+              "value": "千代田区"
+            },
+            {
+              "kind": "district",
+              "value": "丸ノ内"
+            },
+            {
+              "kind": "block",
+              "value": "2-7"
+            },
+            {
+              "kind": "separator",
+              "value": "-"
+            },
+            {
+              "kind": "number",
+              "value": "2"
+            },
+            {
+              "kind": "postcode",
+              "value": "〒100-8994"
+            }
+          ],
+          "defaultSeparator": "",
+          "full": "〒100-8994東京都千代田区丸ノ内2-7-2",
+          "isOrdered": true
+        }
+      }
+    }
+  },
+  "figure-34": {
+    "@type": "Card",
+    "version": "2.0",
+    "cryptoKeys": {
+      "mykey1": {
+        "uri": "https://www.example.com/keys/jdoe.cer"
+      }
+    }
+  },
+  "figure-35": {
+    "@type": "Card",
+    "version": "2.0",
+    "cryptoKeys": {
+      "mykey2": {
+        "uri": "data:application/pgp-keys;base64,LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJDZ0tDQVFFQSt4R1ovd2N6OXVnRnBQMDdOc3BvNlUxN2wwWWhGaUZweHhVNHBUazNMaWZ6OVIzenNJc3UKRVJ3dGE3K2ZXSWZ4T28yMDhldHQvamhza2lWb2RTRXQzUUJHaDRYQmlweVdvcEt3WjkzSEhhRFZaQUFMaS8yQQoreFRCdFdkRW83WEdVdWpLRHZDMi9hWkt1a2ZqcE9pVUk4QWhMQWZqbWxjRC9VWjFRUGgwbUhzZ2xSTkNtcEN3Cm13U1hBOVZObWh6K1BpQitEbWw0V1duS1cvVkhvMnVqVFh4cTcrZWZNVTRIMmZueTNTZTNLWU9zRlBGR1oxVE4KUVNZbEZ1U2hXckhQdGlMbVVkUG9QNkNWMm1NTDF0aytsN0RJSXFYclFoTFVLREFDZU01cm9NeDBrTGhVV0I4UAorMHVqMUNObE5ONEpSWmxDN3hGZnFpTWJGUlU5WjRONll3SURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0K"
+      }
+    }
+  },
+  "figure-36": {
+    "@type": "Card",
+    "version": "2.0",
+    "directories": {
+      "dir1": {
+        "kind": "entry",
+        "uri": "https://dir.example.com/addrbook/jdoe/Jean%20Dupont.vcf"
+      },
+      "dir2": {
+        "kind": "directory",
+        "uri": "ldap://ldap.example/o=Example%20Tech,ou=Engineering",
+        "pref": 1
+      }
+    }
+  },
+  "figure-37": {
+    "@type": "Card",
+    "version": "2.0",
+    "links": {
+      "link3": {
+        "kind": "contact",
+        "uri": "mailto:contact@example.com",
+        "pref": 1
+      }
+    }
+  },
+  "figure-38": {
+    "@type": "Card",
+    "version": "2.0",
+    "media": {
+      "res45": {
+        "kind": "sound",
+        "uri": "CID:JOHNQ.part8.19960229T080000.xyzMail@example.com"
+      },
+      "res47": {
+        "kind": "logo",
+        "uri": "https://www.example.com/pub/logos/abccorp.jpg"
+      },
+      "res1": {
+        "kind": "photo",
+        "uri": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4..."
+      }
+    }
+  },
+  "figure-39": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "components": [
+        {
+          "kind": "title",
+          "value": "Mr."
+        },
+        {
+          "kind": "given",
+          "value": "Ivan"
+        },
+        {
+          "kind": "given2",
+          "value": "Petrovich"
+        },
+        {
+          "kind": "surname",
+          "value": "Vasiliev"
+        }
+      ]
+    },
+    "localizations": {
+      "uk-Cyrl": {
+        "name": {
+          "components": [
+            {
+              "kind": "title",
+              "value": "г-н"
+            },
+            {
+              "kind": "given",
+              "value": "Иван"
+            },
+            {
+              "kind": "given2",
+              "value": "Петрович"
+            },
+            {
+              "kind": "surname",
+              "value": "Васильев"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "figure-40": {
+    "@type": "Card",
+    "version": "2.0",
+    "name": {
+      "full": "Gabriel García Márquez"
+    },
+    "titles": {
+      "t1": {
+        "kind": "title",
+        "name": "novelist"
+      }
+    },
+    "localizations": {
+      "es": {
+        "titles/t1/name": "escritor"
+      }
+    }
+  },
+  "figure-41": {
+    "@type": "Card",
+    "version": "2.0",
+    "anniversaries": {
+      "k8": {
+        "kind": "birth",
+        "date": {
+          "year": 1953,
+          "month": 4,
+          "day": 15
+        }
+      },
+      "k9": {
+        "kind": "death",
+        "date": {
+          "@type": "Timestamp",
+          "utc": "2019-10-15T23:10:00Z"
+        },
+        "place": {
+          "full": "4445 Tree Street\nNew England, ND 58647\nUSA"
+        }
+      }
+    }
+  },
+  "figure-42": {
+    "@type": "Card",
+    "version": "2.0",
+    "keywords": {
+      "internet": true,
+      "IETF": true
+    }
+  },
+  "figure-43": {
+    "@type": "Card",
+    "version": "2.0",
+    "notes": {
+      "n1": {
+        "note": "Open office hours are 1600 to 1715 EST, Mon-Fri",
+        "created": "2022-11-23T15:01:32Z",
+        "author": {
+          "name": "John"
+        }
+      }
+    }
+  },
+  "figure-44": {
+    "@type": "Card",
+    "version": "2.0",
+    "personalInfo": {
+      "pi2": {
+        "kind": "expertise",
+        "value": "chemistry",
+        "level": "high"
+      },
+      "pi1": {
+        "kind": "hobby",
+        "value": "reading",
+        "level": "high"
+      },
+      "pi6": {
+        "kind": "interest",
+        "value": "r&b music",
+        "level": "medium"
+      }
+    }
+  }
+}

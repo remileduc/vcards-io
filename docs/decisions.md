@@ -517,3 +517,261 @@ third-party action or write token is involved, and the workflows stay
 read-only. The tests run a second time in the deploy rather than reusing
 the CI artifact, so a manual deploy publishes the badge too. The colour
 scale starts at yellow: under 80 % the gate fails and nothing deploys.
+
+2026-11-18 M3 in three checkpoints, tested against `@sdxc/jscontact`
+-------------------------------------------------------------------
+
+`@vcards-io/jscontact` is built like the vcard package: three checkpoints
+(types and vendor; pointer, patch and utilities; validator and API freeze),
+one session each, a cold review agent at the end, then a stop for review
+and commit. `@sdxc/jscontact` is the only JSContact implementation on npm
+and is not taken as a runtime dependency: it peer-depends on the `remix`
+framework for its validation, was first published on 2026-10-25 by one
+maintainer, and its README promises no compatibility between releases. It
+is MIT and a useful second opinion, so it is a dev dependency of the
+jscontact package alone (not of the root), pinned to an exact release,
+and used only by differential tests (`remix` is not listed: pnpm installs
+a missing peer by itself, `autoInstallPeers` being on by default): both
+implementations must agree on accept or reject and on the result of a
+patch, and each intended divergence is listed with its reason. The price,
+accepted: about 90 packages in the lockfile for one test oracle, some of
+them native build tools; none of it is shipped, and `src` never imports
+it. `jmapio/jscontact-tests`, which the plan hoped to use as a corpus, is
+a Python harness with no data and is dropped.
+
+2026-11-18 The validator stays hand-written
+-------------------------------------------
+
+RFC 9553 ships no JSON Schema and no CDDL; the one JSON Schema found for
+JSContact is GPL-3.0 and older than RFC 9982. Writing our own schema and
+running it through a validator was considered (`ajv` compiles with
+`new Function`, which the app's CSP forbids, so it would also need a
+build-time step; `@cfworker/json-schema` interprets), and so was a
+TypeScript schema library (`valibot`). None of them carries severities,
+our issue codes or the cross-field rules (a localization patch that must
+resolve inside its Card, `sortAs` keys against the name components, case
+variants of known names), which would stay hand-written beside the first
+runtime dependency of a library. The validator is therefore a table per
+object type read by a small checker of our own; a JSON Schema document can
+be generated from those tables later if one is worth publishing.
+
+2026-11-18 Platform globals shared at the root, relation table renamed
+----------------------------------------------------------------------
+
+Two changes to the vcard package, made with the first M3 checkpoint while
+nothing is published. `platform-globals.d.ts` was only in vcard's own
+`include`, so a sibling package importing vcard from source failed to
+typecheck (`TextDecoder`, `structuredClone` not found); it would have
+stopped `convert`. The published package was never affected: built and
+typechecked from a consumer with no DOM lib and `skipLibCheck` off, it
+passes. The file moves to the repository root, gains `crypto` for
+`newUid`, and every library tsconfig lists it; the app keeps the DOM lib
+instead. And vcard's `RELATION_TYPES` / `RelationType` become
+`RELATION_MAPPINGS` / `RelationMapping`: RFC 9553 has a relation enum,
+which jscontact exports under the RFC's name like every other enum, and
+`convert` imports both packages.
+
+2026-11-18 Ids are deterministic
+--------------------------------
+
+The plan had `newId()` return ten random characters. Android exports carry
+no `PROP-ID`, so every import of the same file would have produced
+different Ids: unstable fixture snapshots, a JSON export full of noise, and
+a diff that sees every phone as removed and added. `nextId(map, prefix)`
+returns the smallest unused `<prefix><n>` instead (`p1`, `p2`, the form the
+RFC 9553 examples use), and the converter numbers entries in property
+order. Ids are then stable for one file but still not comparable between
+two backups (removing the first phone shifts the rest), which is why the
+diff matches map entries by content before it looks at their Id.
+
+2026-11-18 The validator reports issues with severities
+-------------------------------------------------------
+
+The plan's `validateCard` answered valid or not with a list of errors. It
+now returns `{ card, issues }` in the shape the vcard stages use: an
+`as const` code list, a JSON Pointer `path`, a cap per code, and three
+severities. An `error` is what would make our own code misread the value;
+what RFC 9553 calls invalid but can be kept and written back untouched (an
+unknown property, an unknown enum value, a case variant, the reserved
+`extra`) is a `warning`, because the readers of this project are tolerant
+and a backup edited by hand must not be refused for a typo. The package
+declares its own `CardIssue` type: it does not depend on
+`@vcards-io/vcard`, and `convert` wraps one into the other. JSON is hostile
+input like a `.vcf`: depth and size caps are issues, pointer and patch code
+walks own properties only and never assigns `__proto__`.
+
+2026-11-18 Match, diff and merge move to a milestone 4.5
+--------------------------------------------------------
+
+The diff was the library half of M8, after the app. It moves to a new
+milestone between the two converter milestones and gains card matching and
+merge. After M4, because matching cards and entries has to be tuned on real
+converted cards, which do not exist before; before M5, because a
+structured diff makes the round-trip tests readable; before M6, because the
+import dialog needs matching for its duplicate policy, where "merge" joins
+"replace / keep both / skip". The merge is two-way, two backups having no
+common ancestor: map entries and sets are unioned, a single-valued field
+that differs is a conflict resolved by a `prefer` option and always
+reported, and a card with several candidates is never merged on its own.
+
+2026-11-18 Dev tooling is declared once, in the root
+----------------------------------------------------
+
+Each sub-package listed `typescript` and `vitest` beside the root, while
+`fast-check`, `@types/node`, Biome, `publint` and `attw` were only in the
+root and used from below anyway: pnpm puts the workspace root's
+`node_modules/.bin` on the `PATH` of every package script, and Node finds
+an import in a parent `node_modules`. The mix had no rule behind it, so
+there is one now: what several packages share is declared in the root
+`package.json` alone, and a package declares only what it alone uses
+(`vite` in the app, `@sdxc/jscontact` in jscontact). One
+version per tool with nothing to keep in sync, and published manifests
+that list no dev tooling. The price is that a package folder cannot be
+installed on its own (`--filter`, `--ignore-workspace`); it could not
+before either, since the Vitest config, the lint config and half the test
+imports live in the root, and a plain `pnpm install` run anywhere in the
+workspace installs everything.
+
+2026-11-18 Each library carries its own copy of the licence
+-----------------------------------------------------------
+
+npm always packs a `LICENSE` file, but only one found in the package
+folder: the three libraries had none, so their tarballs would have shipped
+the `"license": "MIT"` field without the text the MIT licence requires to
+accompany copies. `packages/*/LICENSE` are plain copies of the root file.
+The app is not published and has none.
+
+2026-11-18 JSContact types refuse what a literal can get wrong, no more
+-----------------------------------------------------------------------
+
+The interfaces follow RFC 9553 section by section, in a `types.ts` without
+runtime code; the enumerated values are `as const` lists in `enums.ts`, in
+the order of the RFC text, so that a dropdown built from one reads well.
+An enumerated property is typed `Kind | VendorExtension`, the second being
+the `domain:name` pattern, so a vendor value is accepted everywhere and a
+miscased or invented word does not compile. A set is typed as a map to
+`true`, not to `boolean`: the RFC demands `true` for members, relation
+types, phone features, keywords and address contexts, says nothing for the
+other contexts, and `false` would only be a second way to leave a key out.
+The "at least one of" and other cross-field rules are not encoded as
+unions: they would turn every edit of a draft in the UI into a type
+puzzle, and the validator checks them on real data anyway. Two places go
+beyond the RFC's letter. `Timestamp` requires its `@type`, which the RFC
+does too when the default type of the property is another one, and that
+makes `Anniversary.date` narrow. And `Nickname` declares
+`remileduc.github.io:kind` with its five values: the property is ours, so
+the converter and the UI read it typed, and the validator may check it.
+The vendor relation names are kept bare (`mother`) because `convert` joins
+them with `x-` on one side and the vendor prefix on the other.
+
+2026-11-18 JSContact fixtures are cut from the RFC text, one Card per rule
+--------------------------------------------------------------------------
+
+`fixtures/jscontact/` holds three kinds of files. The figures of RFC 9553
+were cut from the RFC text by a script and wrapped into complete Cards
+(`@type` and `version` "2.0" added where the figure is a fragment), with
+two misprints corrected and one figure left out, as `fixtures/README.md`
+lists. The registry tables of its section 3 were extracted the same way;
+they are a second transcription of the property names and enum values,
+independent of the prose the types were written from, and the tests
+compare the two. Four rows of Table 2 that contradict the sections were
+corrected in the file. Third, one small Card per requirement, invalid or
+to be accepted, written by hand: RFC 9553 prints no invalid example. The
+checklist the validator will be written from is a document,
+`docs/jscontact-constraints.md`, whose rows carry the names of these
+Cards; a test compares the two word for word, because a checklist that
+drifts from its fixtures is worse than none. The figures also exist as
+TypeScript literals in the jscontact tests: a JSON import widens every
+string, so only a literal lets the compiler check them against `Card`,
+and a test asserts both copies are equal. The oracle (`@sdxc/jscontact`)
+accepts every figure and every Card of the valid file, and accepts 64 of
+the 161 invalid ones (unknown enum values, `extra`, patches, URI and
+language syntax): the list of intended divergences checkpoint 3 has to
+write starts there.
+
+2026-11-18 convert typechecks from the repository root
+------------------------------------------------------
+
+The ADR on platform globals names one obstacle to a package importing a
+sibling from source; the first test of `convert` that imports both
+libraries found a second. `tsc` refuses a source file outside `rootDir`
+even with `noEmit`, and the sibling's `src/index.ts` is outside
+`packages/convert`. Its `tsconfig.json` (typecheck only) now has
+`rootDir: "../.."`; the build config keeps `src` and resolves siblings
+through their `dist` declarations, which `rootDir` does not concern. The
+vcard and jscontact configs keep `rootDir: "."` on purpose: neither may
+import a sibling, and this makes the compiler say so. With the wider
+`rootDir` the compiler no longer stops `convert` from importing a file
+inside a sibling, so a Biome `noRestrictedImports` pattern does: a sibling
+is imported by its package name only.
+
+2026-11-19 The registry fixture follows the live IANA registry
+--------------------------------------------------------------
+
+`fixtures/jscontact/rfc9553-registry.json` was cut from the text of RFC
+9553, which is frozen, while the registry it prints is not. Compared with
+the registry at iana.org (last updated 2026-09-22), the versions, the 38
+types, every property with its type and contexts, and the 17 enum tables
+are identical, and the four slips of Table 2 are in the live registry too.
+One thing the RFC text could not show: RFC 9610 (JMAP for Contacts)
+reserved `id` and `addressBookIds` in a Card and `blobId` in a Media.
+Section 1.7.3 makes an object with a reserved property invalid, so the
+fixture lists them, the checklist has a Card for each, and the validator
+will report them as it does `extra`: a warning, the property kept. That is
+the realistic case of a Card copied out of a JMAP server. The comparison
+was made by hand with a throwaway script; it is not a test, since the
+project's tests run offline.
+
+2026-11-20 Ids are allocated in two passes and their references follow them
+---------------------------------------------------------------------------
+
+A review of the plan found four holes around deterministic Ids, all of the
+same kind: an Id is also a name other things point at
+(`Title.organizationId`, the paths of localization patches, a JSPROP
+pointer). The converter reserved a `PROP-ID` only when it met it, so a
+generated `p1` could take the Id a later `TEL;PROP-ID=p1` states and send
+a patch to the wrong phone; it now reserves every valid `PROP-ID` of a
+collection first, then numbers the rest from a counter, which is also
+linear where a `nextId` call per property was quadratic on hostile input.
+The merge re-keyed a colliding Id of the second backup without touching
+what referenced it; it now renames B's Ids through `renameId` before
+copying, for collisions and for entries paired by content alike. Deleting
+an entry left its references dangling, and `nextId`, giving the smallest
+free number, handed the freed Id to the next entry added; the fix is
+`removeEntry`, which removes the references with the entry, not another
+numbering: "highest plus one" reuses the Id of the last entry just the
+same and only hides the dangling reference. Last, `prefer: 'newer'` had
+no answer when a Card has no `updated`, which is every Android export: it
+then behaves as `'a'`.
+
+
+2026-11-20 An enum value outside its list stays a warning
+---------------------------------------------------------
+
+The same review argued that an unknown enum value must be an `error`,
+since `validateCard` returns the input typed as `Card` and the unions do
+not list the value. Kept as a `warning`. RFC 9553 section 1.9 lets a
+minor version register new enum values without readers changing, so a
+Card written next year must load, and a backup edited by hand must not be
+refused for one word. The types already make the safe reading the only
+one that compiles: every enumerated property is `Kind | VendorExtension`,
+so no `switch` is exhaustive and no `Record<Kind, …>` lookup is total
+without a branch for what is not listed. The rule is that this branch
+tests membership (`isListed`) and not the presence of a colon; an unknown
+word then goes where a vendor value goes, kept, shown as written, and
+reported by a profile that cannot export it.
+
+
+2026-11-20 The oracle is outside Dependabot's group; the root needs Node 24.3
+-----------------------------------------------------------------------------
+
+Two costs of `@sdxc/jscontact` the first ADR missed. Dependabot grouped
+every npm update under one pattern, so the monthly pull request would
+have bumped the pinned oracle with the rest: either its changed verdicts
+fail the differential tests and hold every other update back, or it is
+merged unread and its new tree runs in the job that builds the Pages
+artifact. It is now ignored there and bumped by hand. And its `remix`
+peer requires Node 24.3, above the 24 the repository declared: the
+private root `package.json` now says `>=24.3`, the published libraries
+keep `>=24` since no dependency of theirs asks for more. Both entries go
+away with the oracle if it is dropped after milestone 3.

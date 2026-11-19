@@ -1,0 +1,522 @@
+{
+  "type-set-on-every-object": {
+    "section": "1.3.4",
+    "rule": "An object MAY have @type set where the property implies it",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "@type": "Name",
+        "components": [
+          {
+            "@type": "NameComponent",
+            "kind": "given",
+            "value": "John"
+          }
+        ]
+      },
+      "phones": {
+        "p1": {
+          "@type": "Phone",
+          "number": "tel:+1-555-555-5555"
+        }
+      },
+      "anniversaries": {
+        "a1": {
+          "@type": "Anniversary",
+          "kind": "birth",
+          "date": {
+            "@type": "PartialDate",
+            "year": 1953
+          }
+        }
+      }
+    }
+  },
+  "id-longest-and-full-alphabet": {
+    "section": "1.4.1",
+    "rule": "An Id has 1 to 255 octets of A-Za-z0-9, hyphen and underscore",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp": {
+          "number": "tel:+1-555-555-5555"
+        },
+        "A-Za-z0-9_": {
+          "number": "tel:+1-201-555-0123"
+        },
+        "-": {
+          "number": "tel:+1-201-555-0124"
+        }
+      }
+    }
+  },
+  "patch-forms": {
+    "section": "1.4.3",
+    "rule": "A patch may replace an array member, set a property or remove one",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "John"
+          },
+          {
+            "kind": "surname",
+            "value": "Doe"
+          }
+        ],
+        "isOrdered": true
+      },
+      "titles": {
+        "t1": {
+          "kind": "title",
+          "name": "novelist"
+        }
+      },
+      "localizations": {
+        "es": {
+          "name/components/0": {
+            "kind": "given",
+            "value": "Juan"
+          },
+          "titles/t1/name": "escritor",
+          "titles/t1/kind": null,
+          "nicknames": {
+            "n1": {
+              "name": "Juanito"
+            }
+          }
+        }
+      }
+    }
+  },
+  "patch-sibling-pointers": {
+    "section": "1.4.3",
+    "rule": "A pointer is the prefix of another by whole reference tokens only",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555"
+        },
+        "p10": {
+          "number": "tel:+1-201-555-0123"
+        }
+      },
+      "localizations": {
+        "fr": {
+          "phones/p1": {
+            "number": "tel:+33-1-55-55-55-55"
+          },
+          "phones/p10/label": "accueil"
+        }
+      }
+    }
+  },
+  "utc-date-time-fraction": {
+    "section": "1.4.5",
+    "rule": "Non-zero fractional seconds without trailing zeros are valid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "created": "2010-10-10T10:10:10.003Z",
+      "updated": "2010-10-10T10:10:10.5Z"
+    }
+  },
+  "pref-bounds": {
+    "section": "1.5.3",
+    "rule": "pref is in the range 1 to 100",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "emails": {
+        "e1": {
+          "address": "jqpublic@xyz.example.com",
+          "pref": 1
+        },
+        "e2": {
+          "address": "jane_doe@example.com",
+          "pref": 100
+        }
+      }
+    }
+  },
+  "unknown-property": {
+    "section": "1.7.4",
+    "rule": "An unknown property with a valid name MUST NOT be treated as invalid",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe",
+        "futureNameProperty": [
+          "kept"
+        ]
+      },
+      "futureProperty": {
+        "anything": 1
+      }
+    }
+  },
+  "project-vendor-extensions": {
+    "section": "1.8",
+    "rule": "The extensions of this project: Nickname kind and vendor relation types",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "nicknames": {
+        "n1": {
+          "name": "Smith",
+          "remileduc.github.io:kind": "maiden"
+        }
+      },
+      "relatedTo": {
+        "urn:uuid:03a0e51f-d1aa-4385-8a53-e29025acd8af": {
+          "relation": {
+            "remileduc.github.io:mother": true,
+            "parent": true
+          }
+        }
+      }
+    }
+  },
+  "vendor-property": {
+    "section": "1.8.1",
+    "rule": "A vendor property MAY be set in any object, with any JSON value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "example.com:foo": "bar",
+      "example.com:foo2": {
+        "bar": "baz",
+        "not a property name": [
+          1,
+          null,
+          {
+            "deep": true
+          }
+        ]
+      },
+      "xn--bcher-kva.example:größe": null,
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555",
+          "example.com:carrier name": "ACME"
+        }
+      }
+    }
+  },
+  "vendor-values": {
+    "section": "1.8.2",
+    "rule": "An enumerated property accepts a vendor-specific value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "example.com:baz",
+      "name": {
+        "components": [
+          {
+            "kind": "example.com:clan",
+            "value": "MacLeod"
+          }
+        ]
+      },
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555",
+          "features": {
+            "example.com:satellite": true
+          },
+          "contexts": {
+            "example.com:on-call": true
+          }
+        }
+      },
+      "relatedTo": {
+        "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6": {
+          "relation": {
+            "example.com:mentor": true
+          }
+        }
+      },
+      "anniversaries": {
+        "a1": {
+          "kind": "example.com:graduation",
+          "date": {
+            "year": 1975,
+            "calendarScale": "example.com:academic"
+          }
+        }
+      }
+    }
+  },
+  "version-1.0-with-uid": {
+    "section": "2.1.2",
+    "rule": "Any valid version \"1.0\" Card is also valid in \"2.0\" (RFC 9982)",
+    "card": {
+      "@type": "Card",
+      "version": "1.0",
+      "uid": "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "group-without-members": {
+    "section": "2.1.6",
+    "rule": "A group Card is not required to have members",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "kind": "group",
+      "name": {
+        "full": "IETF Participants"
+      }
+    }
+  },
+  "relation-undefined": {
+    "section": "2.1.8",
+    "rule": "The relationship is undefined if relation is empty or absent",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "relatedTo": {
+        "8cacdfb7d1ffdb59@example.com": {
+          "relation": {}
+        },
+        "another@example.com": {}
+      }
+    }
+  },
+  "uid-absent-in-2.0": {
+    "section": "2.1.9",
+    "rule": "A Card without uid MUST NOT be rejected, unless of version \"1.0\"",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "full": "John Doe"
+      }
+    }
+  },
+  "uid-free-text": {
+    "section": "2.1.9",
+    "rule": "uid MAY be a URI or a free-text value",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "uid": "8cacdfb7d1ffdb59@example.com"
+    }
+  },
+  "name-ordered-with-separators": {
+    "section": "2.2.1.2",
+    "rule": "A separator value is verbatim, even an empty string",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "name": {
+        "components": [
+          {
+            "kind": "given",
+            "value": "Jean"
+          },
+          {
+            "kind": "separator",
+            "value": "-"
+          },
+          {
+            "kind": "given",
+            "value": "Paul"
+          },
+          {
+            "kind": "surname",
+            "value": "Sartre"
+          },
+          {
+            "kind": "separator",
+            "value": ""
+          },
+          {
+            "kind": "credential",
+            "value": "PhD"
+          }
+        ],
+        "isOrdered": true,
+        "defaultSeparator": " ",
+        "sortAs": {
+          "surname": "Sartre",
+          "given": "Jean-Paul"
+        }
+      }
+    }
+  },
+  "online-service-user-only": {
+    "section": "2.3.2",
+    "rule": "At least uri or user MUST be set",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "onlineServices": {
+        "x1": {
+          "service": "Mastodon",
+          "user": "@alice@example2.com"
+        }
+      }
+    }
+  },
+  "phone-number-free-text": {
+    "section": "2.3.3",
+    "rule": "A phone number is either a URI or free text",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "+1 (555) 555-5555 ext. 5555"
+        },
+        "p2": {
+          "number": "sip:alice@example.com"
+        }
+      }
+    }
+  },
+  "address-one-member-each": {
+    "section": "2.5.1.1",
+    "rule": "One of components, coordinates, countryCode, full, timeZone is enough",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "addresses": {
+        "a1": {
+          "components": [
+            {
+              "kind": "locality",
+              "value": "Reston"
+            }
+          ]
+        },
+        "a2": {
+          "coordinates": "geo:46.772673,-71.282945"
+        },
+        "a3": {
+          "countryCode": "US"
+        },
+        "a4": {
+          "full": "54321 Oak St, Reston, VA 20190, USA"
+        },
+        "a5": {
+          "timeZone": "America/New_York"
+        }
+      }
+    }
+  },
+  "partial-date-forms": {
+    "section": "2.8.1",
+    "rule": "A PartialDate is a date, a year, a month in a year or a day in a month",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "anniversaries": {
+        "a1": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "month": 4,
+            "day": 15
+          }
+        },
+        "a2": {
+          "kind": "birth",
+          "date": {
+            "year": 1953
+          }
+        },
+        "a3": {
+          "kind": "birth",
+          "date": {
+            "year": 1953,
+            "month": 4
+          }
+        },
+        "a4": {
+          "kind": "birth",
+          "date": {
+            "month": 2,
+            "day": 29
+          }
+        },
+        "a5": {
+          "kind": "wedding",
+          "date": {
+            "year": 2024,
+            "month": 2,
+            "day": 29,
+            "calendarScale": "hebrew"
+          }
+        }
+      }
+    }
+  },
+  "vcard-extensions": {
+    "section": "RFC 9555 2.15",
+    "rule": "vCardProps, vCardParams and vCardName as RFC 9555 writes them",
+    "card": {
+      "@type": "Card",
+      "version": "2.0",
+      "phones": {
+        "p1": {
+          "number": "tel:+1-555-555-5555",
+          "vCardParams": {
+            "group": "item1",
+            "type": [
+              "msg",
+              "x-custom"
+            ]
+          }
+        }
+      },
+      "onlineServices": {
+        "os1": {
+          "uri": "xmpp:alice@example.com",
+          "vCardName": "impp"
+        }
+      },
+      "vCardProps": [
+        [
+          "x-foo",
+          {
+            "x-bar": "Hello",
+            "group": "item1"
+          },
+          "unknown",
+          "World!"
+        ],
+        [
+          "x-list",
+          {},
+          "text",
+          "a",
+          "b"
+        ],
+        [
+          "x-structured",
+          {},
+          "text",
+          [
+            "a",
+            [
+              "b",
+              "c"
+            ],
+            ""
+          ]
+        ]
+      ]
+    }
+  }
+}
