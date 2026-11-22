@@ -658,7 +658,7 @@ pattern index signature, `` [vendor: `${string}:${string}`]: unknown ``,
 not a plain string one: `example.com:x` is accepted and a misspelt
 standard name in an object literal does not compile. A registered
 property this version does not know has no colon and no type; it is kept
-at runtime and reported by the validator.
+at runtime, and the validator says nothing of it.
 
 What the types settle:
 
@@ -678,7 +678,9 @@ What the types settle:
   kind, so only a vendor one.
 - "At least one of" and the other cross-field rules stay optional
   properties with a one-line comment: unions for them make every edit in
-  the UI a type puzzle, and the validator checks them anyway.
+  the UI a type puzzle. The validator does not check them either, so code
+  reading a Card copes with a Name that has neither `full` nor
+  `components`.
 - `Nickname` declares the project's `remileduc.github.io:kind` with its
   values, so the converter and the UI read it typed.
 
@@ -707,53 +709,91 @@ matter.
 ### Validator (`validate.ts`)
 
 ```ts
-validateCard(value: unknown, opts?: ValidateOptions): { card: Card | null; issues: CardIssue[] }
+validateCard(value: unknown): { card: Card | null; issues: CardIssue[] }
 // CardIssue = { severity: 'error' | 'warning' | 'info'; code: CardIssueCode; message: string; path: string; card?: number }
 // path = JSON Pointer from the Card root, '' for the Card itself
 // card = the input typed as Card when no issue is an `error`, else null
 ```
 
-Hand-written (no JSON Schema library: there is no official schema). Covers
-`@type`, `version` ∈ {"1.0","2.0"}, `uid` required in "1.0" only (RFC 9982
-section 3), Id charset/length, enum values (standard or `domain:value`),
-the "at least one of" rules (Name, Organization, Address, Author,
-OnlineService, SpeakToAs), `isOrdered`/separator constraints, `pref`
-1..100, `sortAs` keys present, `members` requires `kind: group`,
-PartialDate dependencies, UTCDateTime format, `localizations` keys and
-patches, case-variant property names (§1.7.1), the reserved `extra`
-property (§1.7.3.1) and the three names RFC 9610 reserves (`id` and
-`addressBookIds` in a Card, `blobId` in a Media: what a JMAP server adds
-and an export should have removed).
+The runtime form of `types.ts`, and no more: a value it accepts can be
+read as the `Card` the types describe. It is not an RFC 9553 conformance
+checker (decision of 2026-11-22). JSContact is this project's internal
+model: a Card comes from our converter, from our editor or from a backup
+we wrote. Hence three callers, the converter on its own result, the
+editor on Save and `parseJSContact`, which all ask the same question:
+would our code misread this value? What the RFC calls invalid and our
+code reads without harm is accepted, kept and written back, so that a
+backup is never refused for a rule nothing here depends on, be it broken
+by a hand, by another tool or by an older version of this one.
+
+Hand-written: a walk over the property table of `schema.ts`, whose
+`value` entries are refined into the JSON type each one holds and
+whether the property is mandatory. Every issue is an `error`. It reports:
+
+- a value that is no JSON object where one is expected, the Card first;
+- `@type`: missing or not "Card" on the Card; elsewhere, when set, not
+  the type the property holds (a case variant and "Resource" included).
+  `Anniversary.date` is read as the type its `@type` names, a
+  PartialDate when it has none;
+- `version` missing, not a string or not in `CARD_VERSIONS`: another
+  version may be another model;
+- a known property of the wrong JSON type: string, boolean, UnsignedInt
+  (a non-negative safe integer), object, array, map. `null` is no value;
+- a set (`contexts`, `features`, `relation`, `members`, `keywords`)
+  holding anything but `true`: code listing its keys would read a
+  `false` entry as set;
+- a mandatory property that is missing: the ones `types.ts` declares
+  without `?`;
+- an Id outside its alphabet or its length, as a key of an Id map and in
+  `Title.organizationId`: Ids are written as they are into `PROP-ID`
+  and into patch paths;
+- the shape of `vCardProps` (an array of jCard properties: a name,
+  parameters, a type, at least one value), of `vCardParams` (strings or
+  lists of strings) and of `localizations` (language to object);
+- hostile input: depth and node-count caps and an own `__proto__` key,
+  reported and never thrown.
+
+It does not look at: unknown and miscased properties, enum values,
+reserved names (`extra`, the three of RFC 9610), vendor name syntax,
+formats (UTCDateTime, URI, addr-spec, language tag, time zone, country
+code), ranges (`pref`, `listAs`, month and day), calendar validity, or
+any rule between properties ("at least one of", separators, `sortAs`,
+`members` and `kind`, `uid` in "1.0"). `docs/jscontact-constraints.md`
+lists every rule of the RFC with what becomes of it; the formats and
+ranges are the converter's and the editor's to get right and an export
+profile's to report.
+
+Nor does it apply the patches of `localizations`: a broken translation
+does not make the Card unreadable. `applyPatchObject` and `localize`
+report a patch that cannot apply, and whoever reads the Card `localize`
+returns passes it through `validateCard` first, since a patch may set a
+value of the wrong type.
 
 It follows the conventions the vcard package settled, with its own types
 since it cannot import them:
 
-- **Severities.** An `error` is what would make our own code misread the
-  value: not an object, a property of the wrong JSON type, a bad Id, a
-  broken invariant the converters and the UI rely on. A `warning` is what
-  the RFC calls invalid but can be kept and written back untouched: an
-  unknown property, an unknown enum value without a vendor prefix, a case
-  variant, `extra`. The readers are tolerant, so a backup edited by hand
-  is not refused for a typo. The split per rule is written down with the
-  code list in checkpoint 3.
-- **A value outside its list is normal.** An unknown enum value stays a
-  `warning`, not an `error`: a later minor version of JSContact may
-  register new values (RFC 9553 section 1.9), and such a Card must still
-  load. So a Card typed `Card` can hold a word its union does not list,
-  exactly as it can hold a vendor value, and code reading an enumerated
-  property asks "is it in my list" (`isListed`, below), never "does it
-  have a colon". Whatever is not listed takes the same path as a vendor
-  value: kept, shown as it is, and reported as a loss by a profile that
-  cannot write it.
+- **A value outside its list is normal.** An enumerated property holds a
+  string and the validator asks no more: a later minor version of
+  JSContact may register new values (RFC 9553 section 1.9), and such a
+  Card must still load. So a Card typed `Card` can hold a word its union
+  does not list, exactly as it can hold a vendor value, and code reading
+  an enumerated property asks "is it in my list" (`isListed`, below),
+  never "does it have a colon". Whatever is not listed takes the same
+  path as a vendor value: kept, shown as it is, and reported as a loss by
+  a profile that cannot write it.
 - **Codes.** `CardIssueCode` is the union of exported `as const` lists;
   every check reports through a helper typed with its list, a test checks
   that every code is raised, and issues are capped at 1000 per code, then
-  one `issues-truncated`. `convert` wraps a `CardIssue` into its own
-  `Issue` when it validates a result.
-- **Hostile input.** Depth and node-count caps reported as `error`, never
-  thrown. Pointer and patch code walks own properties only and never
-  assigns a `__proto__` key; an own `__proto__` key in the input is an
-  `error`. Lookups keyed by input are `Map`s or `Set`s.
+  one `issues-truncated` warning. `convert` wraps a `CardIssue` into
+  its own `Issue` when it validates a result. `CardIssue`, the collector
+  with its cap, `COMMON_ISSUE_CODES` and `PATCH_ISSUE_CODES` exist since
+  checkpoint 2 (`issues.ts`, `issue-codes.ts`), the patch code being the
+  first to report; the validator adds its own list, about ten codes. The
+  cap is a constant: no caller needs another, so there is no options
+  argument.
+- **Hostile input.** Pointer and patch code walks own properties only and
+  never assigns a `__proto__` key. Lookups keyed by input are `Map`s or
+  `Set`s.
 
 ### Utilities
 
@@ -777,21 +817,106 @@ since it cannot import them:
   editor deletes through `removeEntry` only: a dangling reference is an
   invalid Card at once, and since `nextId` gives a freed Id to the next
   entry added, it would then bind to an unrelated one.
-- `jsonPointer.get/set/remove/parse/escape`, `applyPatchObject(card,
-  patch)` implementing §1.4.3 all-or-nothing on a copy and returning
-  issues rather than throwing, `localize(card, lang)`.
+- `jsonPointer.parse/escape/get/set/remove`: RFC 6901 over JSON values.
+  `parse` gives the tokens, or `undefined` for a string that is no
+  pointer; `get` gives `undefined` for what is not there; `set` and
+  `remove` change the value in place and answer `false` when they cannot.
+  A token names an own property or an existing array element (no `-`, no
+  leading zero, never `length`), so no pointer reaches a prototype. `set`
+  adds or replaces an object property and replaces an array element; it
+  creates no parent, adds no array element and refuses a `__proto__` key.
+  `remove` on an array closes the gap. Nothing throws on a JSON value; on
+  a frozen object `set` and `remove` throw as any assignment does.
+- `applyPatchObject(target, patch)` → `{ patched: T | null; issues }`:
+  section 1.4.3 on a copy, `target` left untouched and `patched` sharing
+  nothing with it or with the patch. Every patch is checked before any is
+  applied and every invalid one is reported; one is enough for `patched`
+  to be `null`. The codes are `PATCH_ISSUE_CODES`, all errors (past the
+  cap of a code, one `issues-truncated` warning joins them):
+  `patch-target-not-an-object`, `patch-not-an-object`,
+  `patch-pointer-invalid`, `patch-parent-missing`, `patch-array-append`,
+  `patch-array-index-missing`, `patch-array-index-null`,
+  `patch-prototype-key`, `patch-value-undefined`,
+  `patch-prefix-conflict`. The `path` of an issue points into the
+  PatchObject (`/` and the escaped key). `-` is refused as an array index
+  only: in an object it is a name, and a valid Id. A value of `undefined`,
+  which only code can write, is refused: it is no JSON value. Whether a
+  value suits the property it is set on is not checked here: whoever
+  reads the patched Card validates it first.
+- `localize(card, lang)` → `{ card: Card | null; issues }`: section
+  2.7.1. The tag is compared without case and the first key that matches
+  wins; the result is a copy without `localizations`, patched, its
+  `language` set to the tag as the Card writes it (whatever the patch says
+  of `language`). A Card with no patch for the language is returned
+  itself, not a copy. A patch on `localizations` or inside it is
+  `patch-targets-localizations`; a Card that is no JSON object is
+  `patch-target-not-an-object`. Issue paths start at the Card:
+  `/localizations/<tag>/<escaped key>`. The result is not validated: the
+  caller runs `validateCard` on it before reading it as a Card.
 - `equal(a, b)`: deep equality of JSON values, key order ignored.
-- `cardDisplayName(card)`: `name.full` ?? ordered components ??
-  organization ?? first email ?? first phone ?? "(no name)" (mirrors AOSP's
-  display-name fallback order so the list matches the phone).
-- `normalizeCard(card)`: stable key order for JSON export, strip empty maps.
-- `parseJSContact(input: string | unknown, opts?)` → `{ cards: Card[];
+- The copy (`cloneJson`, internal), `equal`, the pointer and the patch
+  code loop where they could recurse: `JSON.parse` accepts a nesting that
+  `structuredClone` and any recursive walk answer with a `RangeError`.
+- `cardDisplayName(card)`: the first that is not blank of `name.full`,
+  the name components, the preferred nickname, the name of an
+  organization, a job title (a Title of kind `title`, not `role`), the
+  preferred phone, the preferred email, else "(no name)". It is what
+  Android shows: `ContactsContract.DisplayNameSources` ranks the
+  structured name 40, the nickname 35, the organization 30, the phone 20,
+  the email 10, and an organization answers with its company, else its
+  job title, never its department. "Preferred" is the lowest `pref`, none
+  being last (section 1.5.3), then map order. Ordered components are
+  joined as section 2.2.1.2 says (separator components verbatim, else
+  `defaultSeparator`, a space when the Name has none; a blank component
+  is skipped); components in no stated order are read title,
+  given, given2, surname, surname2, generation, credential, with spaces:
+  no script detection, so a CJK name without `full` reads given name
+  first. It expects a Card the validator accepted: a value of the wrong
+  JSON type makes it throw.
+- `normalizeCard(card)`: a copy as the JSON export writes it. In every
+  object `@type` first, then the properties in the order RFC 9553 defines
+  them, `vCardName` and `vCardParams`, then the properties this version
+  does not know (vendor ones included) by name; in a Card `media` goes
+  last of all, as PHOTO does in a `.vcf`. A property that is an empty map
+  (`phones: {}`, `contexts: {}`, `vCardParams: {}`) is left out, unless
+  the Card has localization patches: one may land in an empty map
+  (`titles/t1` needs `titles`), so such a Card keeps them all. Not
+  touched: the order of map entries, sets and arrays (an Id map is in the
+  order the phone listed it), an empty object that is an entry or a plain
+  object (`relatedTo: { uid: {} }` is a relation), `vCardProps`, unknown
+  and vendor values, and the patches of `localizations`, which are data
+  for another object.
+- `schema.ts` (internal): `PROPERTIES`, the properties of each of the 28
+  object types in RFC order with the shape of what each holds (a value, a
+  map of values, one object, a list or a map of objects, the patches). A
+  test holds it against the registry fixture. `normalizeCard` reads it;
+  the validator refines its `value` entries in checkpoint 3.
+- `parseJSContact(input: string | unknown)` → `{ cards: Card[];
   issues: CardIssue[] }`: the reader of the JSON backup. One Card or an
-  array, a size cap on text, every card validated, `card` index on each
-  issue. A valid "1.0" card is kept and its `version` set to "2.0" with an
-  `info` (RFC 9982: every valid 1.0 Card is a valid 2.0 Card).
-- `stringifyCards(cards)` → `normalizeCard` then `JSON.stringify(..., 2)`:
-  the one place the human-readable JSON rule is implemented.
+  array, a size cap on text, `card` index on each issue. For each Card
+  the format stamp is read and removed, the migrations from that format
+  to the current one run, then `validateCard`. A "1.0" card that passes
+  is kept and its `version` set to "2.0" with an `info` (RFC 9982: every
+  valid 1.0 Card is a valid 2.0 Card).
+- `stringifyCards(cards)` → the format stamp set on each Card,
+  `normalizeCard`, then `JSON.stringify(..., 2)`: the one place the
+  human-readable JSON rule is implemented.
+- **Format stamp.** `remileduc.github.io:formatVersion` on each Card of
+  a backup: a positive integer, `FORMAT_VERSION`, 1 at the first release
+  and raised only when what we write changes shape, not with each
+  release. It lets a later version repair what an earlier one wrote: a
+  migration is a function from a Card of one format to the next, added
+  with the first change of shape (none exists at format 1), and the one
+  current validator runs after them. The stamp belongs to the file, not
+  to the Card: `stringifyCards` alone writes it and `parseJSContact`
+  removes it, so no Card in memory or in the store carries it and no
+  profile reports it as a vendor property it cannot export. The file
+  stays a plain array of Cards another tool can read. No stamp (a Card
+  from another tool) is read as the current format; a stamp that is no
+  positive integer is an `error`; a stamp above `FORMAT_VERSION` is a
+  `warning` and the Card is validated as it stands. The stamp chooses
+  the migrations and nothing else: every Card is validated in full
+  whatever it claims.
 
 ### Tests
 
@@ -805,16 +930,20 @@ since it cannot import them:
   and which are required, against the registry; each enumerated property
   against its list; what must not compile under `@ts-expect-error`. `pnpm typecheck` runs them, Vitest only the runtime
   half.
+- The checklist as the validator's contract: every Card of
+  `constraints-invalid.json` whose row says `yes` is refused, every
+  other one and every Card of `constraints-valid.json` and of the
+  figures is accepted.
 - `fast-check`: no input makes the validator, the pointer or the patch
   code throw, and none can reach a prototype.
 - Differential tests against `@sdxc/jscontact` (MIT, the only other
   JSContact implementation on npm): a dev dependency of this package
   only, pinned to an exact release (pnpm installs its `remix` peer by
-  itself), never imported from `src`. On our fixtures, on targeted invalid Cards and patches and
-  on `fast-check` Cards, both must agree on accept or reject and on the
-  result of a patch or a localization; every intended divergence is
-  listed in the test beside its reason (it accepts unknown enum values
-  and `extra` silently; it has no severities).
+  itself), never imported from `src`. On our fixtures, on targeted
+  patches and on `fast-check` cases, both must agree on the result of a
+  patch or a localization; every intended divergence is listed in the
+  test beside its reason. The validator is not compared: it no longer
+  aims at what the RFC calls valid, which is what the oracle answers.
 
 ### Match, diff, merge (milestone 4.5)
 
@@ -950,7 +1079,9 @@ exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] 
    overflow) → `vCardProps` as jCard with group kept in the `group` param.
 7. **JSPROP**: collect, build one PatchObject, validate, apply last.
 8. `validateCard` on the result; a failure is a converter bug surfaced as
-   an `error` issue.
+   an `error` issue. It checks types only: formats, ranges and the rules
+   between properties (the `no` rows of `docs/jscontact-constraints.md`)
+   are the converter's own to get right, held by its tests.
 
 ### JSContact → vCard: profiles
 
@@ -1063,7 +1194,7 @@ apps/web/src/
     vc-toolbar            import, export, new, duplicate, copy, delete, search
     vc-contact-list       windowed list, sorted via Intl.Collator, filter
     vc-card-view          read-only rendering of a Card
-    vc-card-editor        edit a structuredClone; Save validates with validateCard; Cancel discards
+    vc-card-editor        edit a structuredClone; Save runs the registry's field checks, then validateCard; Cancel discards
     vc-name-editor        full + components (kind dropdown, value, reorder), sortAs
     vc-address-editor     common lines + "more components", countryCode via Intl.DisplayNames, coordinates, timeZone
     vc-entry-list         generic editor for any Id-map collection, driven by fields/registry
@@ -1183,10 +1314,25 @@ test + build green, docs updated, then stop for review and commit.
 2. **Pointer, patch, utilities.** JSON Pointer, `applyPatchObject`,
    `localize`, `equal`, `nextId`/`newUid`, `isListed`, `cardDisplayName`,
    `normalizeCard`; differential tests of patch and localize against
-   `@sdxc/jscontact`.
-3. **Validator and API freeze.** `validateCard` with its code list and
-   severities, `parseJSContact`/`stringifyCards`, fuzz tests, the
-   differential validator tests, README with the two export tiers.
+   `@sdxc/jscontact`. Done 2026-11-22, with the issue types, the patch
+   codes and the property table (`schema.ts`) the validator builds on.
+   Left to checkpoint 3: refining the `value` shape of the property
+   table into the types the validator checks; making a value of the wrong
+   JSON type and a missing mandatory property errors, which
+   `cardDisplayName` and `normalizeCard` rely on. Settled on 2026-11-22
+   by the narrower validator, and no longer open: the localized Card is
+   validated by whoever calls `localize`, not by `validateCard`; two
+   `localizations` keys that differ by case only are not reported
+   (`localize` takes the first); the cap of 1000 issues per code stays a
+   constant; a SpeakToAs whose only member is `pronouns: {}` is accepted,
+   as every "at least one of" case is.
+3. **Validator and API freeze.** Scope narrowed on 2026-11-22, before it
+   was started: `validateCard` as the runtime form of the types (errors
+   only, its code list, the `Checked` column of the checklist as its
+   contract), `parseJSContact`/`stringifyCards` with the format stamp
+   (`FORMAT_VERSION` and the property name in `vendor.ts`), fuzz tests,
+   README with the two export tiers. Dropped: the warning tier, RFC
+   conformance and the differential validator tests.
 
 ### M4. `@vcards-io/convert`: vCard → JSContact (large)
 

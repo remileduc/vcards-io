@@ -775,3 +775,182 @@ peer requires Node 24.3, above the 24 the repository declared: the
 private root `package.json` now says `>=24.3`, the published libraries
 keep `>=24` since no dependency of theirs asks for more. Both entries go
 away with the oracle if it is dropped after milestone 3.
+
+2026-11-22 A PatchObject is checked where it lands, on a copy that cannot overflow
+----------------------------------------------------------------------------------
+
+`applyPatchObject` checks the three conditions of RFC 9553 section 1.4.3
+it can check alone, with the pointer syntax: that an array member is
+replaced and neither added nor removed, that the parents exist, that no
+pointer is the prefix of another (the pointers are sorted token by token,
+where a prefix is followed directly by what it starts). It reports every
+invalid patch, not the first, and returns `null` as soon as there is one.
+The fourth condition, a value valid for its property, needs the
+validator: the checkpoint 3 validator runs on the Card `localize`
+returns, so a patch setting `name/full` to 5 applies here. Four choices
+go past the RFC's letter. `-` is refused as an array index only: in an
+object it is a name, and a valid Id. A last token `__proto__` is refused
+(`patch-prototype-key`) and no `__proto__` key is ever assigned, while an
+own `__proto__` key already in the data is copied as data. A target that
+is no object or array has its own code: the fuzz test found that `null`
+with an empty patch came back as "null, no issue", and the review found
+the same of `localize` on a Card that is no object. And a value of
+`undefined` is refused (`patch-value-undefined`): no file holds one, but
+code building a patch can, and the result was no longer JSON. Only the
+value of a patch is looked at, not what is inside it. The copy is not
+`structuredClone`: Node 24 answers a 200 000-deep array, which
+`JSON.parse` accepts, with a `RangeError`, so the copy, `equal` and the
+walks are loops. Against `@sdxc/jscontact` the generated and fixture cases
+agree. The divergences, each a case of the differential test: it refuses
+every `-`, defines `__proto__`, patches a target that is no object (or
+throws on it), reads a patch that is no object (a string is applied
+character by character, `null` throws), and applies a localization that
+patches `localizations` itself.
+
+2026-11-22 localize returns the Card itself when it has nothing to apply
+------------------------------------------------------------------------
+
+Section 2.7.1 says "stop" when a Card has no patch for the language and
+leaves setting `language` optional. `localize` then returns the Card it
+was given, not a copy and with its `localizations`: copying to say
+"nothing changed" costs a whole Card per row of a list, and the oracle
+does the same. With a patch, the result is a copy without `localizations`
+whose `language` is the tag as the Card writes it, even when the patch
+sets `language` too: the text is now in that language. Tags match without
+case and exactly: `fr` does not answer for `fr-CA`, the RFC asking for "a
+key for that language tag", and a fallback chain is the caller's choice.
+
+2026-11-22 The display name follows Android's DisplayNameSources
+----------------------------------------------------------------
+
+The plan had `cardDisplayName` fall back from the name to the
+organization, the first email, the first phone, "as AOSP does". AOSP does
+otherwise: `ContactsContract.DisplayNameSources` ranks the structured name
+(40), the phonetic name (37), the nickname (35), the organization (30),
+the phone (20) and the email (10), read in
+`aosp-mirror/platform_frameworks_base` on 2026-11-22. The function now
+follows that order, the phonetic name left out (a JSContact component has
+no phonetic without a value), since its only purpose is a list that reads
+like the phone's. For an organization Android takes the company, else the
+job title, never the department (`updateRawContactDisplayName` in the
+ContactsProvider's `ContactsDatabaseHelper`): hence the name of an
+Organization, then a Title of kind `title`, and no unit; `ROLE` is not
+imported by Android at all. Among several nicknames, phones or emails the
+lowest `pref` wins. Components in no stated order are read in Western
+order by kind; Android picks an order by script for CJK names, which is
+not done: a phone export carries `FN`, so `name.full` is there.
+
+2026-11-22 normalizeCard reads a property table; maps keep their order
+----------------------------------------------------------------------
+
+"Stable key order" needs to tell a property from a map key (an Id may be
+`name` or `kind`), and "strip empty maps" a map from an object that may be
+empty (`relatedTo: { uid: {} }` is a relation, a vendor value of `{}`
+must be kept). Both need the type of each object, so `schema.ts` lists
+the properties of the 28 object types in the order RFC 9553 defines them,
+with the shape of each value; a test compares it with the registry
+fixture, and the validator of checkpoint 3 extends it instead of writing
+a second table. The export order is that table, with two additions:
+properties this version does not know follow by name, and a Card's
+`media` goes last, as PHOTO does in a `.vcf`, a picture being one very
+long line. Map entries, sets and arrays keep their order: an Id map is in
+the order the phone listed its phones, and `p10` sorted before `p2` reads
+worse than no sorting. The cold review found that stripping an empty map
+broke a localization patch landing in it (`titles: {}` with a patch on
+`titles/t1`): a Card that has patches keeps all its empty maps, a blunt
+rule preferred to following every pointer for a case no phone produces.
+Leaving out an empty map reports no issue: it holds nothing, so there is
+nothing changed or lost to show. Localization patches are copied as
+written; their values are data for another object and ordering them
+would need the table walked along each pointer, for a feature no phone
+export uses.
+
+2026-11-22 The validator checks the types, not RFC conformance
+--------------------------------------------------------------
+
+Decided before checkpoint 3 was started. JSContact is this project's
+internal model, not an input format of its own: a Card comes from our
+converter, from our editor or from a backup we wrote, and what the user
+brings is vCard. `validateCard` therefore answers one question, the same
+for its three callers (the converter on its result, the editor on Save,
+the JSON reader): would our code misread this value? It is the runtime
+form of `types.ts`: the JSON type of every known property, the mandatory
+ones, `@type`, `version`, sets holding `true`, the Id alphabet, the shape
+of `vCardProps`, `vCardParams` and `localizations`, and the caps against
+hostile input. Every issue is an `error`. Everything else the RFC calls
+invalid (unknown and miscased names, enum values, reserved names, formats,
+ranges, calendar validity, every rule between properties) is accepted,
+kept and written back. The reason is the backup: a strict reader would
+also refuse what a hand, another tool or an older version of this one
+wrote slightly wrong, for a rule nothing here depends on. Formats and
+ranges belong to who can act on them: the converter reports the vCard
+value it cannot read, the editor's field checks stop new ones, an export
+profile reports what the phone will not take. Patches are not applied by
+the validator either, so a broken translation does not cost the contact:
+`localize` reports it, and its caller validates the Card it returns.
+`docs/jscontact-constraints.md` stays as the record of every RFC rule,
+with a `Checked` column that a test will hold the validator to. This
+narrows the plan of 2026-11-18 and replaces two things in it: the
+`warning` tier of the validator, so the entry of 2026-11-20 on enum values
+now reads "kept, and not reported" (its reasoning stands), and the
+agreement with `@sdxc/jscontact` on accept or reject, which is dropped:
+the oracle answers what the RFC calls valid, and stays for patches and
+localizations. The price: `validateCard` on the converter's output no
+longer catches a converter writing an impossible date or an empty Name;
+the converter's own tests must. If the package is ever meant as a
+general JSContact library for Cards from anywhere, full validation with
+severities is the feature to add back, and the checklist is its work list.
+
+2026-11-22 JSON Schema with ajv was tried and not taken
+-------------------------------------------------------
+
+With the narrower validator, a hand-written JSON Schema run by `ajv` was
+looked at again, the rule on dependencies being a limit and not a ban: a
+well-known, stable library is acceptable where it fits the workflow.
+Measured on `ajv` 8.20.0 with a small JSContact-like schema: compiling at
+runtime is out, since `ajv` builds its validators with `new Function` and
+the app's CSP (`default-src 'self'`, no `unsafe-eval`) forbids it, which
+would pass in Vitest and in `pnpm dev` and fail only on the deployed
+site. Its standalone build works as a dev-time step: the output is one ES
+module without `eval` and without imports, and it validated the sample
+Cards. Two keywords break that: `minLength` and `uniqueItems` make the
+"ESM" output `require` helpers from `ajv/dist/runtime`, which no browser
+resolves (`pattern` replaces the first). The cost would be a generator
+script, a generated module checked into `src` (the workspace resolves the
+libraries from source, without a build), about 30 KB of code for five
+object types, and messages by keyword (three for one empty Name: two
+`required`, one `anyOf`). Not taken, for a reason that has nothing to do
+with `ajv`: `schema.ts` already lists every object type and its
+properties, tested against the registry, and what is left to check is a
+JSON type and a mandatory flag per property, a short walk over that
+table. A JSON Schema would be a third description of the same shapes
+beside `types.ts` and `schema.ts`, and about ten rows of the checklist
+cannot be written in one anyway (a patch resolving in its Card,
+neighbours in an array, registries that `Intl` knows). To reopen if a
+JSON Schema document becomes something to publish, in which case it is
+generated from the table, or if full RFC validation comes back.
+
+2026-11-22 A JSON backup says which format wrote it
+---------------------------------------------------
+
+Each Card of a JSON backup carries `remileduc.github.io:formatVersion`, a
+positive integer that starts at 1 and is raised only when what we write
+changes shape, not with each release. It answers "what if an earlier
+version exported something wrong": the reader runs the migrations from
+the stamped format to the current one, each a function from one format
+to the next and written when the first change happens, then the one
+current validator. Keeping an old validator per format was the other
+idea and was dropped: accepting an old file does not make the converter
+and the UI of today read it, a migration does. A vendor property and not
+`prodId`: `prodId` holds the phone's `PRODID` after an import, and a
+product name with a version would make migrations follow releases. A
+property of each Card and not a wrapper around the array: the file stays
+a list of Cards another tool reads. It is written by `stringifyCards`
+and removed by `parseJSContact`, so it is a property of the file: a Card
+in memory or in the store never has it, and no export profile reports it
+as a vendor property it cannot write. A Card without a stamp is read as
+the current format, one stamped by a later version is validated as it
+stands with a `warning`, and the stamp never replaces validation. It has
+to be there from the first release, which is why it is decided now and
+implemented with the reader and the writer in checkpoint 3. How the
+store migrates its own Cards is left to M6, with the same functions.

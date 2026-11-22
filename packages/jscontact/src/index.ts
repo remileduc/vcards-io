@@ -5,6 +5,7 @@
  */
 export const VERSION = "0.1.0";
 
+export { cardDisplayName } from "./display-name.js";
 export {
 	ADDRESS_COMPONENT_KINDS,
 	ADDRESS_CONTEXTS,
@@ -24,6 +25,7 @@ export {
 	type DirectoryKind,
 	GRAMMATICAL_GENDERS,
 	type GrammaticalGender,
+	isListed,
 	LINK_KINDS,
 	type LinkKind,
 	MEDIA_KINDS,
@@ -43,6 +45,19 @@ export {
 	TITLE_KINDS,
 	type TitleKind,
 } from "./enums.js";
+export { newUid, nextId } from "./ids.js";
+export {
+	type CardIssueCode,
+	COMMON_ISSUE_CODES,
+	type CommonIssueCode,
+	PATCH_ISSUE_CODES,
+	type PatchIssueCode,
+} from "./issue-codes.js";
+export type { CardIssue, CardIssueSeverity } from "./issues.js";
+export { equal } from "./json.js";
+export { normalizeCard } from "./normalize.js";
+export { applyPatchObject, type LocalizeResult, localize, type PatchResult } from "./patch.js";
+export * as jsonPointer from "./pointer.js";
 export type * from "./types.js";
 export {
 	NICKNAME_KIND,

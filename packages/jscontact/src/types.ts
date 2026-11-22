@@ -1,5 +1,5 @@
 // RFC 9553 as updated by RFC 9982 (version "2.0"), plus RFC 9555 section 2.15, in the RFC's order.
-// The types say what TypeScript can check; the cross-field rules are the validator's.
+// The validator checks what these types say and no more: code reading a Card copes with the rest.
 
 import type {
 	AddressComponentKind,

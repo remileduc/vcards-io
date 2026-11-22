@@ -126,3 +126,11 @@ export type PersonalInfoKind = (typeof PERSONAL_INFO_KINDS)[number];
 
 export const PERSONAL_INFO_LEVELS = ["high", "medium", "low"] as const;
 export type PersonalInfoLevel = (typeof PERSONAL_INFO_LEVELS)[number];
+
+/** Whether `value` is one of an `as const` list: the way to read an enumerated property. */
+export function isListed<const Value extends string>(
+	list: readonly Value[],
+	value: unknown,
+): value is Value {
+	return (list as readonly unknown[]).includes(value);
+}

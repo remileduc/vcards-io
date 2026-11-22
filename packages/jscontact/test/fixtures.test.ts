@@ -22,16 +22,21 @@ describe("constraint cases", () => {
 		expect(Object.prototype.toString.call(constraint.card)).toBe("[object Object]");
 	});
 
+	// The third table lists what no Card can show: it has no case to compare.
+	const [tables = ""] = readDoc("jscontact-constraints.md").split("Requirements with no Card");
+	const rows = [
+		...tables.matchAll(/^\| (.+?) +\| (.+?) +\| `([^`]+)` +\|(?: (yes|patch|no) +\|)?$/gm),
+	];
+
 	test("the checklist has one row per case, in the order and the words of the files", () => {
-		const row = /^\| (.+?) +\| (.+?) +\| `([^`]+)` +\|$/gm;
-		// The third table lists what no Card can show: it has no case to compare.
-		const [tables = ""] = readDoc("jscontact-constraints.md").split(
-			"Requirements with no Card",
-		);
-		const rows = [...tables.matchAll(row)];
 		expect(rows.map(([, section, rule, name]) => [section, rule, name])).toEqual(
 			cases.map(([name, constraint]) => [constraint.section, constraint.rule, name]),
 		);
+	});
+
+	test("the checklist says of every invalid case, and of no other, whether it is checked", () => {
+		const told = rows.filter(([, , , , checked]) => checked !== undefined);
+		expect(told.map(([, , , name]) => name)).toEqual(Object.keys(invalid));
 	});
 });
 

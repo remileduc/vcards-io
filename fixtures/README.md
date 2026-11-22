@@ -119,4 +119,6 @@ and `Id`. The live registry carries the same four slips.
 The two `constraints-*.json` files are written by hand. Each entry has the
 `section` and the `rule` it illustrates and a `card`; the same names are
 the rows of `docs/jscontact-constraints.md`, and a test keeps both in
-step. Add a case to the file and its row to the document together.
+step. Add a case to the file and its row to the document together; the
+row of an invalid case also says whether `validateCard` checks the rule
+(`yes`, `patch` or `no`), which the files do not repeat.
