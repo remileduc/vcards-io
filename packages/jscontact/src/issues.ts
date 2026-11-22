@@ -11,7 +11,7 @@ export interface CardIssue {
 	message: string;
 	/** JSON Pointer to what the issue is about, from the root of the value checked; `""` is the root. */
 	path: string;
-	/** Index of the Card among the ones read, when several were. */
+	/** Position of the Card in the input of `parseJSContact`, which alone sets it. */
 	card?: number;
 }
 
@@ -29,6 +29,24 @@ export function issue(
 /** The start of a string for a message, quoted. */
 export function excerpt(text: string): string {
 	return JSON.stringify(text.length > 40 ? `${text.slice(0, 40)}…` : text);
+}
+
+/** What a value is, for a message: its JSON type, with the text of a scalar. */
+export function describeValue(value: unknown): string {
+	if (value === null) return "null";
+	if (value === undefined) return "undefined";
+	if (Array.isArray(value)) return "an array";
+	switch (typeof value) {
+		case "string":
+			return `the string ${excerpt(value)}`;
+		case "number":
+		case "boolean":
+			return `the ${typeof value} ${value}`;
+		case "object":
+			return "an object";
+		default:
+			return `a ${typeof value}`;
+	}
 }
 
 /**

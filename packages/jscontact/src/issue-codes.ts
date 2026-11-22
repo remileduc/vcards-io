@@ -18,4 +18,35 @@ export const PATCH_ISSUE_CODES = [
 ] as const;
 export type PatchIssueCode = (typeof PATCH_ISSUE_CODES)[number];
 
-export type CardIssueCode = CommonIssueCode | PatchIssueCode;
+/** Codes `validateCard` raises, all errors: any of them refuses the Card. */
+export const VALIDATION_ISSUE_CODES = [
+	"card-not-an-object",
+	"card-too-deep",
+	"card-too-large",
+	"prototype-key",
+	"value-not-json",
+	"type-mismatch",
+	"version-unsupported",
+	"property-wrong-type",
+	"property-missing",
+	"set-value-not-true",
+	"id-invalid",
+	"jcard-prop-invalid",
+] as const;
+export type ValidationIssueCode = (typeof VALIDATION_ISSUE_CODES)[number];
+
+/** Codes `parseJSContact` adds to the validator's: the text, the format stamp, the version. */
+export const BACKUP_ISSUE_CODES = [
+	"json-too-large",
+	"json-syntax",
+	"format-version-invalid",
+	"format-version-newer",
+	"version-upgraded",
+] as const;
+export type BackupIssueCode = (typeof BACKUP_ISSUE_CODES)[number];
+
+export type CardIssueCode =
+	| CommonIssueCode
+	| PatchIssueCode
+	| ValidationIssueCode
+	| BackupIssueCode;

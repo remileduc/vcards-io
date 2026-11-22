@@ -954,3 +954,67 @@ stands with a `warning`, and the stamp never replaces validation. It has
 to be there from the first release, which is why it is decided now and
 implemented with the reader and the writer in checkpoint 3. How the
 store migrates its own Cards is left to M6, with the same functions.
+
+2026-11-22 What the validator and the backup reader settled on the way
+----------------------------------------------------------------------
+
+Choices of checkpoint 3 the plan left open. The mandatory properties are
+a list beside the property table (`MANDATORY` in `schema.ts`), not a flag
+in it: Calendar, CryptoKey, Directory, Link and Media share one list of
+properties and differ on whether `kind` is required. The Nickname kind of
+this project is in the table, so it is checked as a string and
+`normalizeCard` writes it after `pref`: `types.ts` declares it, and it is
+read as any enumerated property is. The caps and `__proto__` are looked
+for in the whole value before the types are, vendor values and patches
+included, because what makes a deep value dangerous is not our reading
+of it but `JSON.stringify` and `structuredClone` later on; 64 levels is
+eight times what the types need, and 100 000 members is a group Card of
+that many contacts, far past any phone. The same pass refuses what is
+no JSON value, wherever it is (`value-not-json`): `undefined`, a hole in
+an array, `NaN`, an infinity, a bigint, a function. The review of the
+checkpoint found why it has to: `1e999` is valid JSON text that
+`JSON.parse` reads as `Infinity`, the export wrote it back as `null`,
+and the next import refused the jCard property and with it the contact;
+a hole made the walk over the types throw. For `undefined` in a known
+property the reason is the one `exactOptionalPropertyTypes` has at
+compile time: the store keeps it and the JSON export drops it, so two
+copies of one Card stop being equal. Such a value ends the validation
+before the types, so it is reported once. Objects that are no plain
+ones (a Date, a Map) are not told apart: only code of ours could put
+one in a Card. A `vCardProps` entry that is
+wrong gets one issue for the entry, not one per part: nobody repairs a
+jCard property by hand. `parseJSContact` changes nothing it is given
+(the app may hand it a value it still shows), so a stamped or "1.0" Card
+comes back as a copy one level deep, and the issues of a file share one
+cap per code: a file of a million `null` gives a thousand issues and a
+warning. A member name written twice in the JSON text is not detected:
+`JSON.parse` keeps the last, and finding it would take a parser of our
+own for a file no tool of ours writes. No migration code exists at
+format 1, only the stamp check and the place they will run from:
+machinery for a format 2 nobody has designed would be a guess. And
+`stringifyCards` ends the text with a line feed, as a text file does.
+
+2026-11-22 What the review of the backup reader changed, and what it left
+-------------------------------------------------------------------------
+
+Four findings of the review of checkpoint 3 were fixed, with other
+tools' files in mind more than hostile ones. `parseJSContact` returns
+`refused`, the count of the Cards it left out: a file where every Card
+has the same fault, which is what a tool writing something we refuse
+produces, passes the cap of 1000 issues per code and the Cards after it
+were named nowhere. A count and not the indexes: it says what the UI
+has to say and cannot grow with the input. The cap on the text became
+an option (`maxTextLength`, 64 Mi by default) since `stringifyCards` has
+none and a store filled by two imports can write more than one import
+may read; the app picks the cap for its own backups, the writer stays a
+function that returns text. A byte order mark before the text is
+skipped: an editor adds one and `JSON.parse` refuses it. And a member
+name is capped at 1024 code units (`MAX_KEY_LENGTH`), reported as
+`card-too-large` and not under a code of its own: the path of every
+issue under a name repeats it, so one name of 30 MB gave a thousand
+paths of 30 MB each. Left as they are, being what only code can build
+or what costs more than it is worth: no cap on the number of
+candidates (a 64 Mi text of `[0,0,...]` takes seconds, not memory),
+bytes given in place of text, a mandatory property that is not
+enumerable, a getter that throws, and the `issues-truncated` warning
+that shows twice when one Card alone passes the cap of a code.

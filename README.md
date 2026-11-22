@@ -20,11 +20,12 @@ JSContact (RFC 9553) with reusable libraries:
 |                        | export profiles                                              |
 | `apps/web`             | the Vite + Lit web app                                       |
 
-Status: milestones 0 to 2 are done (`@vcards-io/vcard` reads, normalises
-and writes); milestone 3 (`@vcards-io/jscontact`) is under way, its types,
-vendor extensions, pointer, patch and utilities done, validator to come. The
-specification, architecture and milestones are in `docs/plan.md`; device
-behaviour in `docs/interop.md`; decisions in `docs/decisions.md`.
+Status: milestones 0 to 3 are done: `@vcards-io/vcard` reads, normalises
+and writes, and `@vcards-io/jscontact` has the types, the validator, the
+patches and the JSON backup format. Milestone 4 (`@vcards-io/convert`,
+vCard to JSContact) is next. The specification, architecture and
+milestones are in `docs/plan.md`; device behaviour in `docs/interop.md`;
+decisions in `docs/decisions.md`.
 
 Specifications
 --------------

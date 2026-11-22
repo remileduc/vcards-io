@@ -27,3 +27,9 @@ export const VENDOR_RELATIONS = [
 	"referred-by",
 ] as const;
 export type VendorRelation = (typeof VENDOR_RELATIONS)[number];
+
+/** Property `stringifyCards` sets on each Card of a JSON backup and `parseJSContact` removes. */
+export const FORMAT_STAMP = `${VENDOR_PREFIX}formatVersion` as const;
+
+/** The format this version writes: raised when what a backup holds changes shape, not per release. */
+export const FORMAT_VERSION = 1;

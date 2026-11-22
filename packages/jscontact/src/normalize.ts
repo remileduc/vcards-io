@@ -36,10 +36,10 @@ function normalizeObject<T extends object>(source: T, type: ObjectType, strip: b
 	return Object.fromEntries(entries) as T;
 }
 
+const VALUE_MAPS: readonly unknown[] = ["set", "strings", "params", "patches"];
+
 function isMap(shape: Shape | undefined): boolean {
-	return (
-		shape === "values" || shape === "patches" || (typeof shape === "object" && "map" in shape)
-	);
+	return VALUE_MAPS.includes(shape) || (typeof shape === "object" && "map" in shape);
 }
 
 function normalizeValue(value: unknown, shape: Shape | undefined, strip: boolean): unknown {

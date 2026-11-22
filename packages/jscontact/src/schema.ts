@@ -1,5 +1,7 @@
 // The properties of every JSContact object, in the order RFC 9553 defines them, with what each
-// one holds. Only the shape is here; the JSON type of each value comes with the validator.
+// one holds and which are mandatory: what normalizeCard orders and validateCard checks.
+
+import { NICKNAME_KIND } from "./vendor.js";
 
 export type ObjectType =
 	| "Card"
@@ -32,46 +34,57 @@ export type ObjectType =
 	| "PersonalInfo";
 
 export type Shape =
-	/** A string, a number, a boolean, or JSON kept as it is (`vCardProps`). */
-	| "value"
-	/** A map of such values: a set, `Name.sortAs`, `vCardParams`. */
-	| "values"
+	| "string"
+	| "boolean"
+	/** A non-negative safe integer. */
+	| "unsignedInt"
+	/** An Id held as a value: `Title.organizationId`. */
+	| "id"
+	/** `Card.vCardProps`: a list of jCard properties, kept as they are. */
+	| "jCardProps"
+	/** A set: a map whose every value is `true`. */
+	| "set"
+	/** A map of strings: `Name.sortAs`. */
+	| "strings"
+	/** `vCardParams`: a map of strings and lists of strings. */
+	| "params"
 	/** `Card.localizations`: language tags to PatchObjects. */
 	| "patches"
 	/** One object; of the type its `@type` names when several are possible, else of the first. */
 	| { object: readonly [ObjectType, ...ObjectType[]] }
 	| { list: ObjectType }
-	| { map: ObjectType };
+	/** Keyed by Id, unless `keys` says any string is one (`relatedTo` is keyed by uid). */
+	| { map: ObjectType; keys?: "string" };
 
 type Properties = Readonly<Record<string, Shape>>;
 
 /** `@type` leads every object and the two RFC 9555 properties any object may carry end it. */
 function object(own: Properties): Properties {
-	return { "@type": "value", ...own, vCardName: "value", vCardParams: "values" };
+	return { "@type": "string", ...own, vCardName: "string", vCardParams: "params" };
 }
 
-const component = object({ value: "value", kind: "value", phonetic: "value" });
+const component = object({ value: "string", kind: "string", phonetic: "string" });
 
 const resource = {
-	kind: "value",
-	uri: "value",
-	mediaType: "value",
-	contexts: "values",
-	pref: "value",
-	label: "value",
+	kind: "string",
+	uri: "string",
+	mediaType: "string",
+	contexts: "set",
+	pref: "unsignedInt",
+	label: "string",
 } as const satisfies Properties;
 
 export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 	Card: object({
-		version: "value",
-		created: "value",
-		kind: "value",
-		language: "value",
-		members: "values",
-		prodId: "value",
-		relatedTo: { map: "Relation" },
-		uid: "value",
-		updated: "value",
+		version: "string",
+		created: "string",
+		kind: "string",
+		language: "string",
+		members: "set",
+		prodId: "string",
+		relatedTo: { map: "Relation", keys: "string" },
+		uid: "string",
+		updated: "string",
 		name: { object: ["Name"] },
 		nicknames: { map: "Nickname" },
 		organizations: { map: "Organization" },
@@ -90,84 +103,128 @@ export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 		media: { map: "Media" },
 		localizations: "patches",
 		anniversaries: { map: "Anniversary" },
-		keywords: "values",
+		keywords: "set",
 		notes: { map: "Note" },
 		personalInfo: { map: "PersonalInfo" },
-		vCardProps: "value",
+		vCardProps: "jCardProps",
 	}),
-	Relation: object({ relation: "values" }),
+	Relation: object({ relation: "set" }),
 	Name: object({
 		components: { list: "NameComponent" },
-		isOrdered: "value",
-		defaultSeparator: "value",
-		full: "value",
-		sortAs: "values",
-		phoneticScript: "value",
-		phoneticSystem: "value",
+		isOrdered: "boolean",
+		defaultSeparator: "string",
+		full: "string",
+		sortAs: "strings",
+		phoneticScript: "string",
+		phoneticSystem: "string",
 	}),
 	NameComponent: component,
-	Nickname: object({ name: "value", contexts: "values", pref: "value" }),
-	Organization: object({
-		name: "value",
-		units: { list: "OrgUnit" },
-		sortAs: "value",
-		contexts: "values",
+	Nickname: object({
+		name: "string",
+		contexts: "set",
+		pref: "unsignedInt",
+		[NICKNAME_KIND]: "string",
 	}),
-	OrgUnit: object({ name: "value", sortAs: "value" }),
-	SpeakToAs: object({ grammaticalGender: "value", pronouns: { map: "Pronouns" } }),
-	Pronouns: object({ pronouns: "value", contexts: "values", pref: "value" }),
-	Title: object({ name: "value", kind: "value", organizationId: "value" }),
-	EmailAddress: object({ address: "value", contexts: "values", pref: "value", label: "value" }),
+	Organization: object({
+		name: "string",
+		units: { list: "OrgUnit" },
+		sortAs: "string",
+		contexts: "set",
+	}),
+	OrgUnit: object({ name: "string", sortAs: "string" }),
+	SpeakToAs: object({ grammaticalGender: "string", pronouns: { map: "Pronouns" } }),
+	Pronouns: object({ pronouns: "string", contexts: "set", pref: "unsignedInt" }),
+	Title: object({ name: "string", kind: "string", organizationId: "id" }),
+	EmailAddress: object({
+		address: "string",
+		contexts: "set",
+		pref: "unsignedInt",
+		label: "string",
+	}),
 	OnlineService: object({
-		service: "value",
-		uri: "value",
-		user: "value",
-		contexts: "values",
-		pref: "value",
-		label: "value",
+		service: "string",
+		uri: "string",
+		user: "string",
+		contexts: "set",
+		pref: "unsignedInt",
+		label: "string",
 	}),
 	Phone: object({
-		number: "value",
-		features: "values",
-		contexts: "values",
-		pref: "value",
-		label: "value",
+		number: "string",
+		features: "set",
+		contexts: "set",
+		pref: "unsignedInt",
+		label: "string",
 	}),
-	LanguagePref: object({ language: "value", contexts: "values", pref: "value" }),
+	LanguagePref: object({ language: "string", contexts: "set", pref: "unsignedInt" }),
 	Calendar: object(resource),
-	SchedulingAddress: object({ uri: "value", contexts: "values", pref: "value", label: "value" }),
+	SchedulingAddress: object({
+		uri: "string",
+		contexts: "set",
+		pref: "unsignedInt",
+		label: "string",
+	}),
 	Address: object({
 		components: { list: "AddressComponent" },
-		isOrdered: "value",
-		countryCode: "value",
-		coordinates: "value",
-		timeZone: "value",
-		contexts: "values",
-		full: "value",
-		defaultSeparator: "value",
-		pref: "value",
-		phoneticScript: "value",
-		phoneticSystem: "value",
+		isOrdered: "boolean",
+		countryCode: "string",
+		coordinates: "string",
+		timeZone: "string",
+		contexts: "set",
+		full: "string",
+		defaultSeparator: "string",
+		pref: "unsignedInt",
+		phoneticScript: "string",
+		phoneticSystem: "string",
 	}),
 	AddressComponent: component,
 	CryptoKey: object(resource),
-	Directory: object({ ...resource, listAs: "value" }),
+	Directory: object({ ...resource, listAs: "unsignedInt" }),
 	Link: object(resource),
 	Media: object(resource),
 	Anniversary: object({
-		kind: "value",
+		kind: "string",
 		date: { object: ["PartialDate", "Timestamp"] },
 		place: { object: ["Address"] },
 	}),
-	PartialDate: object({ year: "value", month: "value", day: "value", calendarScale: "value" }),
-	Timestamp: object({ utc: "value" }),
-	Note: object({ note: "value", created: "value", author: { object: ["Author"] } }),
-	Author: object({ name: "value", uri: "value" }),
-	PersonalInfo: object({
-		kind: "value",
-		value: "value",
-		level: "value",
-		listAs: "value",
-		label: "value",
+	PartialDate: object({
+		year: "unsignedInt",
+		month: "unsignedInt",
+		day: "unsignedInt",
+		calendarScale: "string",
 	}),
+	Timestamp: object({ utc: "string" }),
+	Note: object({ note: "string", created: "string", author: { object: ["Author"] } }),
+	Author: object({ name: "string", uri: "string" }),
+	PersonalInfo: object({
+		kind: "string",
+		value: "string",
+		level: "string",
+		listAs: "unsignedInt",
+		label: "string",
+	}),
+};
+
+/** The properties `types.ts` declares without `?`; a type that is not listed has none. */
+export const MANDATORY: Readonly<Partial<Record<ObjectType, readonly string[]>>> = {
+	Card: ["@type", "version"],
+	NameComponent: ["value", "kind"],
+	Nickname: ["name"],
+	OrgUnit: ["name"],
+	Pronouns: ["pronouns"],
+	Title: ["name"],
+	EmailAddress: ["address"],
+	Phone: ["number"],
+	LanguagePref: ["language"],
+	Calendar: ["kind", "uri"],
+	SchedulingAddress: ["uri"],
+	AddressComponent: ["value", "kind"],
+	CryptoKey: ["uri"],
+	Directory: ["kind", "uri"],
+	Link: ["uri"],
+	Media: ["kind", "uri"],
+	Anniversary: ["kind", "date"],
+	Timestamp: ["@type", "utc"],
+	Note: ["note"],
+	PersonalInfo: ["kind", "value"],
 };

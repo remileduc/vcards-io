@@ -669,7 +669,7 @@ What the types settle:
   its keys to `true`, not to `boolean`: the RFC says "MUST be true" for
   four of the five and nobody writes `false`. `FlagSet<Value>` is the map
   over the standard keys and the vendor pattern.
-- `uid` is optional (RFC 9982); that "1.0" requires it is the validator's.
+- `uid` is optional (RFC 9982); that "1.0" requires it is checked nowhere.
 - `Timestamp` has a mandatory `"@type": "Timestamp"`, since
   `Anniversary.date` defaults to PartialDate: the union narrows on it.
   Every other `@type` is optional, `Card`'s excepted.
@@ -709,7 +709,7 @@ matter.
 ### Validator (`validate.ts`)
 
 ```ts
-validateCard(value: unknown): { card: Card | null; issues: CardIssue[] }
+validateCard(value: unknown): ValidationResult  // { card: Card | null; issues: CardIssue[] }
 // CardIssue = { severity: 'error' | 'warning' | 'info'; code: CardIssueCode; message: string; path: string; card?: number }
 // path = JSON Pointer from the Card root, '' for the Card itself
 // card = the input typed as Card when no issue is an `error`, else null
@@ -726,32 +726,68 @@ code reads without harm is accepted, kept and written back, so that a
 backup is never refused for a rule nothing here depends on, be it broken
 by a hand, by another tool or by an older version of this one.
 
-Hand-written: a walk over the property table of `schema.ts`, whose
-`value` entries are refined into the JSON type each one holds and
-whether the property is mandatory. Every issue is an `error`. It reports:
+Hand-written: a walk over the property table of `schema.ts`, which says
+what JSON type each property holds, and over its `MANDATORY` list. Every
+issue it raises is an `error` with one of the twelve codes of
+`VALIDATION_ISSUE_CODES`, named in brackets here (past the cap of a
+code, the `issues-truncated` warning joins them). It reports:
 
-- a value that is no JSON object where one is expected, the Card first;
-- `@type`: missing or not "Card" on the Card; elsewhere, when set, not
-  the type the property holds (a case variant and "Resource" included).
-  `Anniversary.date` is read as the type its `@type` names, a
-  PartialDate when it has none;
-- `version` missing, not a string or not in `CARD_VERSIONS`: another
-  version may be another model;
-- a known property of the wrong JSON type: string, boolean, UnsignedInt
-  (a non-negative safe integer), object, array, map. `null` is no value;
+- a value that is no JSON object where one is expected: the Card itself
+  (`card-not-an-object`), any other (`property-wrong-type`);
+- `@type`: missing on the Card (`property-missing`); not "Card" on it
+  or, elsewhere, when set, not the type the property holds, a case
+  variant and "Resource" included (`type-mismatch`). `Anniversary.date`
+  is read as the type its `@type` names, a PartialDate when it has none
+  or one it should not have;
+- `version` missing (`property-missing`), not a string
+  (`property-wrong-type`) or not in `CARD_VERSIONS`
+  (`version-unsupported`): another version may be another model;
+- a known property of the wrong JSON type (`property-wrong-type`):
+  string, boolean, UnsignedInt (a non-negative safe integer), object,
+  array, map. `null` is no value;
 - a set (`contexts`, `features`, `relation`, `members`, `keywords`)
-  holding anything but `true`: code listing its keys would read a
-  `false` entry as set;
-- a mandatory property that is missing: the ones `types.ts` declares
-  without `?`;
-- an Id outside its alphabet or its length, as a key of an Id map and in
-  `Title.organizationId`: Ids are written as they are into `PROP-ID`
-  and into patch paths;
-- the shape of `vCardProps` (an array of jCard properties: a name,
-  parameters, a type, at least one value), of `vCardParams` (strings or
-  lists of strings) and of `localizations` (language to object);
-- hostile input: depth and node-count caps and an own `__proto__` key,
-  reported and never thrown.
+  holding anything but `true` (`set-value-not-true`): code listing its
+  keys would read a `false` entry as set;
+- a mandatory property that is missing (`property-missing`): the ones
+  `types.ts` declares without `?`;
+- an Id outside its alphabet or its length (`id-invalid`), as a key of
+  an Id map and in `Title.organizationId`: Ids are written as they are
+  into `PROP-ID` and into patch paths. Whether `organizationId` names an
+  organization of the Card is not looked at;
+- the shape of `vCardProps`: an array, each entry a jCard property or
+  else `jcard-prop-invalid`, once per entry (a name, parameters as
+  `vCardParams` holds them, a type, at least one value, each a string, a
+  number, a boolean or a list of such); of `vCardParams` (strings or
+  lists of strings) and of `localizations` (language to object), both
+  `property-wrong-type`;
+- `remileduc.github.io:kind` of a Nickname that is no string: the one
+  vendor property `types.ts` declares, so the one in the table;
+- hostile input, reported and never thrown: more than `MAX_CARD_DEPTH`
+  levels of nesting, 64 with the Card (`card-too-deep`; the types need
+  eight), more than `MAX_CARD_NODES` members in all, 100 000
+  (`card-too-large`), a member name of more than `MAX_KEY_LENGTH` UTF-16
+  code units, 1024 (`card-too-large` too, at the object holding it: the
+  path of every issue under a name repeats it), an own `__proto__` key
+  (`prototype-key`). The three caps are constants of `validate.ts`, not
+  exported;
+- what is no JSON value (`value-not-json`): `undefined`, the hole of a
+  sparse array, `NaN` and the infinities, a bigint, a function, a
+  symbol. Code can write them all, and JSON text the infinities
+  (`1e999`). `JSON.stringify` drops the first, writes `null` for the
+  numbers and throws on a bigint, so the Card written would not be the
+  Card read.
+
+These last two bullets are a first pass over the whole value, vendor
+values and patches included, before the types are looked at: whatever a
+Card holds is later cloned, stored and given to `JSON.stringify`, which
+recurse. A cap ends the validation where it is met. A value that is no
+JSON is reported wherever it is, and the types are then not looked at:
+the walk over the table relies on arrays without holes. The pass tells
+by `typeof`, so an object that is no plain one (a Date, a Map) is taken
+for the JSON object it is not.
+
+The `card` of the result is the value given, not a copy, and nothing is
+changed in it.
 
 It does not look at: unknown and miscased properties, enum values,
 reserved names (`extra`, the three of RFC 9610), vendor name syntax,
@@ -788,9 +824,9 @@ since it cannot import them:
   its own `Issue` when it validates a result. `CardIssue`, the collector
   with its cap, `COMMON_ISSUE_CODES` and `PATCH_ISSUE_CODES` exist since
   checkpoint 2 (`issues.ts`, `issue-codes.ts`), the patch code being the
-  first to report; the validator adds its own list, about ten codes. The
-  cap is a constant: no caller needs another, so there is no options
-  argument.
+  first to report; `VALIDATION_ISSUE_CODES` is the validator's list and
+  `BACKUP_ISSUE_CODES` the one of `parseJSContact`. The cap is a
+  constant: no caller needs another, so there is no options argument.
 - **Hostile input.** Pointer and patch code walks own properties only and
   never assigns a `__proto__` key. Lookups keyed by input are `Map`s or
   `Set`s.
@@ -804,7 +840,10 @@ since it cannot import them:
   fixture snapshots are stable and the JSON export reads well. It scans
   from 1 on every call, which suits the editor and the merge (one entry
   at a time); the converter numbers a whole card with its own allocator
-  (Package 3, step 3).
+  (Package 3, step 3). `isId(value)` says whether a string is an Id (1
+  to 255 of `A-Za-z0-9`, `-`, `_`): the validator asks it of every key
+  of an Id map, and the converter of a `PROP-ID` before it makes one a
+  key.
 - `isListed(list, value)`: type guard, true when `value` is one of an
   `as const` list. The one way to read an enumerated property, see "A
   value outside its list is normal" above.
@@ -877,7 +916,8 @@ since it cannot import them:
   object `@type` first, then the properties in the order RFC 9553 defines
   them, `vCardName` and `vCardParams`, then the properties this version
   does not know (vendor ones included) by name; in a Card `media` goes
-  last of all, as PHOTO does in a `.vcf`. A property that is an empty map
+  last of all, as PHOTO does in a `.vcf`. The Nickname kind of this
+  project is in the table, so it follows `pref`. A property that is an empty map
   (`phones: {}`, `contexts: {}`, `vCardParams: {}`) is left out, unless
   the Card has localization patches: one may land in an empty map
   (`titles/t1` needs `titles`), so such a Card keeps them all. Not
@@ -887,34 +927,61 @@ since it cannot import them:
   and vendor values, and the patches of `localizations`, which are data
   for another object.
 - `schema.ts` (internal): `PROPERTIES`, the properties of each of the 28
-  object types in RFC order with the shape of what each holds (a value, a
-  map of values, one object, a list or a map of objects, the patches). A
-  test holds it against the registry fixture. `normalizeCard` reads it;
-  the validator refines its `value` entries in checkpoint 3.
-- `parseJSContact(input: string | unknown)` → `{ cards: Card[];
-  issues: CardIssue[] }`: the reader of the JSON backup. One Card or an
-  array, a size cap on text, `card` index on each issue. For each Card
-  the format stamp is read and removed, the migrations from that format
-  to the current one run, then `validateCard`. A "1.0" card that passes
-  is kept and its `version` set to "2.0" with an `info` (RFC 9982: every
-  valid 1.0 Card is a valid 2.0 Card).
+  object types in RFC order with the shape of what each holds: a
+  `string`, a `boolean`, an `unsignedInt`, an `id`, the `jCardProps`; a
+  map of values (`set`, `strings`, `params`, `patches`); one object, a
+  list or a map of objects, the map keyed by Id unless it says `keys:
+  "string"` (`relatedTo`). `MANDATORY` lists the properties each type
+  requires, apart from the table since the five resource types share
+  one list of properties and differ on `kind`. Tests hold the table
+  against the registry fixture and the list against the interfaces.
+  `normalizeCard` reads the first, `validateCard` both.
+- `parseJSContact(input, options?)` → `ParseJSContactResult`, `{ cards:
+  Card[]; refused: number; issues: CardIssue[] }`: the reader of the
+  JSON backup. A string is JSON text, at most `maxTextLength` UTF-16
+  code units, the one option (`ParseJSContactOptions`; by default
+  `DEFAULT_MAX_TEXT_LENGTH`, 64 Mi, the number the vCard reader caps
+  bytes at; `json-too-large`, and `json-syntax` for what `JSON.parse`
+  refuses). A cap that is no positive integer is a `RangeError`, as in
+  the vCard reader. A byte order mark before the text is skipped;
+  anything else than a string is the value already parsed. One
+  Card or an array of them, and what is neither is one candidate the
+  validator refuses. For each one the format stamp is read and removed,
+  then `validateCard` runs; a "1.0" Card that passes comes back as "2.0"
+  with a `version-upgraded` info (RFC 9982: every valid 1.0 Card is a
+  valid 2.0 Card). `cards` holds the accepted ones in input order; each
+  issue has the `card` index of the input, so a refused Card leaves a
+  gap. Nothing given is changed: a Card is copied one level deep when
+  its stamp or its version is, and returned itself otherwise. The
+  issues of the file go through one collector, so the cap per code
+  holds for the file; `refused` counts the Cards left out, which the
+  issues stop naming past that cap. `JSON.parse` keeps the last of two
+  members of the same name and nothing here detects it.
 - `stringifyCards(cards)` → the format stamp set on each Card,
-  `normalizeCard`, then `JSON.stringify(..., 2)`: the one place the
-  human-readable JSON rule is implemented.
-- **Format stamp.** `remileduc.github.io:formatVersion` on each Card of
-  a backup: a positive integer, `FORMAT_VERSION`, 1 at the first release
-  and raised only when what we write changes shape, not with each
-  release. It lets a later version repair what an earlier one wrote: a
-  migration is a function from a Card of one format to the next, added
-  with the first change of shape (none exists at format 1), and the one
-  current validator runs after them. The stamp belongs to the file, not
+  `normalizeCard`, `JSON.stringify(..., 2)` and a final line feed: the
+  one place the human-readable JSON rule is implemented. It expects
+  Cards the validator accepted and leaves them untouched. It has no
+  size cap: the app, whose store may hold more than one import, reads
+  its own backups with a `maxTextLength` that fits what it wrote.
+- **Format stamp.** `remileduc.github.io:formatVersion` (`FORMAT_STAMP`)
+  on each Card of a backup: a positive integer, `FORMAT_VERSION`, 1 at
+  the first release and raised only when what we write changes shape,
+  not with each release. It lets a later version repair what an earlier
+  one wrote: a migration is a function from a Card of one format to the
+  next, added with the first change of shape, and the one current
+  validator runs after them. At format 1 there is none and no code for
+  them either: the reader checks the stamp, and a comment marks where
+  they will run. The stamp belongs to the file, not
   to the Card: `stringifyCards` alone writes it and `parseJSContact`
   removes it, so no Card in memory or in the store carries it and no
-  profile reports it as a vendor property it cannot export. The file
-  stays a plain array of Cards another tool can read. No stamp (a Card
-  from another tool) is read as the current format; a stamp that is no
-  positive integer is an `error`; a stamp above `FORMAT_VERSION` is a
-  `warning` and the Card is validated as it stands. The stamp chooses
+  profile reports it as a vendor property it cannot export. Normalized
+  with the Card, it is written among the vendor properties, before
+  `media`. The file stays a plain array of Cards another tool can read.
+  No stamp (a Card from another tool) is read as the current format; a
+  stamp that is no positive integer is an `error`
+  (`format-version-invalid`: the Card is still validated, and refused);
+  a stamp above `FORMAT_VERSION` is a `warning`
+  (`format-version-newer`) and the Card is validated as it stands. The stamp chooses
   the migrations and nothing else: every Card is validated in full
   whatever it claims.
 
@@ -930,12 +997,16 @@ since it cannot import them:
   and which are required, against the registry; each enumerated property
   against its list; what must not compile under `@ts-expect-error`. `pnpm typecheck` runs them, Vitest only the runtime
   half.
-- The checklist as the validator's contract: every Card of
-  `constraints-invalid.json` whose row says `yes` is refused, every
-  other one and every Card of `constraints-valid.json` and of the
-  figures is accepted.
-- `fast-check`: no input makes the validator, the pointer or the patch
-  code throw, and none can reach a prototype.
+- The checklist as the validator's contract (`validate.test.ts`): every
+  Card of `constraints-invalid.json` whose row says `yes` is refused,
+  for the one code and at the one path a table in the test gives it;
+  every other one and every Card of `constraints-valid.json` and of the
+  figures is accepted without an issue.
+- `fast-check`: no input makes the validator, the reader, the pointer or
+  the patch code throw, and none can reach a prototype. A fixture Card
+  with one member replaced by anything, at any depth, is either refused
+  at a path that exists or read by `cardDisplayName`, written by
+  `stringifyCards` and read back equal.
 - Differential tests against `@sdxc/jscontact` (MIT, the only other
   JSContact implementation on npm): a dev dependency of this package
   only, pinned to an exact release (pnpm installs its `remix` peer by
@@ -944,6 +1015,22 @@ since it cannot import them:
   patch or a localization; every intended divergence is listed in the
   test beside its reason. The validator is not compared: it no longer
   aims at what the RFC calls valid, which is what the oracle answers.
+
+### Exports
+
+Two tiers, listed in the package README, as for the vcard package. The
+stable contract is everything above but `schema.ts`: the types and the
+enumerated lists, `validateCard`, `parseJSContact`, `stringifyCards`
+with `FORMAT_STAMP` and `FORMAT_VERSION`, the pointer, patch and
+localization functions, the utilities, the issue types and the four code
+lists, `VENDOR_PREFIX`. A new enumerated value follows the IANA registry
+and is a minor release, since code reads these properties through
+`isListed`; a change to the issue codes is a major one. The second tier
+is the vocabulary of the phones (`NICKNAME_KIND`, `NICKNAME_KINDS`,
+`VENDOR_RELATIONS` and their types): it follows what the importers
+write, is there for `convert` and the app, and carries no stability
+promise. `PROPERTIES` and `MANDATORY` are not exported: nothing outside
+the package reads them yet.
 
 ### Match, diff, merge (milestone 4.5)
 
@@ -1332,7 +1419,10 @@ test + build green, docs updated, then stop for review and commit.
    contract), `parseJSContact`/`stringifyCards` with the format stamp
    (`FORMAT_VERSION` and the property name in `vendor.ts`), fuzz tests,
    README with the two export tiers. Dropped: the warning tier, RFC
-   conformance and the differential validator tests.
+   conformance and the differential validator tests. Done 2026-11-22,
+   with `isId` and the Nickname kind in the property table. Left to
+   M4.5: match, diff, merge and the Id references. Left to M6: how the
+   store migrates its own Cards.
 
 ### M4. `@vcards-io/convert`: vCard → JSContact (large)
 

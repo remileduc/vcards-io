@@ -3,6 +3,13 @@
 
 import type { Id } from "./types.js";
 
+const ID = /^[A-Za-z0-9_-]{1,255}$/;
+
+/** Whether a string is an Id: 1 to 255 characters of `A-Za-z0-9`, `-` and `_` (section 1.4.1). */
+export function isId(value: string): boolean {
+	return ID.test(value);
+}
+
 // Short enough that the number never takes the Id past its 255 characters.
 const ID_PREFIX = /^[A-Za-z0-9_-]{0,200}$/;
 

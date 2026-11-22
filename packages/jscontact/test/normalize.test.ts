@@ -234,6 +234,29 @@ describe("normalizeCard", () => {
 		expect(keys(death?.date)).toEqual(["@type", "utc", "example.com:a"]);
 	});
 
+	test("the Nickname kind of this project is a property it knows, written after pref", () => {
+		const card = normalizeCard({
+			"@type": "Card",
+			version: "2.0",
+			nicknames: {
+				n1: {
+					"example.com:a": 1,
+					vCardName: "nickname",
+					"remileduc.github.io:kind": "maiden",
+					pref: 1,
+					name: "Smith",
+				},
+			},
+		});
+		expect(keys(first(card.nicknames))).toEqual([
+			"name",
+			"pref",
+			"remileduc.github.io:kind",
+			"vCardName",
+			"example.com:a",
+		]);
+	});
+
 	test("keeps the entries of a map, of a set and of an array in their order", () => {
 		const card = normalizeCard({
 			"@type": "Card",

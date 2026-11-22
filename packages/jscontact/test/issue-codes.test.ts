@@ -1,11 +1,19 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { type CardIssueCode, COMMON_ISSUE_CODES, PATCH_ISSUE_CODES } from "../src/index.js";
+import {
+	BACKUP_ISSUE_CODES,
+	type CardIssueCode,
+	COMMON_ISSUE_CODES,
+	PATCH_ISSUE_CODES,
+	VALIDATION_ISSUE_CODES,
+} from "../src/index.js";
 
 /** Each list with the file that may raise its codes. */
 const STAGES: readonly (readonly [string, readonly CardIssueCode[]])[] = [
 	["issues.ts", COMMON_ISSUE_CODES],
 	["patch.ts", PATCH_ISSUE_CODES],
+	["validate.ts", VALIDATION_ISSUE_CODES],
+	["backup.ts", BACKUP_ISSUE_CODES],
 ];
 const ALL = STAGES.flatMap(([, codes]) => codes);
 

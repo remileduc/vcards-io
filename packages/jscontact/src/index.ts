@@ -5,6 +5,12 @@
  */
 export const VERSION = "0.1.0";
 
+export {
+	type ParseJSContactOptions,
+	type ParseJSContactResult,
+	parseJSContact,
+	stringifyCards,
+} from "./backup.js";
 export { cardDisplayName } from "./display-name.js";
 export {
 	ADDRESS_COMPONENT_KINDS,
@@ -45,13 +51,17 @@ export {
 	TITLE_KINDS,
 	type TitleKind,
 } from "./enums.js";
-export { newUid, nextId } from "./ids.js";
+export { isId, newUid, nextId } from "./ids.js";
 export {
+	BACKUP_ISSUE_CODES,
+	type BackupIssueCode,
 	type CardIssueCode,
 	COMMON_ISSUE_CODES,
 	type CommonIssueCode,
 	PATCH_ISSUE_CODES,
 	type PatchIssueCode,
+	VALIDATION_ISSUE_CODES,
+	type ValidationIssueCode,
 } from "./issue-codes.js";
 export type { CardIssue, CardIssueSeverity } from "./issues.js";
 export { equal } from "./json.js";
@@ -59,7 +69,10 @@ export { normalizeCard } from "./normalize.js";
 export { applyPatchObject, type LocalizeResult, localize, type PatchResult } from "./patch.js";
 export * as jsonPointer from "./pointer.js";
 export type * from "./types.js";
+export { type ValidationResult, validateCard } from "./validate.js";
 export {
+	FORMAT_STAMP,
+	FORMAT_VERSION,
 	NICKNAME_KIND,
 	NICKNAME_KINDS,
 	type NicknameKind,

@@ -25,9 +25,28 @@ that is no UnsignedInt and a set value other than `true` included), a
 mandatory property that is missing, an `@type` that is not the type
 expected there, a `version` this project does not know, an Id outside its
 alphabet or length, and the shape of `vCardProps`, `vCardParams` and
-`localizations`. A test of checkpoint 3 holds the validator to this
-column: every `yes` Card is refused, every `no` Card and every Card of
-the second table is accepted.
+`localizations`. `packages/jscontact/test/validate.test.ts` holds the
+validator to this column: every `yes` Card is refused, for one code at
+one path, every `no` Card and every Card of the second table is accepted
+without an issue. The codes of the `yes` rows:
+
+| Code                  | Rows                                                  |
+| --------------------- | ----------------------------------------------------- |
+| `property-wrong-type` | a JSON type that is not the declared one, `null`, a   |
+|                       | number that is no UnsignedInt, `vCardProps` and       |
+|                       | `vCardParams` of the wrong shape, a patch that is no  |
+|                       | object                                                |
+| `property-missing`    | every "is mandatory" row, `@type` and `version` of    |
+|                       | the Card included                                     |
+| `type-mismatch`       | an `@type` that is not the type expected there        |
+| `version-unsupported` | `version-unregistered`                                |
+| `set-value-not-true`  | a set value that is not `true`                        |
+| `id-invalid`          | the four Id rows                                      |
+| `jcard-prop-invalid`  | `vcard-props-entry-too-short`                         |
+
+Five more codes have no row, being no rule of the RFC:
+`card-not-an-object`, `card-too-deep`, `card-too-large`,
+`prototype-key` and `value-not-json`.
 
 What becomes of a `no` row:
 
@@ -250,9 +269,9 @@ each one lands.
 
 | Section    | Requirement                                                      | Where                                   |
 | ---------- | ---------------------------------------------------------------- | --------------------------------------- |
-| 1.3        | I-JSON: no duplicate member name in an object                    | `parseJSContact`: `JSON.parse` keeps    |
-|            |                                                                  | the last one silently, to be decided    |
-| 1.3        | I-JSON: UTF-8 text; no unpaired surrogate in a member name       | `parseJSContact`, with the case above   |
+| 1.3        | I-JSON: no duplicate member name in an object                    | not detected: `JSON.parse` keeps the    |
+|            |                                                                  | last one (decision of 2026-11-22)       |
+| 1.3        | I-JSON: UTF-8 text; no unpaired surrogate in a member name       | not checked: the app decodes the bytes  |
 | 1.4.1      | Map keys MUST be preserved across versions of an object          | editor, merge (`nextId` only for new)   |
 | 1.4.3      | A PatchObject is rejected in its entirety, never applied in part | `applyPatchObject`                      |
 | 1.4.3      | @type in a patch MUST be handled as any other patched value      | `applyPatchObject`                      |
@@ -264,7 +283,8 @@ each one lands.
 | 1.7.4      | Unknown properties MUST be preserved                             | everything that copies a Card           |
 | 1.7.4      | Only registered or vendor properties MUST be set                 | converter, editor                       |
 | 1.8.1      | Vendor properties MUST be preserved and their value never        | everything that copies a Card; the      |
-|            | rejected, unless the vendor is this project                      | validator checks `remileduc.github.io:` |
+|            | rejected, unless the vendor is this project                      | validator asks a string of our Nickname |
+|            |                                                                  | kind, and nothing of any other          |
 | 1.8.1      | The vendor prefix MUST be a domain under the vendor's control    | `VENDOR_PREFIX`                         |
 | 1.8.1      | The prefix ietf.org and its subdomains are reserved for the IETF | never set; not checked on input         |
 | 2.2.1.1    | Components in name order MUST set isOrdered to true; the same    | converter (`JSCOMPS`), editor           |
