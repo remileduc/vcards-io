@@ -1,3 +1,4 @@
+import { excerpt } from "../issues.js";
 import { VALUE_TOKENS } from "../registry.js";
 import { caretEncode } from "../text/caret.js";
 import type { VProperty } from "../types.js";
@@ -37,10 +38,15 @@ export const V40: SyntaxTable = {
 		return false;
 	},
 
-	encodeParamValue(name, value) {
+	encodeParamValue(name, value, warn) {
 		const encoded = caretEncode(value);
 		if (hasControlChar(encoded)) {
-			throw new SerializeError(`Control character in parameter ${name}`);
+			// Dropping the value keeps the property: an N must not go with its SORT-AS.
+			warn(
+				"param-value-not-in-40",
+				`${name}=${excerpt(value)} dropped: a parameter cannot carry a control character`,
+			);
+			return undefined;
 		}
 		return quoteIfNeeded(encoded);
 	},

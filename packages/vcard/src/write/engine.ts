@@ -1,4 +1,4 @@
-import { IssueCollector, issue } from "../issues.js";
+import { excerpt, IssueCollector, issue } from "../issues.js";
 import { NAME_RE, propertyId } from "../model.js";
 import { encodeBase64 } from "../text/base64.js";
 import { escapeText } from "../text/escape.js";
@@ -31,8 +31,8 @@ const LINE_BREAK = /[\r\n]/;
  * order, `END:VCARD`, CRLF, no BOM, raw UTF-8, names uppercased, lines over `foldAt` octets
  * folded, `blankLinesBetweenCards` empty lines between cards (none by default). VERSION is the
  * requested one whatever `card.version` says. Every loss the version forces is a warning in
- * `issues`. Throws SerializeError for what no version can express (see the class) and
- * RangeError for options that make no sense.
+ * `issues`; a property no line can hold is left out with an `error` there, so one odd contact
+ * never costs the export of the others. Throws RangeError only for options that make no sense.
  */
 export function serializeVCards(
 	cards: readonly VCard[],
@@ -51,7 +51,8 @@ export function serializeVCards(
 		if (index > 0) text += separator;
 		text += `BEGIN:VCARD\r\nVERSION:${table.version}\r\n`;
 		for (const p of card.properties) {
-			text += `${foldLine(writeProperty(p, table, index, issues), fold)}\r\n`;
+			const line = writeProperty(p, table, index, issues);
+			if (line !== undefined) text += `${foldLine(line, fold)}\r\n`;
 		}
 		text += "END:VCARD\r\n";
 	});
@@ -69,25 +70,28 @@ function assertBlankLines(count: number): void {
 	}
 }
 
-/** One logical line; every failure below is rethrown with the card and property it belongs to. */
+/** One logical line, or undefined after an `error` issue for a property no line can hold. */
 function writeProperty(
 	p: VProperty,
 	table: SyntaxTable,
 	card: number,
 	issues: IssueCollector,
-): string {
+): string | undefined {
 	try {
 		return contentLine(p, table, card, issues);
 	} catch (error) {
 		// A TypeError is a value that lacks the fields of its kind: JSON read without the types.
 		const malformed = error instanceof TypeError;
-		if (malformed || error instanceof SerializeError || error instanceof RangeError) {
-			// `p` itself may be what is malformed: a null entry has no name to report.
-			const id = typeof p?.name === "string" ? propertyId(p) : undefined;
-			const what = malformed ? `Malformed property: ${error.message}` : error.message;
-			throw new SerializeError(`${what} (card ${card}, ${id ?? "no name"})`, card, id);
+		if (!malformed && !(error instanceof SerializeError) && !(error instanceof RangeError)) {
+			throw error;
 		}
-		throw error;
+		// `p` itself may be what is malformed: a null entry has no name or line to report.
+		const id = typeof p?.name === "string" ? propertyId(p) : undefined;
+		const what = malformed ? `Malformed property: ${error.message}` : error.message;
+		const filed = issue("error", "property-not-written", `Not written: ${what}`, p?.line, id);
+		filed.card = card;
+		issues.push(filed);
+		return undefined;
 	}
 }
 
@@ -134,7 +138,7 @@ function parameter(name: string, values: readonly string[], table: SyntaxTable, 
 		if (v === "") continue;
 		// Readers split TYPE on commas even when quoted (RFC 6350 section 8), so none can be written.
 		if (name === "TYPE" && v.includes(",")) {
-			throw new SerializeError(`TYPE value ${JSON.stringify(v)} holds a comma`);
+			throw new SerializeError(`TYPE value ${excerpt(v)} holds a comma`);
 		}
 		const e = table.encodeParamValue(name, v, warn);
 		if (e !== undefined) encoded.push(e);
@@ -169,7 +173,7 @@ function canonical(p: VProperty): VProperty {
 /** Groups, property and parameter names all follow the name grammar the lexer reads. */
 function identifier(text: string, what: string): string {
 	if (!NAME_RE.test(text.toUpperCase())) {
-		throw new SerializeError(`Invalid ${what} ${JSON.stringify(text)}`);
+		throw new SerializeError(`Invalid ${what} ${excerpt(text)}`);
 	}
 	return text;
 }
@@ -203,6 +207,7 @@ function formatValue(value: VValue, table: SyntaxTable): string {
 		case "binary":
 			return encodeBase64(value.data);
 		case "unknown":
-			return value.raw;
+			// Raw text keeps its escapes; a real line break (decoded quoted-printable) gets one.
+			return value.raw.replace(/\r\n?|\n/g, "\\n");
 	}
 }

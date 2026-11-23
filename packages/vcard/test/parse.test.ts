@@ -152,6 +152,36 @@ describe("parseVCards", () => {
 	});
 });
 
+describe("parseVCards caps", () => {
+	test("a file with more content lines than the cap is refused whole, as an error", () => {
+		const input = card("3.0", "FN:A", "TEL:1");
+		expect(parseVCards(input, { maxContentLines: 5 }).cards).toHaveLength(1);
+		const { cards, issues } = parseVCards(input, { maxContentLines: 4 });
+		expect(cards).toEqual([]);
+		expect(issues).toEqual([
+			{
+				severity: "error",
+				code: "too-many-lines",
+				message: "Input has more than 4 content lines, nothing parsed",
+			},
+		]);
+		expect(() => parseVCards(input, { maxContentLines: 0 })).toThrow(RangeError);
+	});
+
+	test("two files joined into one, each with its BOM, give both cards", () => {
+		const one = `\uFEFF${card("3.0", "FN:A")}\r\n`;
+		const { cards, issues } = parseVCards(new TextEncoder().encode(one + one));
+		expect(cards.map((c) => c.properties[0]?.value)).toEqual([
+			{ kind: "text", value: "A" },
+			{ kind: "text", value: "A" },
+		]);
+		expect(issues.map((i) => [i.code, i.line])).toEqual([
+			["bom-stripped", undefined],
+			["bom-stripped", 5],
+		]);
+	});
+});
+
 describe("parameters", () => {
 	test("merges repeated parameters and lowercases TYPE values, except X- custom labels", () => {
 		const [tel] = props("3.0", "TEL;type=CELL;type=VOICE;TYPE=X-Custom Label;pref=1:+1");
@@ -394,6 +424,18 @@ describe("typing", () => {
 		expect(issues).toEqual([
 			expect.objectContaining({ code: "uri-escaped-colon", line: 3, property: "item1.URL" }),
 		]);
+		expect(value("3.0", "URL:http\\\\\\://x/a\\b\\:c")).toEqual({
+			kind: "uri",
+			value: "http://x/a\\b:c",
+		});
+	});
+
+	test("the escaped colon repair is linear on a line of backslashes", () => {
+		const hostile = card("3.0", `URL:\\:${"\\".repeat(500_000)}`);
+		const start = performance.now();
+		const { cards } = parseVCards(hostile);
+		expect(performance.now() - start).toBeLessThan(2000);
+		expect(cards[0]?.properties[0]?.value).toMatchObject({ kind: "uri" });
 	});
 
 	test("VALUE selects the kind, VALUE=text keeps the registry structure", () => {
@@ -795,6 +837,20 @@ describe("review regressions", () => {
 		const transcoded = parseVCards(utf16);
 		expect(transcoded.cards[0]?.properties[0]?.value).toEqual({ kind: "text", value: "Rémi" });
 		expect(codes(transcoded.issues)).toEqual(["utf16-transcoded", "charset-ignored"]);
+		// An encoded value still holds bytes: there CHARSET applies, to text input as to bytes.
+		const encoded = card(
+			"2.1",
+			"N;CHARSET=SHIFT_JIS;ENCODING=QUOTED-PRINTABLE:=95=5C;=8E=52",
+			"NOTE;CHARSET=ISO-8859-1;ENCODING=BASE64:UultaQ==",
+		);
+		for (const input of [encoded, new TextEncoder().encode(encoded)]) {
+			const read = parseVCards(input);
+			expect(read.cards[0]?.properties.map((p) => p.value)).toEqual([
+				{ kind: "structured", components: [["表"], ["山"]] },
+				{ kind: "text", value: "Rémi" },
+			]);
+			expect(read.issues).toEqual([]);
+		}
 		// Bytes keep honouring CHARSET: the same card as windows-1252 bytes decodes through it.
 		const bytes = concat(
 			"BEGIN:VCARD\r\nVERSION:2.1\r\nFN;CHARSET=ISO-8859-1:R",

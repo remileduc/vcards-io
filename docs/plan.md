@@ -188,13 +188,15 @@ only has to know 4.0; a writer engine with syntax tables for 3.0 and 4.0.
 ```ts
 parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): ParseResult
 // ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card
-// ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number }
+// ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number,
+//                  maxContentLines?: number }
 
 upgradeTo40(card: VCard, opts?: { vendor?: boolean }): { card: VCard; issues: Issue[] }
 serializeVCards(cards: VCard[], opts: SerializeOptions): SerializeResult
 // SerializeOptions = { version: '3.0' | '4.0', foldAt?: number | 'none' /* 75 octets */,
 //                      blankLinesBetweenCards?: number /* 0..9, default 0 */ }   // CRLF always
-// SerializeResult  = { text: string; issues: Issue[] }   // one warning per loss 3.0 forced, `card` index set
+// SerializeResult  = { text: string; issues: Issue[] }   // a warning per loss the version forced, an error per
+//                                                          // property left out, `card` index set; never throws on a model
 
 interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved; VERSION is `version`, never a property
 interface VProperty {
@@ -278,12 +280,19 @@ writer as unparseable text.
    big-endian), the same case-insensitivity as `BEGIN:VCARD` itself.
    `maxInputBytes` applies to the UTF-8 result, so a string or a UTF-16 file
    that only grows past the cap once transcoded is rejected too, and never
-   fully encoded first.
+   fully encoded first. A UTF-8 BOM right before a `BEGIN:` or `END:` line
+   further down is what two files joined into one leave: the line stage
+   strips it with the same `info` (and its line), since it would hide the
+   BEGIN and lose the card.
 2. **Physical lines.** Split on CRLF, LF or CR at byte level. Track line
    numbers. Enforce `maxLineLength` (default 1 MiB) and `maxInputBytes`
    (default 64 MiB) as `error` issues, not exceptions. Issues themselves are
    capped at 1000 per code (then one `issues-truncated` warning per code),
    since a file that warns on every line would otherwise cost gigabytes.
+   `maxContentLines` (default 500 000 unfolded lines, BEGIN and END
+   included) caps the model itself: a line costs about a kilobyte of it
+   whatever its length, so 4 MiB of `A:` lines took a gigabyte. Past it
+   nothing is parsed (`too-many-lines`, an `error`), as for `maxInputBytes`.
 3. **Logical lines (unfold), version-agnostic.** Join a line starting with SP
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:
@@ -303,6 +312,11 @@ writer as unparseable text.
      A line that reads as a header is one folded inside its parameter list
      (RFC 9554 examples), so it starts a new property. Any other unindented
      line without `:` is reported and skipped by the lexer.
+   An indented line with no line to continue (after a blank line, at the
+   start of the input) is read as a line of its own, as AOSP does, with a
+   warning (`orphan-continuation`): a fold broken by an editor must not
+   pass as a property unnoticed. A line of spaces and tabs only is not one:
+   the lexer's `invalid-line` is enough.
    The header these rules key on (property name, `ENCODING`) is read by the
    lexer of step 4 itself once the unfolder has found the first unquoted
    `:`, with the lexer's own quote rule, so the two never disagree on what a
@@ -371,8 +385,11 @@ writer as unparseable text.
      `TextDecoder(CHARSET ?? defaultCharset, {fatal})`; on a decode error
      retry with `windows-1252` and warn (Outlook); unknown CHARSET →
      default + warning. CHARSET and `defaultCharset` are ignored with an
-     `info` when the input was text or UTF-16 (already UTF-8 by then) and
-     CHARSET is ignored on 4.0 lines (RFC 6350 removed it);
+     `info` when the input was text or UTF-16 (already UTF-8 by then),
+     except CHARSET on a quoted-printable or base64 value: what those
+     decode to is bytes in the declared charset whatever the file was
+     (`=95=5C` is one Shift_JIS character). CHARSET is ignored on 4.0
+     lines (RFC 6350 removed it);
    - typing: `VALUE` param, else registry default for property+version
      (a property outside its versions is read as in its last version, with
      an `info`), else `unknown` (raw text, escapes kept). `VALUE=text` never
@@ -454,17 +471,23 @@ This is where the "understand Android fields" requirement lives:
 | other `X-ANDROID-CUSTOM` MIME types, unknown type numbers | kept raw (unknown type number: warning)                                   |
 | `X-AIM/X-MSN/X-YAHOO/X-ICQ/X-JABBER/X-SKYPE-USERNAME/`    | `IMPP;SERVICE-TYPE=<Name>:<scheme>:<handle>` (aim:, msnim:, ymsgr:,       |
 | `X-SKYPE/X-GOOGLE-TALK/X-GTALK/"X-GOOGLE TALK"/X-QQ/`     | icq:, xmpp:, skype:, xmpp:, qq:, callto:), handle percent-encoded;        |
-| `X-NETMEETING/X-TWITTER`                                  | `X-TWITTER` → `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`             |
+| `X-NETMEETING/X-TWITTER`                                  | `X-TWITTER` → `SOCIALPROFILE;SERVICE-TYPE=Twitter;VALUE=text`; a legacy   |
+|                                                           | line whose account an IMPP of the card already holds (same service and    |
+|                                                           | handle, or same scheme when the IMPP names no service) is dropped with    |
+|                                                           | its own label, its TYPE and PREF going to that IMPP: Apple writes both,   |
+|                                                           | and ICQ as `aim:`                                                         |
 | `X-SIP:<addr>`                                            | `IMPP:sip:<addr>` (Android's 3.0 form)                                    |
 | `X-SKYPE-PSTNNUMBER`                                      | `TEL;TYPE=x-skype`                                                        |
 | `X-PHONETIC-FIRST/MIDDLE/LAST-NAME`                       | kept raw in M2 (→ `vCardProps`); mapping to N;PHONETIC needs a            |
 |                                                           | script/system we do not know; revisit                                     |
 | `X-ADDRESSBOOKSERVER-KIND` / `-MEMBER`                    | `KIND` (if none) / `MEMBER`                                               |
 | `itemN.X-ABLabel:_$!<X>!$_`                               | built-ins → TYPE on the grouped property (`Home`→home, `Work`→work,       |
-|                                                           | `Mobile`→cell, `Main`→main as Apple's own `type=MAIN`, `HomePage`/        |
-|                                                           | `Other`→dropped); custom text kept (→ `label` in convert); empty label    |
-|                                                           | dropped (Google); a label repeating the IMPP SERVICE-TYPE dropped; a      |
-|                                                           | label whose group holds only raw `X-` properties kept with them           |
+|                                                           | `Mobile`→cell, `Main`→main as Apple's own `type=MAIN`, `Other`→other as   |
+|                                                           | its `type=OTHER` on TEL and ADR, `HomePage`→dropped); custom text kept    |
+|                                                           | (→ `label` in convert); empty label dropped (Google); a label repeating   |
+|                                                           | the IMPP SERVICE-TYPE dropped; a label whose group holds only raw `X-`    |
+|                                                           | properties kept with them; a group with several non-empty labels has      |
+|                                                           | none read                                                                 |
 | `itemN.X-ABADR:us`                                        | `CC=US` on grouped ADR; not two letters: kept (warning)                   |
 | `BDAY;X-APPLE-OMIT-YEAR=1604:1604-04-15` / bare 1604      | `BDAY:--0415`; also on X-ABDATE and ANNIVERSARY; a flag whose year        |
 |                                                           | does not match the value is left alone                                    |
@@ -512,16 +535,19 @@ The version is `card.version`, set to 4.0. The parser never leaves a
 VERSION property; one in a hand-built model is dropped first, with an
 `info` (`version-dropped`), because the writer refuses it.
 Issues are capped per code like the parser's, and messages quote values
-through `excerpt`. Rules index groups and candidate ADRs once per card, so
-a 20 000-row card upgrades in well under a second (a test keeps it so).
+through `excerpt`. Rules index groups and candidate ADRs once per card
+(a group's members, its label and first ADR are found once, never per
+property), so a 20 000-row card upgrades in well under a second whether
+its rows sit in 20 000 groups or in one (two tests keep it so).
 
 ### Writer
 
 - Engine + per-version syntax table (`write/v30.ts`, `write/v40.ts`,
   contract in `write/syntax.ts`). The engine emits `BEGIN:VCARD`, `VERSION`,
   then properties in model order (VERSION is the requested version whatever
-  `card.version` says; a VERSION property in a hand-built model is a
-  `SerializeError` like BEGIN and END), then `END:VCARD`, CRLF, no BOM, property and parameter names
+  `card.version` says; a VERSION property in a hand-built model is left
+  out with an error like BEGIN and END), then `END:VCARD`, CRLF, no BOM,
+  property and parameter names
   uppercased (Android compares case-sensitively), `CHARSET`/`ENCODING` from
   the model never written. The `VALUE` parameter is derived, not copied:
   absent when the kind is the property's default in the target version
@@ -553,10 +579,19 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
   `VALUE` tokens `date` / `time` / `date-time` by shape; RFC 6350-only
   shapes (`--04-12`, truncated times) are written as our parser reads them,
   phones read none of them and the profile must map them (Apple's
-  `X-APPLE-OMIT-YEAR`); escaping `\\ \, \; \n`; no CHARSET.
+  `X-APPLE-OMIT-YEAR`); escaping `\\ \, \; \n`; no CHARSET. The two other
+  values the normaliser lifts to URIs go back to their 3.0 shape like
+  media do: `UID` is text and `GEO` is `lat;lon` (a `geo:` URI with an
+  altitude or parameters stays `VALUE=uri`), so 3.0 → upgrade → 3.0 gives
+  the lines it was given. `SORT-AS` does not: emitting a `SORT-STRING`
+  property is the profile's call, the table only drops the parameter
+  (`param-not-in-30`).
 - **4.0 syntax**: caret encoding, quoted params, comma lists, `PREF=n`,
   components as held (the normaliser pads to 7/18), basic ISO dates,
-  `data:` URIs, `JSCOMPS` etc. passed through.
+  `data:` URIs, `JSCOMPS` etc. passed through. A parameter value holding
+  a control character caret encoding has no form for is dropped with a
+  `param-value-not-in-40` warning, as the 3.0 table does, so an N never
+  goes with its SORT-AS.
 - Parameter values are quoted when they hold `;` `:` `,` or start or end
   with whitespace (readers trim unquoted values); a parameter with no
   non-empty value is skipped. Names, groups and parameter keys are
@@ -568,26 +603,31 @@ a 20 000-row card upgrades in well under a second (a test keeps it so).
   Lines always end in CRLF; there is no line-ending option (decision of
   2026-11-09). Every loss the version forces is a `warning` in `issues`,
   with the `card` index and `group.NAME`, capped per code like the
-  parser's; 4.0 never raises one.
+  parser's.
 - Folding at 75 **octets** via `TextEncoder`, never splitting a UTF-8
   sequence or a `\` escape; base64 valid by construction (invalid base64
   aborts an entire Android import). Known limit: a `foldAt` shorter than
   `group.NAME;PARAM` lets a fold land before the first `=`, and the
   unfolder's N/ADR/ORG tolerance then joins that first line to the
   property above; impossible at 75 for any real name.
-- `SerializeError` only for what no version can express, always a
-  defect of the caller's model (the input is a card in 4.0 semantics; a
-  parsed 2.1 card must go through `upgradeTo40` first or its escapes are
-  doubled): `binary` in 4.0, a control character a 4.0 parameter cannot
-  caret-encode, a `TYPE` value holding a comma (readers split it even when
-  quoted), a date shape outside the grammar or a float that is not finite
-  (the formatters' `RangeError`, rethrown), an integer that is not safe,
-  a name outside `[A-Za-z0-9-]`,
-  `BEGIN`/`END` as a property, a line break escaping cannot absorb (URI,
-  raw), a value without the fields of its kind (the `TypeError`,
-  rethrown). It carries the card index and `group.NAME` as the caller
-  wrote them, the same id the warnings carry. A missing FN is not checked
-  here: 2.1 cards legally lack one, and `convert` always builds it.
+- The writer never throws on a model, only on options. A property no
+  line can hold is left out and reported as an `error`
+  (`property-not-written`, with the card index and `group.NAME` as the
+  caller wrote them, the id the warnings carry), and every other property
+  and card is written: `binary` in 4.0 (the input is a card in 4.0
+  semantics; a parsed 2.1 card must go through `upgradeTo40` first or its
+  escapes are doubled), a `TYPE` value holding a comma (readers split it
+  even when quoted), a date shape outside the grammar or a float that is
+  not finite (the formatters' `RangeError`), an integer that is not safe,
+  a property, group or parameter name outside `[A-Za-z0-9-]` (the reader
+  keeps `TEL;a_b=1:3` and `it_em.TEL:4` without an issue), `BEGIN`/`END`/
+  `VERSION` as a property, a line break in a value that has no escape
+  for one (a URI; a raw `unknown` value gets `\n`, since only decoded
+  quoted-printable puts a real one there), a value without the fields of
+  its kind (the `TypeError`). So nothing the parser and the normaliser
+  produce can abort an export, and `convert` needs no validator of its
+  own before calling the writer. A missing FN is not checked here: 2.1
+  cards legally lack one, and `convert` always builds it.
 
 ### Human-readable output rules
 
@@ -1108,9 +1148,10 @@ exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] 
    Then the others are numbered in property order from a counter that
    only moves forward, skipping reserved Ids: linear, where calling
    `nextId` per property rescans from 1 and is quadratic on a card of a
-   million `TEL` lines. One prefix per collection. Whether a card also
-   gets a cap on its properties, reported as an issue, is decided with
-   the hostile-input tests of M4.
+   million `TEL` lines. One prefix per collection. The parser caps the
+   content lines of a whole input (`maxContentLines`); whether a card
+   needs a cap of its own, reported as an issue, is decided with the
+   hostile-input tests of M4.
 4. **ALTID sets**: group by `name + ALTID`; pick the base (no LANGUAGE;
    else LANGUAGE == card `LANGUAGE`; else first). `PHONETIC` members merge
    into the base object's `phonetic*` fields. Other members become
@@ -1219,10 +1260,10 @@ ordered join, else `cardDisplayName`, with `DERIVED=TRUE` in `rfc`);
 `localizations` → ALTID + LANGUAGE in `rfc` only. Each profile returns the
 list of _losses_ as `info` issues so the export dialog can show "what this
 phone will not get back" before the file is written. A `vCardProps`
-entry named BEGIN, END or VERSION is never emitted, in any profile, and
-is reported with a warning: the JSON is hostile input, the writer throws
-a `SerializeError` on those names, and one entry must not abort the
-export of every card.
+entry named BEGIN, END or VERSION, or any other entry no line can hold
+(the JSON is hostile input), needs no check here: the writer leaves the
+property out and reports it (`property-not-written`), so one entry never
+aborts the export of every card.
 
 The Android and Apple emitters are compatible with each other's importers
 in practice (each ignores the other's `X-` properties), so a later

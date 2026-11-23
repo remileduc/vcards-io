@@ -1018,3 +1018,77 @@ candidates (a 64 Mi text of `[0,0,...]` takes seconds, not memory),
 bytes given in place of text, a mandatory property that is not
 enumerable, a getter that throws, and the `issues-truncated` warning
 that shows twice when one Card alone passes the cap of a code.
+
+2026-11-23 Review of the vcard package: the writer reports, the reader caps and warns
+-------------------------------------------------------------------------------------
+
+A review of package 1 before M4 found seven things. They were fixed with
+files written by other tools in mind more than hostile ones, and the
+choices are these. The writer no longer throws on a model:
+`TEL;a_b=1:3`, a group `it_em`, a quoted-printable `=0D=0A` in an `X-`
+value and a control character the normaliser itself moved into `SORT-AS`
+all parsed and upgraded without an issue and then aborted the export of
+every card. A
+property no line can hold is now left out and reported as an `error`
+(`property-not-written`), which supersedes the `SerializeError` sentences
+of 2026-11-09 and 2026-11-17: the class is internal and no longer
+exported, only bad options throw (`RangeError`), and `convert` needs no
+validator of its own for `vCardProps`. Two of those cases keep their
+property instead: a real line break in a raw `unknown` value is written
+as `\n` (only decoded quoted-printable puts one there), and the 4.0 table
+drops a parameter value with a control character with a warning
+(`param-value-not-in-40`) as the 3.0 table already did, because losing an
+N for its SORT-AS is worse than losing the SORT-AS. An odd parameter or
+group name still costs the whole property: dropping only the parameter
+was considered and left out as code for names no known tool writes. The
+3.0 table writes `UID` as text and a plain `geo:` URI as `GEO:lat;lon`,
+the inverse of the normaliser like inline media, so 3.0 → upgrade → 3.0
+no longer gains `VALUE=uri`; `SORT-AS` is still dropped with a warning,
+since a `SORT-STRING` line is a property to add and that is a profile's
+choice. The reader gets a third cap, `maxContentLines` (500 000 unfolded
+lines, an option): a line costs about a kilobyte of model whatever its
+length, 4 MiB of `A:` lines took 1.1 GB and 24 MiB ran out of heap. Past
+the cap nothing is parsed, like `maxInputBytes`, rather than a card
+passing as complete when it was cut; 500 000 is some 50 000 contacts.
+Three silent damages are reported or repaired: a BOM right before a card
+delimiter (two files joined into one) is stripped instead of hiding the
+BEGIN; an indented line with nothing to continue is still read as a line
+of its own, as AOSP does, but with a warning (`orphan-continuation`);
+and CHARSET applies to quoted-printable and base64 values of text input
+too, since what they decode to is bytes whatever the file was (Shift_JIS
+came out as mojibake split on a `\` that was half a character). The
+escaped-colon repair used a regex that was quadratic on a run of
+backslashes; a lookbehind makes it linear. On Apple input a legacy IM
+line (`X-AIM`) is dropped, with the label it alone carried, when an IMPP
+of the card holds the same account (`legacy-im-duplicate`): iOS writes
+MSN, AIM, Yahoo, ICQ and Jabber both ways. The match is on service and
+handle, or on scheme when the IMPP names no service, never on the URI
+alone, because Apple writes ICQ as `aim:` and an AIM and an ICQ account
+may share a handle. The `_$!<Other>!$_` label becomes `TYPE=other`, the
+form Apple's own `type=OTHER` on TEL and ADR already had, instead of
+being dropped; whether a profile writes it back is its call. Last, the
+normaliser was quadratic inside one group (20 000 `item1.TEL` with
+labels took 33 s) and across LABEL lines sharing a TYPE set: a group's
+members, label and first ADR are now indexed once. Apple writes one
+label per group; a group with several non-empty ones has none
+interpreted and all stay as written. Reading only the first was tried
+and broke idempotence: the first is consumed, so a second pass reads the
+next. That shape is hostile only, but the plan promised linear time and
+the fix was smaller than the caveat.
+
+A second review of the same change, same day, with the same yardstick.
+Fixed: the label rule above; a dropped legacy IM line now leaves its
+TYPE and PREF on the IMPP that stays and the `legacy-im-duplicate` info
+names the label dropped with it; the 3.0 `GEO:lat;lon` takes its digits
+from the `geo:` URI rather than from the parsed numbers (`37.380` came
+back as `37.38`); a line of spaces and tabs gets no
+`orphan-continuation` on top of the lexer's `invalid-line`; the names
+and TYPE values quoted by `property-not-written` go through `excerpt`.
+Left as is, because no exporting tool writes the shape and the fix is
+more code than the caveat: a BOM in the middle of a line (two BOM files
+joined when the first has no final newline), a control character in one
+value of a multi-valued `SORT-AS` shifting the others, a raw `unknown`
+value with a backslash right before a real line break, the warnings a
+property filed before it was left out, and a `cards` array holding
+something that is not a card, which is a `TypeError`: "never throws on
+a model" means the properties of a card.

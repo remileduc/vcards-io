@@ -2,7 +2,7 @@ import { excerpt } from "../issues.js";
 import { isMediaProperty, VALUE_TOKENS } from "../registry.js";
 import type { DateAndOrTime, VParams, VProperty, VValue } from "../types.js";
 import { declaredMediaType, mediaTypeName } from "../values/media.js";
-import { parseDataUri } from "../values/uri.js";
+import { parseDataUri, parseGeoUri } from "../values/uri.js";
 import {
 	hasControlChar,
 	type Prepared,
@@ -35,7 +35,7 @@ export const V30: SyntaxTable = {
 	dateFormat: { extended: true },
 
 	prepare(p: VProperty, warn: Warn): Prepared {
-		const value = inlineMedia(p);
+		const value = legacyValue(p);
 		const params: VParams = new Map();
 		if (value.kind === "binary") params.set("ENCODING", ["b"]);
 		const types: string[] = [];
@@ -117,9 +117,19 @@ function hasMediaType(value: VValue): boolean {
 	return value.kind === "binary" && value.mediaType !== undefined;
 }
 
-/** A `data:` URI on PHOTO/LOGO/SOUND/KEY goes back to inline base64; anything else is left alone. */
-function inlineMedia(p: VProperty): VValue {
-	if (p.value.kind !== "uri" || !isMediaProperty(p.name)) return p.value;
+// The inverse of the normaliser: a UID is text, a GEO `lat;lon` unless its URI says more, a
+// `data:` URI on PHOTO/LOGO/SOUND/KEY inline base64. Anything else is left alone.
+function legacyValue(p: VProperty): VValue {
+	if (p.value.kind !== "uri") return p.value;
+	if (p.name === "UID") return { kind: "text", value: p.value.value };
+	if (p.name === "GEO") {
+		const geo = parseGeoUri(p.value.value);
+		if (geo === null || geo.altitude !== undefined || geo.parameters.size > 0) return p.value;
+		// The URI's own digits, not the parsed numbers: `37.380` must not come back as `37.38`.
+		const [latitude = "", longitude = ""] = p.value.value.slice("geo:".length).split(",");
+		return { kind: "structured", components: [[latitude], [longitude]] };
+	}
+	if (!isMediaProperty(p.name)) return p.value;
 	const parsed = parseDataUri(p.value.value);
 	if (parsed === null) return p.value;
 	const value: VValue = { kind: "binary", data: parsed.data };

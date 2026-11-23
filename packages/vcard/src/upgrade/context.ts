@@ -1,6 +1,6 @@
 import type { UpgradeIssueCode } from "../issue-codes.js";
 import { IssueCollector, issue } from "../issues.js";
-import { cloneParams, propertyId } from "../model.js";
+import { cloneParams, propertyId, textOf } from "../model.js";
 import type { Issue, VCard, VParams, VProperty, VValue } from "../types.js";
 
 /** One normalisation step over a whole card: may rewrite, add or remove properties in place. */
@@ -89,29 +89,44 @@ export function removeTypes(p: VProperty, drop: (type: string) => boolean): stri
 	return removed;
 }
 
-/** Properties by group, built once per rule so a card with many groups stays linear. */
-export type GroupIndex = ReadonlyMap<string, readonly VProperty[]>;
+/** A group as the Apple rules read it; Apple writes one label and at most one ADR per group. */
+export interface Group {
+	/** Every member but the X-ABLABEL and X-ABADR helpers that annotate the others. */
+	members: VProperty[];
+	/** The one non-empty X-ABLABEL; with several, none is interpreted and all stay as written. */
+	label?: VProperty;
+	/** The first ADR, the one an X-ABADR country code is about. */
+	adr?: VProperty;
+}
+
+/** Groups by name, built once per rule: a rule never scans a group per property it visits. */
+export type GroupIndex = ReadonlyMap<string, Group>;
 
 export function groupIndex(card: VCard): GroupIndex {
-	const index = new Map<string, VProperty[]>();
+	const index = new Map<string, Group>();
+	const ambiguous = new Set<Group>();
 	for (const p of card.properties) {
 		if (p.group === null) continue;
-		const members = index.get(p.group);
-		if (members === undefined) index.set(p.group, [p]);
-		else members.push(p);
+		let group = index.get(p.group);
+		if (group === undefined) {
+			group = { members: [] };
+			index.set(p.group, group);
+		}
+		if (p.name === "X-ABLABEL") {
+			// An empty label is dropped by the label rule: it must not hide the real one.
+			if (textOf(p)?.trim() === "") continue;
+			if (group.label === undefined) group.label = p;
+			else ambiguous.add(group);
+		} else if (p.name !== "X-ABADR") group.members.push(p);
+		if (p.name === "ADR") group.adr ??= p;
 	}
+	// Reading the first of several would let a second pass read the next one differently.
+	for (const group of ambiguous) delete group.label;
 	return index;
 }
 
-/** Members of a group other than the Apple label and country helpers that annotate them. */
-export function membersOf(index: GroupIndex, group: string | null): VProperty[] {
-	if (group === null) return [];
-	return (index.get(group) ?? []).filter((p) => p.name !== "X-ABLABEL" && p.name !== "X-ABADR");
-}
-
-export function labelOf(index: GroupIndex, group: string | null): VProperty | undefined {
-	if (group === null) return undefined;
-	return index.get(group)?.find((p) => p.name === "X-ABLABEL");
+export function groupOf(index: GroupIndex, p: VProperty): Group | undefined {
+	return p.group === null ? undefined : index.get(p.group);
 }
 
 /** Hands out unused `itemN` groups, for properties that need a label of their own. */

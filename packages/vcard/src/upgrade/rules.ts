@@ -129,15 +129,15 @@ const geoToUri: Rule = (card, ctx) => {
 };
 
 // A LABEL joins the ADR of its group, else one with the same TYPE set, else a new empty ADR so
-// the text is never lost. ADRs are indexed once: thousands of them must not be scanned per label.
+// the text is never lost. ADRs are indexed once, last first: `lastFree` then takes them in order.
 const labelToAdrParam: Rule = (card, ctx) => {
 	const labels = card.properties.filter((p) => p.name === "LABEL");
 	if (labels.length === 0) return;
 	const byGroup = new Map<string, VProperty>();
 	const byTypes = new Map<string, VProperty[]>();
-	for (const adr of card.properties) {
+	for (const adr of card.properties.toReversed()) {
 		if (adr.name !== "ADR" || adr.params.has("LABEL")) continue;
-		if (adr.group !== null && !byGroup.has(adr.group)) byGroup.set(adr.group, adr);
+		if (adr.group !== null) byGroup.set(adr.group, adr);
 		const key = typeKey(adr);
 		const list = byTypes.get(key);
 		if (list === undefined) byTypes.set(key, [adr]);
@@ -156,7 +156,7 @@ const labelToAdrParam: Rule = (card, ctx) => {
 		const grouped = label.group === null ? undefined : byGroup.get(label.group);
 		const target =
 			(grouped !== undefined && !taken.has(grouped) ? grouped : undefined) ??
-			(byTypes.get(typeKey(label)) ?? []).find((adr) => !taken.has(adr));
+			lastFree(byTypes.get(typeKey(label)) ?? [], taken);
 		if (target !== undefined) {
 			taken.add(target);
 			target.params.set("LABEL", [text]);
@@ -176,6 +176,15 @@ const labelToAdrParam: Rule = (card, ctx) => {
 	}
 	rewrite(card, (p) => replacement.get(p));
 };
+
+/** The last candidate not taken yet. Taken ones leave the list, so no label scans them again. */
+function lastFree(candidates: VProperty[], taken: ReadonlySet<VProperty>): VProperty | undefined {
+	for (let last = candidates.at(-1); last !== undefined; last = candidates.at(-1)) {
+		if (!taken.has(last)) return last;
+		candidates.pop();
+	}
+	return undefined;
+}
 
 /** TYPE values as a set, folded and sorted, so two properties with the same types share a key. */
 function typeKey(p: VProperty): string {

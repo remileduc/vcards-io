@@ -46,7 +46,6 @@ export {
 	type TelUri,
 } from "./values/uri.js";
 export { serializeVCards } from "./write/engine.js";
-export { SerializeError } from "./write/error.js";
 
 // For the sibling @vcards-io packages: these tables follow the registry and the importers,
 // and may change in any release.

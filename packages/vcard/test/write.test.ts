@@ -6,7 +6,6 @@ import {
 	mediaTypeName,
 	nearestValueKind,
 	parseVCards,
-	SerializeError,
 	type SerializeOptions,
 	serializeVCards,
 	upgradeTo40,
@@ -48,6 +47,14 @@ const line = (p: VProperty, options: Partial<SerializeOptions> = {}) =>
 const issuesOf = (p: VProperty, options: Partial<SerializeOptions> = {}) =>
 	serializeVCards([card(p)], { version: "4.0", ...options }).issues;
 
+/** Checks that the one property is left out, and returns the messages of the errors saying so. */
+function refusals(p: VProperty, options: Partial<SerializeOptions> = {}): string[] {
+	const { text: out, issues } = serializeVCards([card(p)], { version: "4.0", ...options });
+	expect(out.split("\r\n").slice(2, -2)).toEqual([]);
+	expect(issues.every((i) => i.severity === "error" && i.card === 0)).toBe(true);
+	return issues.filter((i) => i.code === "property-not-written").map((i) => i.message);
+}
+
 /** Parses `text` (any version), upgrades, writes in `version` and returns the property lines. */
 function rewrite(version: "3.0" | "4.0", ...source: string[]): string[] {
 	const parsed = parseVCards(["BEGIN:VCARD", ...source, "END:VCARD"].join("\r\n"));
@@ -63,13 +70,15 @@ describe("serializeVCards envelope", () => {
 		expect(out).toBe("BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nN:B\r\nEND:VCARD\r\n");
 	});
 
-	test("writes the requested VERSION whatever card.version says, and refuses one as a property", () => {
+	test("writes the requested VERSION whatever card.version says, and leaves out one held as a property", () => {
 		const legacy: VCard = { version: "2.1", properties: [prop("FN", text("A"))] };
 		expect(serializeVCards([legacy], { version: "3.0" }).text).toBe(
 			"BEGIN:VCARD\r\nVERSION:3.0\r\nFN:A\r\nEND:VCARD\r\n",
 		);
 		for (const name of ["VERSION", "version"]) {
-			expect(() => line(prop(name, text("2.1")))).toThrow("VERSION is not a property");
+			expect(refusals(prop(name, text("2.1")))).toEqual([
+				"Not written: VERSION is not a property",
+			]);
 		}
 	});
 
@@ -218,12 +227,10 @@ describe("values", () => {
 		}
 	});
 
-	test("rejects an unsafe integer or a float that is not finite", () => {
-		expect(() => line(prop("X-N", { kind: "integer", value: 2 ** 53 }))).toThrow(
-			SerializeError,
-		);
+	test("leaves out an unsafe integer or a float that is not finite", () => {
+		expect(refusals(prop("X-N", { kind: "integer", value: 2 ** 53 }))).toHaveLength(1);
 		for (const value of [Number.NaN, Number.POSITIVE_INFINITY]) {
-			expect(() => line(prop("X-F", { kind: "float", value }))).toThrow(SerializeError);
+			expect(refusals(prop("X-F", { kind: "float", value }))).toHaveLength(1);
 		}
 	});
 
@@ -247,58 +254,58 @@ describe("values", () => {
 		expect(line(tz, { version: "3.0" })).toBe("TZ:-05:00");
 	});
 
-	test("turns a formatter RangeError into a SerializeError naming the property", () => {
+	test("turns a formatter RangeError into an error naming the property, and writes the rest", () => {
 		const bad = prop(
 			"BDAY",
 			{ kind: "date-and-or-time", value: { month: 13 }, raw: "" },
 			{},
 			"g",
 		);
-		let caught: unknown;
-		try {
-			serializeVCards([card(prop("FN", text("A"))), card(bad)], { version: "4.0" });
-		} catch (error) {
-			caught = error;
-		}
-		expect(caught).toBeInstanceOf(SerializeError);
-		const error = caught as SerializeError;
-		expect(error.card).toBe(1);
-		expect(error.property).toBe("g.BDAY");
-		expect(error.message).toContain("g.BDAY");
+		bad.line = 7;
+		const { text: out, issues } = serializeVCards(
+			[card(prop("FN", text("A"))), card(bad, prop("FN", text("B")))],
+			{ version: "4.0" },
+		);
+		expect(out).toBe(
+			"BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nEND:VCARD\r\n" +
+				"BEGIN:VCARD\r\nVERSION:4.0\r\nFN:B\r\nEND:VCARD\r\n",
+		);
+		expect(issues).toMatchObject([
+			{
+				severity: "error",
+				code: "property-not-written",
+				card: 1,
+				property: "g.BDAY",
+				line: 7,
+			},
+		]);
 	});
 
-	test("turns a value without the fields of its kind into a SerializeError", () => {
+	test("turns a value without the fields of its kind into an error", () => {
 		// The shape `utc-offset` had before its fields were nested under `value`.
 		const flat = { kind: "utc-offset", sign: -1, hours: 5, minutes: 0 } as unknown as VValue;
 		const list = { kind: "text-list" } as unknown as VValue;
 		for (const value of [flat, list]) {
-			let caught: unknown;
-			try {
-				serializeVCards([card(prop("FN", text("A"))), card(prop("TZ", value))], {
-					version: "4.0",
-				});
-			} catch (error) {
-				caught = error;
-			}
-			expect(caught).toBeInstanceOf(SerializeError);
-			expect(caught).toMatchObject({ card: 1, property: "TZ" });
-			expect((caught as SerializeError).message).toContain("Malformed property");
+			const { issues } = serializeVCards(
+				[card(prop("FN", text("A"))), card(prop("TZ", value))],
+				{ version: "4.0" },
+			);
+			expect(issues).toMatchObject([
+				{ code: "property-not-written", card: 1, property: "TZ" },
+			]);
+			expect(issues[0]?.message).toContain("Malformed property");
 		}
 	});
 
-	test("turns an entry that is not a property into a SerializeError with the card index", () => {
+	test("turns an entry that is not a property into an error with the card index", () => {
 		for (const entry of [null, undefined, {}, "FN:A"]) {
-			let caught: unknown;
-			try {
-				serializeVCards([card(prop("FN", text("A")), entry as unknown as VProperty)], {
-					version: "4.0",
-				});
-			} catch (error) {
-				caught = error;
-			}
-			expect(caught).toBeInstanceOf(SerializeError);
-			expect(caught).toMatchObject({ card: 0, property: undefined });
-			expect((caught as SerializeError).message).toContain("(card 0, no name)");
+			const { text: out, issues } = serializeVCards(
+				[card(prop("FN", text("A")), entry as unknown as VProperty)],
+				{ version: "4.0" },
+			);
+			expect(out).toBe("BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nEND:VCARD\r\n");
+			expect(issues).toMatchObject([{ code: "property-not-written", card: 0 }]);
+			expect(issues[0]?.property).toBeUndefined();
 		}
 	});
 
@@ -323,8 +330,8 @@ describe("VALUE parameter", () => {
 		expect(line(prop("URL", uri("http://a"), { VALUE: ["uri"] }))).toBe("URL:http://a");
 		expect(line(prop("UID", text("abc")))).toBe("UID;VALUE=text:abc");
 		expect(line(prop("UID", text("abc")), { version: "3.0" })).toBe("UID:abc");
-		expect(line(prop("UID", uri("urn:uuid:1")), { version: "3.0" })).toBe(
-			"UID;VALUE=uri:urn:uuid:1",
+		expect(line(prop("X-ID", uri("urn:uuid:1")), { version: "3.0" })).toBe(
+			"X-ID;VALUE=uri:urn:uuid:1",
 		);
 		expect(line(prop("TEL", uri("tel:+1")))).toBe("TEL;VALUE=uri:tel:+1");
 		expect(
@@ -420,12 +427,41 @@ describe("4.0 parameters", () => {
 		);
 	});
 
-	test("rejects a binary value: the normaliser makes data: URIs", () => {
-		expect(() => line(prop("PHOTO", { kind: "binary", data: JPEG }))).toThrow(SerializeError);
+	test("leaves out a binary value: the normaliser makes data: URIs", () => {
+		expect(refusals(prop("PHOTO", { kind: "binary", data: JPEG }))).toHaveLength(1);
 	});
 
-	test("rejects a control character in a parameter", () => {
-		expect(() => line(prop("TEL", text("1"), { TYPE: ["a\u0001b"] }))).toThrow(SerializeError);
+	test("drops a parameter value holding a control character, and keeps the property", () => {
+		const tel = prop("TEL", text("1"), { TYPE: ["a\u0001b", "home"], "X-A": ["\u007f"] });
+		expect(line(tel)).toBe("TEL;TYPE=home:1");
+		expect(issuesOf(tel).map((i) => [i.severity, i.code])).toEqual([
+			["warning", "param-value-not-in-40"],
+			["warning", "param-value-not-in-40"],
+		]);
+	});
+
+	test("writes GEO and UID in 3.0 as a 3.0 file holds them", () => {
+		const source = ["VERSION:3.0", "GEO:37.386013;-122.082932", "UID:urn:uuid:1-2,3"];
+		expect(rewrite("4.0", ...source)).toEqual([
+			"GEO:geo:37.386013,-122.082932",
+			"UID:urn:uuid:1-2,3",
+		]);
+		expect(rewrite("3.0", ...source)).toEqual(
+			source.slice(1).map((l) => l.replace(",", "\\,")),
+		);
+		expect(rewrite("3.0", "VERSION:3.0", "GEO:37.380;-122.100")).toEqual([
+			"GEO:37.380;-122.100",
+		]);
+		// What 3.0's two numbers cannot say stays a URI.
+		for (const geo of ["geo:1,2,3", "geo:1,2;u=10", "http://example.com/geo"]) {
+			expect(line(prop("GEO", uri(geo)), { version: "3.0" })).toBe(`GEO;VALUE=uri:${geo}`);
+		}
+	});
+
+	test("a control character the normaliser moved into SORT-AS does not cost the name", () => {
+		expect(rewrite("4.0", "VERSION:3.0", "N:Doe;John;;;", "SORT-STRING:D\u0001oe")).toEqual([
+			"N:Doe;John;;;;;",
+		]);
 	});
 });
 
@@ -574,7 +610,7 @@ describe("3.0 parameters", () => {
 			'BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nGEO;X-ADDRESS="1 Main^nTown":geo:1,2\r\nEND:VCARD\r\n',
 		);
 		const out = serializeVCards(parsed.cards, { version: "3.0" });
-		expect(out.text).toContain("\r\nGEO;VALUE=uri:geo:1,2\r\n");
+		expect(out.text).toContain("\r\nGEO:1;2\r\n");
 		expect(out.issues).toEqual([
 			{
 				severity: "warning",
@@ -654,43 +690,54 @@ describe("3.0 parameters", () => {
 });
 
 describe("hostile models", () => {
-	test("refuses a TYPE value holding a comma, which readers split even when quoted", () => {
+	test("leaves out a TYPE value holding a comma, which readers split even when quoted", () => {
 		for (const version of ["3.0", "4.0"] as const) {
-			expect(() => line(prop("EMAIL", text("e@x"), { TYPE: ["a,b"] }), { version })).toThrow(
-				SerializeError,
-			);
+			expect(
+				refusals(prop("EMAIL", text("e@x"), { TYPE: ["a,b"] }), { version }),
+			).toHaveLength(1);
 		}
 	});
 
-	test("rejects names and groups outside the grammar, and BEGIN/END as properties", () => {
-		expect(() => line(prop("FN:X", text("a")))).toThrow(SerializeError);
-		expect(() => line(prop("FN", text("a"), {}, "item 1"))).toThrow(SerializeError);
-		expect(() => line(prop("FN", text("a"), { "T;Y": ["x"] }))).toThrow(SerializeError);
-		expect(() => line(prop("", text("a")))).toThrow(SerializeError);
-		expect(() => line(prop("END", text("VCARD")))).toThrow(SerializeError);
-		expect(() => line(prop("begin", text("VCARD")))).toThrow(SerializeError);
+	test("leaves out names and groups outside the grammar, and BEGIN/END as properties", () => {
+		expect(refusals(prop("FN:X", text("a")))).toHaveLength(1);
+		expect(refusals(prop("FN", text("a"), {}, "item 1"))).toHaveLength(1);
+		expect(refusals(prop("FN", text("a"), { "T;Y": ["x"] }))).toHaveLength(1);
+		expect(refusals(prop("", text("a")))).toHaveLength(1);
+		expect(refusals(prop("END", text("VCARD")))).toHaveLength(1);
+		expect(refusals(prop("begin", text("VCARD")))).toHaveLength(1);
 	});
 
-	test("rejects a line break that escaping cannot absorb", () => {
-		expect(() => line(prop("URL", uri("http://a\r\nFN:injected")))).toThrow(SerializeError);
-		expect(() => line(prop("X-RAW", { kind: "unknown", raw: "a\nb" }))).toThrow(SerializeError);
-		expect(() => line(prop("LANG", { kind: "language-tag", value: "fr\n" }))).toThrow(
-			SerializeError,
+	test("leaves out a line break that escaping cannot absorb", () => {
+		expect(refusals(prop("URL", uri("http://a\r\nFN:injected")))).toEqual([
+			"Not written: Line break in a value that cannot escape it",
+		]);
+		expect(refusals(prop("LANG", { kind: "language-tag", value: "fr\n" }))).toHaveLength(1);
+	});
+
+	test("escapes a line break in a raw value, where only decoded quoted-printable puts one", () => {
+		expect(line(prop("X-RAW", { kind: "unknown", raw: "a\nb\r\nc\\,d" }))).toBe(
+			"X-RAW:a\\nb\\nc\\,d",
 		);
+		const source = "X-FOO;ENCODING=QUOTED-PRINTABLE:a=0D=0Ab";
+		expect(rewrite("3.0", "VERSION:2.1", source)).toEqual(["X-FOO:a\\nb"]);
 	});
 
-	test("the error carries the card index and property id", () => {
-		try {
-			serializeVCards([card(prop("FN", text("a"), {}, "item1"), prop("URL", uri("\n")))], {
-				version: "4.0",
-			});
-			expect.unreachable();
-		} catch (error) {
-			expect(error).toBeInstanceOf(SerializeError);
-			expect((error as SerializeError).card).toBe(0);
-			expect((error as SerializeError).property).toBe("URL");
-			expect((error as SerializeError).name).toBe("SerializeError");
-		}
+	test("what the reader accepts without an issue never aborts the export of the other cards", () => {
+		const source = [
+			"BEGIN:VCARD\r\nVERSION:3.0\r\nFN:A\r\nTEL;a_b=1:3\r\nit_em.TEL:4\r\nEND:VCARD",
+			"BEGIN:VCARD\r\nVERSION:3.0\r\nFN:B\r\nEND:VCARD\r\n",
+		].join("\r\n");
+		const parsed = parseVCards(source);
+		expect(parsed.issues).toEqual([]);
+		const { text: out, issues } = serializeVCards(
+			parsed.cards.map((c) => upgradeTo40(c).card),
+			{ version: "3.0" },
+		);
+		expect(out).toBe(source.replace("TEL;a_b=1:3\r\nit_em.TEL:4\r\n", ""));
+		expect(issues).toMatchObject([
+			{ severity: "error", code: "property-not-written", card: 0, property: "TEL", line: 4 },
+			{ severity: "error", code: "property-not-written", card: 0, property: "it_em.TEL" },
+		]);
 	});
 });
 

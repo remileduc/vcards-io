@@ -107,7 +107,7 @@ describe("fixture expectations", () => {
 	});
 
 	test("apple/cozy-ios-full.vcf: labels, relations, IM, social, country codes", () => {
-		const { cards } = load("apple/cozy-ios-full.vcf");
+		const { cards, issues } = load("apple/cozy-ios-full.vcf");
 		const card = cards[0];
 		expect(names(card, "ANNIVERSARY").map(id)).toEqual(["item28.ANNIVERSARY"]);
 		expect(names(card, "RELATED").map((p) => first(p, "TYPE"))).toEqual([
@@ -125,12 +125,10 @@ describe("fixture expectations", () => {
 			undefined,
 			"x-custom",
 		]);
+		// item12..16 repeat item18 and item21..24 as X-MSN, X-AIM...: one IMPP per account is left.
+		expect(card?.properties.filter((p) => /^item1[2-6]$/.test(p.group ?? ""))).toEqual([]);
+		expect(codes(issues).filter((c) => c === "legacy-im-duplicate")).toHaveLength(5);
 		expect(names(card, "IMPP").map((p) => first(p, "SERVICE-TYPE"))).toEqual([
-			"MSN",
-			"AIM",
-			"Yahoo",
-			"ICQ",
-			"Jabber",
 			"Skype",
 			"MSN",
 			"GoogleTalk",
@@ -176,7 +174,7 @@ describe("fixture expectations", () => {
 			{ TYPE: ["home"], PREF: ["1"] },
 			{ TYPE: ["work"] },
 			{},
-			{},
+			{ TYPE: ["other"] },
 			{},
 			{ TYPE: ["home"] },
 		]);

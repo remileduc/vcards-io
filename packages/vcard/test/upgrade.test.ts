@@ -446,4 +446,27 @@ describe("review regressions", () => {
 		expect(card.properties.filter((p) => p.name === "RELATED")).toHaveLength(20_000);
 		expect(card.properties.filter((p) => p.name === "ADR")).toHaveLength(20_000);
 	});
+
+	test("one group holding tens of thousands of rows upgrades in linear time too", () => {
+		const lines: string[] = [];
+		for (let i = 0; i < 20_000; i++) {
+			lines.push(
+				`item1.TEL:${i}`,
+				"item1.X-ABLabel:_$!<Home>!$_",
+				"item1.X-ABADR:fr",
+				`ADR;TYPE=home:;;${i};;;;`,
+				`LABEL;TYPE=home:${i}`,
+			);
+		}
+		const start = performance.now();
+		const { card } = upgradeTo40(source("3.0", "FN:A", ...lines));
+		expect(performance.now() - start).toBeLessThan(5000);
+		// Twenty thousand labels in one group say nothing sure: none is read, all stay.
+		expect(card.properties.filter((p) => p.name === "X-ABLABEL")).toHaveLength(20_000);
+		expect(card.properties.some((p) => p.name === "TEL" && p.params.has("TYPE"))).toBe(false);
+		const labelled = card.properties.filter((p) => p.name === "ADR" && p.params.has("LABEL"));
+		expect(labelled.map((p) => p.params.get("LABEL")?.[0])).toEqual(
+			Array.from({ length: 20_000 }, (_, i) => String(i)),
+		);
+	});
 });

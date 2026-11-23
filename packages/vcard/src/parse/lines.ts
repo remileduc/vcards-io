@@ -1,8 +1,9 @@
 import { discardIssues, type IssueSink, latin1 } from "../issues.js";
 import { lexContentLine } from "./lexer.js";
-import { error, warn } from "./report.js";
+import { error, info, warn } from "./report.js";
 
 export const DEFAULT_MAX_LINE_LENGTH = 1024 * 1024;
+export const DEFAULT_MAX_CONTENT_LINES = 500_000;
 
 const HTAB = 0x09;
 const LF = 0x0a;
@@ -37,9 +38,13 @@ export function readLogicalLines(
 	bytes: Uint8Array,
 	issues: IssueSink,
 	maxLineLength = DEFAULT_MAX_LINE_LENGTH,
+	maxContentLines = DEFAULT_MAX_CONTENT_LINES,
 ): LogicalLine[] {
 	if (!Number.isInteger(maxLineLength) || maxLineLength < 1) {
 		throw new RangeError(`maxLineLength must be a positive integer, got ${maxLineLength}`);
+	}
+	if (!Number.isInteger(maxContentLines) || maxContentLines < 1) {
+		throw new RangeError(`maxContentLines must be a positive integer, got ${maxContentLines}`);
 	}
 	const out: LogicalLine[] = [];
 	const pending = new Pending();
@@ -50,6 +55,11 @@ export function readLogicalLines(
 	};
 
 	const handle = (segment: Uint8Array, line: number): void => {
+		if (hasBom(segment) && isCardDelimiter(segment.subarray(3))) {
+			// Two files joined into one: the BOM would hide the BEGIN and lose the card.
+			segment = segment.subarray(3);
+			issues.push(info("bom-stripped", "UTF-8 BOM before a card delimiter removed", line));
+		}
 		const first = segment[0];
 		const indented = first === SP || first === HTAB;
 		if (segment.length > maxLineLength) {
@@ -106,13 +116,23 @@ export function readLogicalLines(
 		}
 		flush();
 		if (segment.length === 0) return;
+		if (indented && !isBlank(segment)) {
+			// Read as a line of its own, as AOSP does, but a broken fold must not pass unnoticed.
+			issues.push(
+				warn(
+					"orphan-continuation",
+					"Indented line with no line to continue, read as a line of its own",
+					line,
+				),
+			);
+		}
 		pending.start(segment, line);
 	};
 
 	let pos = 0;
 	let line = 0;
 	const n = bytes.length;
-	while (pos < n) {
+	while (pos < n && out.length <= maxContentLines) {
 		line++;
 		let end = pos;
 		while (end < n && bytes[end] !== CR && bytes[end] !== LF) end++;
@@ -120,6 +140,16 @@ export function readLogicalLines(
 		pos = end + (bytes[end] === CR && bytes[end + 1] === LF ? 2 : 1);
 	}
 	flush();
+	if (out.length > maxContentLines) {
+		// A line costs about a kilobyte of model whatever its length: stop before memory does.
+		issues.push(
+			error(
+				"too-many-lines",
+				`Input has more than ${maxContentLines} content lines, nothing parsed`,
+			),
+		);
+		return [];
+	}
 	return out;
 }
 
@@ -330,6 +360,14 @@ function nameEnd(segment: Uint8Array, from: number): number {
 		i++;
 	}
 	return i;
+}
+
+function isBlank(segment: Uint8Array): boolean {
+	return segment.every((b) => b === SP || b === HTAB);
+}
+
+function hasBom(segment: Uint8Array): boolean {
+	return segment[0] === 0xef && segment[1] === 0xbb && segment[2] === 0xbf;
 }
 
 function isCardDelimiter(segment: Uint8Array): boolean {
