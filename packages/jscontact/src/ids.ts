@@ -10,8 +10,9 @@ export function isId(value: string): boolean {
 	return ID.test(value);
 }
 
-// Short enough that the number never takes the Id past its 255 characters.
-const ID_PREFIX = /^[A-Za-z0-9_-]{0,200}$/;
+// Short enough that the number never takes the Id past its 255 characters. No digit first:
+// an object lists its digit-only keys in numeric order, before the others.
+const ID_PREFIX = /^[A-Za-z_-][A-Za-z0-9_-]{0,199}$/;
 
 /** The smallest unused `<prefix><n>` of a map, counting from 1: `p1`, `p2`, as RFC 9553 writes. */
 export function nextId(map: Readonly<Record<string, unknown>> | undefined, prefix: string): Id {

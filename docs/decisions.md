@@ -1092,3 +1092,66 @@ value with a backslash right before a real line break, the warnings a
 property filed before it was left out, and a `cards` array holding
 something that is not a card, which is a `TypeError`: "never throws on
 a model" means the properties of a card.
+
+2026-11-23 Review of the jscontact package: seven findings, by the same yardstick
+---------------------------------------------------------------------------------
+
+Most input is written by other tools, so a finding was fixed when the
+fix is a few lines and left when only code or a hostile file gets there.
+Fixed: `LocalizeResult.card` is typed `Record<string, unknown> | null`,
+no longer `Card | null`, since a patch a valid Card carries can set any
+value anywhere and `cardDisplayName` threw on the result; the type now
+sends the caller through `validateCard`, which the contract already
+asked for. `cardDisplayName` reads separators alone as no name (it showed
+`-`) and no `pref` as the least preferred whatever the other numbers
+are (a `pref` of 500, which the validator does not range-check, ranked
+below none). `nextId` refuses a prefix that is empty or starts with a
+digit: an object lists digit-only keys in numeric order, before the
+others. `stringifyCards` writes version "2.0", so a "1.0" Card built in
+code is written as the reader would have returned it. `maxTextLength`
+takes `Infinity` for no cap, and `DEFAULT_MAX_TEXT_LENGTH` is exported.
+"Structured diff" is gone from the descriptions until M4.5 writes it.
+
+Two reverse what the entry of 2026-11-22 left. Bytes given in place of
+text are decoded as UTF-8 (strictly: bytes that are not UTF-8 are
+`json-syntax`) and capped by their length first: read as a Card, a
+`Uint8Array` of 32 MB cost 1.4 GB before `card-too-large`, and passing
+what `file.arrayBuffer()` returned is a mistake the `unknown` parameter
+invites. And the cap on a member name (`MAX_KEY_LENGTH`) became a cap on
+the JSON Pointer to a member (`MAX_PATH_LENGTH`, still 1024, still
+`card-too-large`): 64 levels of names of 1024 gave paths of 65 kB, and a
+thousand issues per code under them 61 MB from 68 kB of JSON. A path of
+a real Card stays under 300.
+
+Left: `nextId` still scans from 1, so filling a map through it is
+quadratic (5 000 Ids, about a second); it serves the editor and the
+merge, one entry at a time, and the converter has its own allocator.
+`validateCard` given a typed array directly, or a Card holding one, still
+walks its indexes: only code can build that, `JSON.parse` cannot.
+
+2026-11-24 Review of the staged jscontact fixes: three more, by the same yardstick
+----------------------------------------------------------------------------------
+
+Same yardstick. Fixed, each in a line or two: `validateCard` compares
+the length of a member name with `MAX_PATH_LENGTH` before it escapes
+it (the path cap of 2026-11-23 escaped first, so one name of 30 MB took
+2.5 s where the name cap took 50 ms); `parseJSContact` reads the length
+of its bytes inside its `try`, a `DataView` on a detached buffer being
+the one view whose `byteLength` throws (`json-syntax`); and its decoder
+has `ignoreBOM`, as those of the vCard reader have, so one byte order
+mark is skipped from bytes as from text, not two.
+
+Left. `applyPatchObject` still types its copy as the target: it patches
+any object, has no validator to send the caller to, and `PatchResult`
+says so; `localize`, which only takes Cards, is the one that changed.
+`cardDisplayName` shows the separators around a blank component of an
+ordered Name (`John  Doe`, `, John`): dropping them contradicts "a
+separator is verbatim, even first", and no tool writes a blank component
+between separators. `stringifyCards` sets "2.0" without an issue: it
+returns text, and with two versions accepted the only rewrite is the one
+the reader reports; a third version has to revisit it. A raw
+`SharedArrayBuffer` or an `ArrayBuffer` of another realm is read as a
+Card, not as bytes; bytes too many for the engine to decode under
+`maxTextLength: Infinity` are `json-syntax`; and a cap sized from the
+text refuses the same text as bytes, the cap being in the unit of the
+input, as the option says.

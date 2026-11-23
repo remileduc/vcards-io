@@ -1,11 +1,12 @@
 /**
  * @vcards-io/jscontact: JSContact 2.0 types, validator, pointer/patch
- * utilities, vendor extensions and structured diff. See docs/plan.md,
+ * utilities, vendor extensions and the JSON backup. See docs/plan.md,
  * "Package 2".
  */
 export const VERSION = "0.1.0";
 
 export {
+	DEFAULT_MAX_TEXT_LENGTH,
 	type ParseJSContactOptions,
 	type ParseJSContactResult,
 	parseJSContact,

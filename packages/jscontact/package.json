@@ -1,13 +1,12 @@
 {
   "name": "@vcards-io/jscontact",
   "version": "0.1.0",
-  "description": "JSContact 2.0 (RFC 9553/9982) types, validator, JSON Pointer/PatchObject utilities and structured diff",
+  "description": "JSContact 2.0 (RFC 9553/9982) types, validator, JSON Pointer/PatchObject utilities and JSON backup",
   "keywords": [
     "jscontact",
     "contacts",
     "validator",
     "json-pointer",
-    "diff",
     "rfc9553",
     "rfc9982"
   ],

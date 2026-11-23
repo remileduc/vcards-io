@@ -110,8 +110,8 @@ Every issue it raises is an `error`, and one is enough for `card` to be
 | an Id has 1 to 255 of `A-Za-z0-9-_`      | `id-invalid`                     |
 | a `vCardProps` entry is a jCard property | `jcard-prop-invalid`             |
 | nesting of 64 levels at most             | `card-too-deep`                  |
-| 100 000 members at most, and no member   | `card-too-large`                 |
-| name over 1024 characters                |                                  |
+| 100 000 members at most, and no path to  | `card-too-large`                 |
+| a member over 1024 characters            |                                  |
 | no own `__proto__` key, anywhere         | `prototype-key`                  |
 
 Not checked, and kept as they are: unknown and miscased properties,
@@ -120,8 +120,8 @@ URIs, language tags, time zones), ranges (`pref`, month, day) and every
 rule between properties. A Card that passes may still have a Name with
 neither `full` nor `components`: code reading a Card copes with it. The
 patches of `localizations` are not applied either; `localize` reports
-one that cannot apply, and its result goes through `validateCard` before
-it is read.
+one that cannot apply, and its result, typed a plain JSON object, goes
+through `validateCard` before it is read as a Card.
 
 Patches and pointers
 --------------------
@@ -144,21 +144,22 @@ JSON backup
 `stringifyCards(cards)` writes an array of Cards as two-space JSON:
 properties in the order of RFC 9553, unknown and vendor ones after by
 name, `media` last, empty maps left out (`normalizeCard` does the same
-for one Card). Each Card is stamped with
+for one Card). Each Card is written as version "2.0" and stamped with
 `"remileduc.github.io:formatVersion": 1`, the format of the file, so a
 later version can repair what an earlier one wrote.
 
-`parseJSContact(input, options?)` takes that text, or any JSON text or
-parsed value holding one Card or an array, removes the stamp and
-validates each Card. Refused Cards are left out, counted in `refused`
-and reported with their index, up to the cap of 1000 issues per code. A
-Card of version "1.0" comes back as "2.0" with an `info`. A stamp that
-is no positive integer is an error; a stamp from a later format is a
-warning and the Card is read as it stands. A byte order mark before the
-text is skipped.
+`parseJSContact(input, options?)` takes that text, or any JSON text, its
+UTF-8 bytes or the parsed value, holding one Card or an array, removes
+the stamp and validates each Card. Refused Cards are left out, counted
+in `refused` and reported with their index, up to the cap of 1000 issues
+per code. A Card of version "1.0" comes back as "2.0" with an `info`. A
+stamp that is no positive integer is an error; a stamp from a later
+format is a warning and the Card is read as it stands. A byte order mark
+before the text is skipped.
 
-Text over 64 Mi characters is not parsed, unless `maxTextLength` says
-otherwise (a value that is no positive integer throws a `RangeError`).
+Text over 64 Mi characters or bytes (`DEFAULT_MAX_TEXT_LENGTH`) is not
+parsed, unless `maxTextLength` says otherwise: a positive integer, or
+`Infinity` for no cap, anything else throws a `RangeError`.
 `stringifyCards` has no such cap: to read back a backup that may be
 larger, pass a `maxTextLength` that fits it.
 
@@ -179,7 +180,7 @@ major release.
 | Validation      | `validateCard`, `ValidationResult`                            |
 | Backup          | `parseJSContact`, `ParseJSContactOptions`,                    |
 |                 | `ParseJSContactResult`, `stringifyCards`, `normalizeCard`,    |
-|                 | `FORMAT_STAMP`, `FORMAT_VERSION`                              |
+|                 | `FORMAT_STAMP`, `FORMAT_VERSION`, `DEFAULT_MAX_TEXT_LENGTH`   |
 | Patches         | `jsonPointer`, `applyPatchObject`, `PatchResult`, `localize`, |
 |                 | `LocalizeResult`                                              |
 | Utilities       | `equal`, `cardDisplayName`, `isId`, `nextId`, `newUid`,       |
@@ -203,6 +204,7 @@ change in any release; pin an exact version if you depend on it.
 | Relations            | `VENDOR_RELATIONS`, `VendorRelation`                |
 
 Ids are never random: `nextId(map, prefix)` gives the smallest unused
-`<prefix><n>`, so the same input gives the same Card. No function of
+`<prefix><n>`, so the same input gives the same Card; the prefix starts
+with a letter, `-` or `_`. No function of
 this package generates a `uid`; `newUid` is there for the application to
 call.

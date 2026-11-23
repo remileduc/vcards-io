@@ -48,6 +48,18 @@ describe("cardDisplayName", () => {
 		expect(named({ isOrdered: true, components })).toBe("« 孫中山 »");
 	});
 
+	test("separators alone are no name, in order or not: the next source answers", () => {
+		const components: Name["components"] = [
+			{ kind: "separator", value: "-" },
+			{ kind: "given", value: " " },
+		];
+		const nicknames: Card["nicknames"] = { n1: { name: "Johnny" } };
+		expect(cardDisplayName(card({ name: { isOrdered: true, components }, nicknames }))).toBe(
+			"Johnny",
+		);
+		expect(cardDisplayName(card({ name: { components }, nicknames }))).toBe("Johnny");
+	});
+
 	test.each(["", " "])("a component of value %j brings no separator of its own", (value) => {
 		const components: Name["components"] = [
 			{ kind: "given", value: "John" },
@@ -94,6 +106,12 @@ describe("cardDisplayName", () => {
 		expect(
 			cardDisplayName(
 				card({ nicknames: { n1: { name: "A" }, n2: { name: "B", pref: 100 } } }),
+			),
+		).toBe("B");
+		// The validator checks no range: a `pref` past 100 is still one.
+		expect(
+			cardDisplayName(
+				card({ nicknames: { n1: { name: "A" }, n2: { name: "B", pref: 500 } } }),
 			),
 		).toBe("B");
 	});

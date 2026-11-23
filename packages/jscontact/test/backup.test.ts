@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { DEFAULT_MAX_TEXT_LENGTH } from "../src/backup.js";
 import {
 	BACKUP_ISSUE_CODES,
 	type Card,
 	type CardIssue,
+	DEFAULT_MAX_TEXT_LENGTH,
 	FORMAT_STAMP,
 	FORMAT_VERSION,
 	normalizeCard,
@@ -76,6 +76,13 @@ describe("stringifyCards", () => {
 		const cards = [Object.freeze({ ...john })];
 		stringifyCards(cards);
 		expect(cards).toEqual([john]);
+	});
+
+	test("writes a Card of version 1.0 as 2.0, which is what it is read back as", () => {
+		const old = Object.freeze({ ...john, version: "1.0" }) as Card;
+		const text = stringifyCards([old]);
+		expect(JSON.parse(text)).toEqual([stamped(john)]);
+		expect(parseJSContact(text)).toEqual({ cards: [john], refused: 0, issues: [] });
 	});
 
 	test("replaces a stamp a Card should not have had", () => {
@@ -190,6 +197,57 @@ describe("parseJSContact", () => {
 		expect(found(parseJSContact(42).issues)).toEqual([["card-not-an-object", 0, ""]]);
 	});
 
+	test("bytes are the text in UTF-8, in whatever view, with or without a byte order mark", () => {
+		const josé: Card = { ...john, name: { full: "José 孫" } };
+		const bytes = new TextEncoder().encode(`\uFEFF${JSON.stringify([josé])}`);
+		const expected = { cards: [josé], refused: 0, issues: [] };
+		expect(parseJSContact(bytes)).toEqual(expected);
+		expect(parseJSContact(bytes.subarray(3))).toEqual(expected);
+		expect(parseJSContact(bytes.buffer)).toEqual(expected);
+		expect(parseJSContact(new DataView(bytes.buffer, 3))).toEqual(expected);
+	});
+
+	test("two byte order marks are refused, as bytes as they are as text", () => {
+		const text = "\uFEFF\uFEFF[]";
+		expect(found(parseJSContact(text).issues)).toEqual([["json-syntax", undefined, ""]]);
+		expect(found(parseJSContact(new TextEncoder().encode(text)).issues)).toEqual([
+			["json-syntax", undefined, ""],
+		]);
+	});
+
+	test("a view on a detached buffer is reported, not thrown", () => {
+		const buffer = new ArrayBuffer(2);
+		const view = new DataView(buffer);
+		buffer.transfer();
+		expect(found(parseJSContact(view).issues)).toEqual([["json-syntax", undefined, ""]]);
+	});
+
+	test("bytes are capped as bytes, before any is decoded, and never read as a Card", () => {
+		const { cards, refused, issues } = parseJSContact(new Uint8Array(100), {
+			maxTextLength: 99,
+		});
+		expect({ cards, refused }).toEqual({ cards: [], refused: 0 });
+		expect(issues).toEqual([
+			{
+				severity: "error",
+				code: "json-too-large",
+				message: "The text is longer than 99 bytes",
+				path: "",
+			},
+		]);
+		expect(found(parseJSContact(new Uint8Array(100)).issues)).toEqual([
+			["json-syntax", undefined, ""],
+		]);
+	});
+
+	test("bytes that are not UTF-8 are no JSON", () => {
+		const latin1 = Uint8Array.of(0x5b, 0x22, 0xe9, 0x22, 0x5d);
+		const { cards, issues } = parseJSContact(latin1);
+		expect(cards).toEqual([]);
+		expect(found(issues)).toEqual([["json-syntax", undefined, ""]]);
+		expect(issues[0]?.message).toMatch(/^The text is not JSON: TypeError: /);
+	});
+
 	test.each([[""], ["{"], ["[{}, ]"], ["BEGIN:VCARD\r\nVERSION:3.0\r\nEND:VCARD\r\n"]])(
 		"the text %j is not JSON",
 		(text) => {
@@ -226,8 +284,17 @@ describe("parseJSContact", () => {
 		expect(parseJSContact(text, { maxTextLength: text.length }).cards).toEqual([john]);
 	});
 
-	test.each([[0], [-1], [1.5], [Number.NaN], [Infinity]])("a cap of %s is thrown back", (cap) => {
-		expect(() => parseJSContact("[]", { maxTextLength: cap })).toThrow(RangeError);
+	test.each([[0], [-1], [1.5], [Number.NaN], [-Infinity]])(
+		"a cap of %s is thrown back",
+		(cap) => {
+			expect(() => parseJSContact("[]", { maxTextLength: cap })).toThrow(RangeError);
+		},
+	);
+
+	test("a cap of Infinity is no cap", () => {
+		expect(parseJSContact(JSON.stringify([john]), { maxTextLength: Infinity }).cards).toEqual([
+			john,
+		]);
 	});
 
 	test("the issues of a whole file are capped by code too, the count of refused Cards is not", () => {

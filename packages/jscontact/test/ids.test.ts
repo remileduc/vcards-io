@@ -16,7 +16,6 @@ describe("nextId", () => {
 
 	test("only an entry of the same prefix and the same writing takes a number", () => {
 		expect(nextId({ e1: {}, P1: {}, p01: {}, "p1 ": {}, p: {} }, "p")).toBe("p1");
-		expect(nextId({ 1: {}, 2: {} }, "")).toBe("3");
 		expect(nextId({ "ADR-1": {} }, "ADR-")).toBe("ADR-2");
 	});
 
@@ -29,7 +28,8 @@ describe("nextId", () => {
 		expect(nextId(phones, "p")).toBe(nextId(phones, "p"));
 	});
 
-	test.each(["p ", "é", "a:b", "a/b", "p.", "x".repeat(201)])(
+	// Empty or digits first: `{ 2: {}, 1: {} }` lists 1 before 2, whatever order it was filled in.
+	test.each(["", "1", "0p", "p ", "é", "a:b", "a/b", "p.", "x".repeat(201)])(
 		"%j cannot start an Id",
 		(prefix) => {
 			expect(() => nextId({}, prefix)).toThrow(RangeError);

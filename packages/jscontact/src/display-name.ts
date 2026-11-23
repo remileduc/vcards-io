@@ -1,4 +1,4 @@
-import type { Card, Name } from "./types.js";
+import type { Card, Name, NameComponent } from "./types.js";
 
 /** Reading order of the kinds, for a Name whose components are in no stated order. */
 const UNORDERED_KINDS: readonly string[] = [
@@ -11,8 +11,9 @@ const UNORDERED_KINDS: readonly string[] = [
 	"credential",
 ];
 
-// One more than the largest `pref`: no `pref` is the least preferred (RFC 9553 section 1.5.3).
-const NO_PREF = 101;
+// No `pref` is the least preferred (section 1.5.3), whatever number another entry has. Not
+// Infinity: two of them would compare as NaN.
+const NO_PREF = Number.MAX_VALUE;
 
 /**
  * The line a contact list shows for a valid Card, as Android picks it: the name, else a
@@ -46,8 +47,14 @@ function byPreference<Entry extends { pref?: number }>(map: Record<string, Entry
 	return Object.values(map ?? {}).toSorted((a, b) => (a.pref ?? NO_PREF) - (b.pref ?? NO_PREF));
 }
 
+function hasText({ kind, value }: NameComponent): boolean {
+	return kind !== "separator" && value.trim() !== "";
+}
+
 function componentsName(name: Name | undefined): string {
 	const components = name?.components ?? [];
+	// Separators alone name nobody.
+	if (!components.some(hasText)) return "";
 	if (name?.isOrdered !== true) {
 		// A kind outside the list, a vendor one, goes last.
 		const rank = (kind: string) => {
@@ -55,7 +62,7 @@ function componentsName(name: Name | undefined): string {
 			return index === -1 ? UNORDERED_KINDS.length : index;
 		};
 		return components
-			.filter(({ kind, value }) => kind !== "separator" && value.trim() !== "")
+			.filter(hasText)
 			.toSorted((a, b) => rank(a.kind) - rank(b.kind))
 			.map(({ value }) => value)
 			.join(" ");

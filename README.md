@@ -15,7 +15,7 @@ JSContact (RFC 9553) with reusable libraries:
 | ---------------------- | ------------------------------------------------------------ |
 | `@vcards-io/vcard`     | tolerant vCard 2.1 / 3.0 / 4.0 reader, 4.0 normaliser,       |
 |                        | 3.0 / 4.0 writer                                             |
-| `@vcards-io/jscontact` | JSContact 2.0 types, validator, pointer/patch, diff          |
+| `@vcards-io/jscontact` | JSContact 2.0 types, validator, pointer/patch, JSON backup   |
 | `@vcards-io/convert`   | vCard <-> JSContact (RFC 9555) and the Android / Apple / RFC |
 |                        | export profiles                                              |
 | `apps/web`             | the Vite + Lit web app                                       |

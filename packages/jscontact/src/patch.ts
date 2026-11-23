@@ -23,8 +23,8 @@ export interface PatchResult<T> {
 }
 
 export interface LocalizeResult {
-	/** The localized Card, not validated; null when it is no object or the patch is invalid. */
-	card: Card | null;
+	/** The localized Card, for `validateCard` to type; null when it is no object or the patch is invalid. */
+	card: Record<string, unknown> | null;
 	/** `path` points into the Card: `/localizations/<tag>/<escaped key>`. */
 	issues: CardIssue[];
 }
@@ -87,15 +87,18 @@ export function localize(card: Card, language: string): LocalizeResult {
 
 	const issues = new IssueCollector();
 	const patched = localizeWith(card, localizations[tag], issues);
-	if (patched !== null) patched.language = tag;
 	const base = `/localizations/${escapeToken(tag)}`;
 	return {
-		card: patched,
+		card: patched === null ? null : { ...patched, language: tag },
 		issues: issues.issues.map((found) => ({ ...found, path: `${base}${found.path}` })),
 	};
 }
 
-function localizeWith(card: Card, patch: unknown, issues: IssueCollector): Card | null {
+function localizeWith(
+	card: Record<string, unknown>,
+	patch: unknown,
+	issues: IssueCollector,
+): Record<string, unknown> | null {
 	if (!isRecord(patch)) {
 		issues.push(error("patch-not-an-object", "A localization must be a PatchObject", ""));
 		return null;

@@ -805,9 +805,10 @@ code, the `issues-truncated` warning joins them). It reports:
 - hostile input, reported and never thrown: more than `MAX_CARD_DEPTH`
   levels of nesting, 64 with the Card (`card-too-deep`; the types need
   eight), more than `MAX_CARD_NODES` members in all, 100 000
-  (`card-too-large`), a member name of more than `MAX_KEY_LENGTH` UTF-16
-  code units, 1024 (`card-too-large` too, at the object holding it: the
-  path of every issue under a name repeats it), an own `__proto__` key
+  (`card-too-large`), a member whose JSON Pointer from the Card has more
+  than `MAX_PATH_LENGTH` UTF-16 code units, 1024 (`card-too-large` too,
+  at the object holding it: every issue about a member holds that path,
+  and a thousand per code are kept), an own `__proto__` key
   (`prototype-key`). The three caps are constants of `validate.ts`, not
   exported;
 - what is no JSON value (`value-not-json`): `undefined`, the hole of a
@@ -880,10 +881,13 @@ since it cannot import them:
   fixture snapshots are stable and the JSON export reads well. It scans
   from 1 on every call, which suits the editor and the merge (one entry
   at a time); the converter numbers a whole card with its own allocator
-  (Package 3, step 3). `isId(value)` says whether a string is an Id (1
-  to 255 of `A-Za-z0-9`, `-`, `_`): the validator asks it of every key
-  of an Id map, and the converter of a `PROP-ID` before it makes one a
-  key.
+  (Package 3, step 3). The prefix starts with a letter, `-` or `_` and
+  has at most 200 characters, else a `RangeError`: an object lists its
+  digit-only keys in numeric order before the others, so `1`, `2`, `10`
+  would not stay in the order the phone gave. `isId(value)` says whether
+  a string is an Id (1 to 255 of `A-Za-z0-9`, `-`, `_`): the validator
+  asks it of every key of an Id map, and the converter of a `PROP-ID`
+  before it makes one a key.
 - `isListed(list, value)`: type guard, true when `value` is one of an
   `as const` list. The one way to read an enumerated property, see "A
   value outside its list is normal" above.
@@ -922,7 +926,8 @@ since it cannot import them:
   which only code can write, is refused: it is no JSON value. Whether a
   value suits the property it is set on is not checked here: whoever
   reads the patched Card validates it first.
-- `localize(card, lang)` → `{ card: Card | null; issues }`: section
+- `localize(card, lang)` → `{ card: Record<string, unknown> | null;
+  issues }`: section
   2.7.1. The tag is compared without case and the first key that matches
   wins; the result is a copy without `localizations`, patched, its
   `language` set to the tag as the Card writes it (whatever the patch says
@@ -930,8 +935,9 @@ since it cannot import them:
   itself, not a copy. A patch on `localizations` or inside it is
   `patch-targets-localizations`; a Card that is no JSON object is
   `patch-target-not-an-object`. Issue paths start at the Card:
-  `/localizations/<tag>/<escaped key>`. The result is not validated: the
-  caller runs `validateCard` on it before reading it as a Card.
+  `/localizations/<tag>/<escaped key>`. The result is not validated and
+  not typed a Card: a patch may set any value anywhere, so the caller
+  gets a Card from `validateCard`, not from a cast.
 - `equal(a, b)`: deep equality of JSON values, key order ignored.
 - The copy (`cloneJson`, internal), `equal`, the pointer and the patch
   code loop where they could recurse: `JSON.parse` accepts a nesting that
@@ -944,10 +950,11 @@ since it cannot import them:
   structured name 40, the nickname 35, the organization 30, the phone 20,
   the email 10, and an organization answers with its company, else its
   job title, never its department. "Preferred" is the lowest `pref`, none
-  being last (section 1.5.3), then map order. Ordered components are
-  joined as section 2.2.1.2 says (separator components verbatim, else
-  `defaultSeparator`, a space when the Name has none; a blank component
-  is skipped); components in no stated order are read title,
+  being last (section 1.5.3) whatever number another entry has, then map
+  order. Ordered components are joined as section 2.2.1.2 says (separator
+  components verbatim, else `defaultSeparator`, a space when the Name has
+  none; a blank component is skipped; separators alone are no name and
+  the next source answers); components in no stated order are read title,
   given, given2, surname, surname2, generation, credential, with spaces:
   no script detection, so a CJK name without `full` reads given name
   first. It expects a Card the validator accepted: a value of the wrong
@@ -982,9 +989,11 @@ since it cannot import them:
   code units, the one option (`ParseJSContactOptions`; by default
   `DEFAULT_MAX_TEXT_LENGTH`, 64 Mi, the number the vCard reader caps
   bytes at; `json-too-large`, and `json-syntax` for what `JSON.parse`
-  refuses). A cap that is no positive integer is a `RangeError`, as in
-  the vCard reader. A byte order mark before the text is skipped;
-  anything else than a string is the value already parsed. One
+  refuses). An `ArrayBuffer` or a view on one is that text in UTF-8:
+  capped by its bytes before any is decoded, and `json-syntax` when it
+  is not UTF-8. A cap that is neither a positive integer nor `Infinity`
+  (no cap) is a `RangeError`. A byte order mark before the text is
+  skipped; anything else is the value already parsed. One
   Card or an array of them, and what is neither is one candidate the
   validator refuses. For each one the format stamp is read and removed,
   then `validateCard` runs; a "1.0" Card that passes comes back as "2.0"
@@ -997,7 +1006,8 @@ since it cannot import them:
   holds for the file; `refused` counts the Cards left out, which the
   issues stop naming past that cap. `JSON.parse` keeps the last of two
   members of the same name and nothing here detects it.
-- `stringifyCards(cards)` → the format stamp set on each Card,
+- `stringifyCards(cards)` → the format stamp and version "2.0" set on
+  each Card (a "1.0" Card is written as what the reader makes of it),
   `normalizeCard`, `JSON.stringify(..., 2)` and a final line feed: the
   one place the human-readable JSON rule is implemented. It expects
   Cards the validator accepted and leaves them untouched. It has no

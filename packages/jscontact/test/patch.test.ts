@@ -299,6 +299,10 @@ describe("applyPatchObject", () => {
 });
 
 describe("localize", () => {
+	// The result is typed a JSON object: these Cards are known to stay valid.
+	const localized = (card: Card, language: string) =>
+		localize(card, language).card as Card | null;
+
 	test("figure 40: a title in Spanish", () => {
 		expect(localize(figures["figure-40"] as Card, "es")).toEqual({
 			card: {
@@ -313,7 +317,7 @@ describe("localize", () => {
 	});
 
 	test("figure 39: a whole name replaced", () => {
-		const { card } = localize(figures["figure-39"] as Card, "uk-Cyrl");
+		const card = localized(figures["figure-39"] as Card, "uk-Cyrl");
 		expect(card?.language).toBe("uk-Cyrl");
 		expect(card?.name?.components?.map((component) => component.value)).toEqual([
 			"г-н",
@@ -325,8 +329,8 @@ describe("localize", () => {
 	});
 
 	test("figure 20: phonetics added inside the components of an array", () => {
-		const { card, issues } = localize(figures["figure-20"] as Card, "yue");
-		expect(issues).toEqual([]);
+		const card = localized(figures["figure-20"] as Card, "yue");
+		expect(localize(figures["figure-20"] as Card, "yue").issues).toEqual([]);
 		expect(card?.language).toBe("yue");
 		expect(card?.name).toMatchObject({ phoneticSystem: "jyut", phoneticScript: "Latn" });
 		expect(card?.name?.components?.map((component) => component.phonetic)).toEqual([
@@ -338,7 +342,7 @@ describe("localize", () => {
 	});
 
 	test("figure 33: an address replaced", () => {
-		const { card } = localize(figures["figure-33"] as Card, "jp");
+		const card = localized(figures["figure-33"] as Card, "jp");
 		expect(Object.values(card?.addresses ?? {})).toEqual([
 			expect.objectContaining({
 				full: "〒100-8994東京都千代田区丸ノ内2-7-2",
@@ -350,13 +354,13 @@ describe("localize", () => {
 	test("the Card is left as it was", () => {
 		const card = figures["figure-40"] as Card;
 		const before = structuredClone(card);
-		const localized = localize(card, "es").card;
+		const spanish = localized(card, "es");
 		expect(card).toEqual(before);
-		expect(localized?.titles).not.toBe(card.titles);
+		expect(spanish?.titles).not.toBe(card.titles);
 	});
 
 	test("the tag is compared without case and written back as the Card has it", () => {
-		expect(localize(figures["figure-39"] as Card, "UK-cyrl").card?.language).toBe("uk-Cyrl");
+		expect(localized(figures["figure-39"] as Card, "UK-cyrl")?.language).toBe("uk-Cyrl");
 		expect(localize(figures["figure-39"] as Card, "uk").card).toBe(figures["figure-39"]);
 	});
 

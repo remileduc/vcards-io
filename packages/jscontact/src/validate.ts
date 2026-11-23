@@ -22,8 +22,8 @@ export const MAX_CARD_DEPTH = 64;
 /** Members a Card may have in all, at every level. */
 export const MAX_CARD_NODES = 100_000;
 
-/** UTF-16 code units a member name may have: every issue under it repeats the name in its path. */
-export const MAX_KEY_LENGTH = 1024;
+/** UTF-16 code units the JSON Pointer to a member may have: an issue about it holds that path. */
+export const MAX_PATH_LENGTH = 1024;
 
 function error(code: ValidationIssueCode, message: string, path: string): CardIssue {
 	return issue("error", code, message, path);
@@ -77,21 +77,24 @@ function scan(card: Container, issues: IssueCollector): boolean {
 				issues.push(error("card-too-large", message, ""));
 				return false;
 			}
-			if (typeof key === "string" && key.length > MAX_KEY_LENGTH) {
-				const message = `The name ${excerpt(key)} is longer than ${MAX_KEY_LENGTH} characters`;
+			const name = String(key);
+			// Escaping never shortens a name: one too long unescaped is refused before that copy.
+			const isTooLong = path.length + 1 + name.length > MAX_PATH_LENGTH;
+			const at = isTooLong ? path : `${path}/${escapeToken(name)}`;
+			if (isTooLong || at.length > MAX_PATH_LENGTH) {
+				const message = `The path to ${excerpt(name)} is longer than ${MAX_PATH_LENGTH} characters`;
 				issues.push(error("card-too-large", message, path));
 				return false;
 			}
 			const item = container[key];
-			const at = (): string => `${path}/${escapeToken(String(key))}`;
 			if (key === "__proto__") {
-				issues.push(error("prototype-key", "A property cannot be named __proto__", at()));
+				issues.push(error("prototype-key", "A property cannot be named __proto__", at));
 			}
 			if (isContainer(item)) {
-				pending.push([item, depth + 1, at()]);
+				pending.push([item, depth + 1, at]);
 			} else if (!isJsonScalar(item)) {
 				const message = `A Card holds JSON values only, found ${describeValue(item)}`;
-				issues.push(error("value-not-json", message, at()));
+				issues.push(error("value-not-json", message, at));
 				isJson = false;
 			}
 		}

@@ -12,7 +12,7 @@ import {
 } from "../src/index.js";
 import { MAX_ISSUES_PER_CODE } from "../src/issues.js";
 import { PROPERTIES } from "../src/schema.js";
-import { MAX_CARD_DEPTH, MAX_CARD_NODES, MAX_KEY_LENGTH } from "../src/validate.js";
+import { MAX_CARD_DEPTH, MAX_CARD_NODES, MAX_PATH_LENGTH } from "../src/validate.js";
 import { type ConstraintCase, readDoc, readFixture } from "./helpers/fixtures.js";
 
 const invalid = readFixture<Record<string, ConstraintCase>>("constraints-invalid.json");
@@ -514,10 +514,13 @@ describe("hostile input", () => {
 		expect(refused(deep).map(([code]) => code)).toEqual(["card-too-deep"]);
 	});
 
-	test("a value that holds itself is too deep", () => {
+	test("a value that holds itself is too deep, unless its path is too long first", () => {
 		const cyclic = card();
-		cyclic["example.com:self"] = cyclic;
+		cyclic["x:self"] = cyclic;
 		expect(refused(cyclic).map(([code]) => code)).toEqual(["card-too-deep"]);
+		const wordy = card();
+		wordy["example.com:itself"] = wordy;
+		expect(refused(wordy).map(([code]) => code)).toEqual(["card-too-large"]);
 	});
 
 	test("a Card holds as many values as the cap and no more", () => {
@@ -529,18 +532,32 @@ describe("hostile input", () => {
 		expect(found(issues)).toEqual([["card-too-large", ""]]);
 	});
 
-	test("a member name is as long as the cap and no longer: every path under it repeats it", () => {
+	test("the path to a member is as long as the cap and no longer: its issues hold it", () => {
 		const relatedTo = (length: number) => ({ ["k".repeat(length)]: { relation: { a: 0 } } });
-		expect(refused(card({ relatedTo: relatedTo(MAX_KEY_LENGTH) }))).toHaveLength(1);
-		const { issues } = validateCard(card({ relatedTo: relatedTo(MAX_KEY_LENGTH + 1) }));
+		// What is left once "/relatedTo/" and "/relation/a" are counted.
+		const longest = MAX_PATH_LENGTH - "/relatedTo//relation/a".length;
+		const [[code, path] = []] = refused(card({ relatedTo: relatedTo(longest) }));
+		expect(code).toBe("set-value-not-true");
+		expect(path).toHaveLength(MAX_PATH_LENGTH);
+		const { issues } = validateCard(card({ relatedTo: relatedTo(longest + 1) }));
 		expect(issues).toEqual([
 			{
 				severity: "error",
 				code: "card-too-large",
-				message: `The name "${"k".repeat(40)}…" is longer than 1024 characters`,
-				path: "/relatedTo",
+				message: 'The path to "a" is longer than 1024 characters',
+				path: `/relatedTo/${"k".repeat(longest + 1)}/relation`,
 			},
 		]);
+	});
+
+	test("the cap counts the path as written, and across the levels: no path adds up", () => {
+		const { issues } = validateCard(card({ "example.com:x": { ["~".repeat(600)]: 1 } }));
+		expect(found(issues)).toEqual([["card-too-large", "/example.com:x"]]);
+		let nested: Record<string, unknown> = { leaf: Number.NaN };
+		for (let level = 0; level < 20; level++) nested = { ["k".repeat(100)]: nested };
+		const deep = validateCard(card({ "example.com:x": nested })).issues;
+		expect(deep.map((issue) => issue.code)).toEqual(["card-too-large"]);
+		expect(deep[0]?.path.length).toBeLessThanOrEqual(MAX_PATH_LENGTH);
 	});
 
 	test("past a thousand issues of one code, a warning replaces the rest", () => {

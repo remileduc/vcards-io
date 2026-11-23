@@ -9,7 +9,7 @@ import { validateCard } from "./validate.js";
 import { FORMAT_STAMP, FORMAT_VERSION } from "./vendor.js";
 
 export interface ParseJSContactOptions {
-	/** UTF-16 code units of JSON text read at most, `DEFAULT_MAX_TEXT_LENGTH` when not given. */
+	/** Bytes or UTF-16 code units of JSON text read at most; `Infinity` is no cap. */
 	maxTextLength?: number;
 }
 
@@ -27,16 +27,22 @@ export const DEFAULT_MAX_TEXT_LENGTH = 64 * 1024 * 1024;
 
 type Report = (found: CardIssue) => void;
 
+// ignoreBOM: the mark stays in the text and is removed in one place, as it is from a string.
+const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+
 /**
- * Reads a backup: JSON text, or the value it holds, being one Card or an array of Cards. No input
- * makes it throw and it changes nothing it is given; a Card of version "1.0" comes back as "2.0".
+ * Reads a backup: JSON text, its UTF-8 bytes, or the value it holds, being one Card or an array of
+ * Cards. No input makes it throw and it changes nothing it is given.
  */
 export function parseJSContact(
 	input: unknown,
 	{ maxTextLength = DEFAULT_MAX_TEXT_LENGTH }: ParseJSContactOptions = {},
 ): ParseJSContactResult {
-	if (!Number.isInteger(maxTextLength) || maxTextLength < 1) {
-		throw new RangeError(`maxTextLength must be a positive integer, got ${maxTextLength}`);
+	const isLength = Number.isInteger(maxTextLength) || maxTextLength === Infinity;
+	if (!isLength || maxTextLength < 1) {
+		throw new RangeError(
+			`maxTextLength must be a positive integer or Infinity, got ${maxTextLength}`,
+		);
 	}
 	const issues = new IssueCollector();
 	const cards: Card[] = [];
@@ -49,30 +55,38 @@ export function parseJSContact(
 	return { cards, refused, issues: issues.issues };
 }
 
-/** The backup text of Cards the validator accepted: stamped, normalized, two-space JSON. */
+/**
+ * The backup text of Cards the validator accepted: stamped, normalized, two-space JSON. Written
+ * as version "2.0", which is what `parseJSContact` reads a "1.0" Card as.
+ */
 export function stringifyCards(cards: readonly Card[]): string {
 	// Stamped first: normalizeCard then sorts the stamp among the vendor properties.
-	const stamped = cards.map((card) => normalizeCard({ ...card, [FORMAT_STAMP]: FORMAT_VERSION }));
+	const stamped = cards.map((card) =>
+		normalizeCard({ ...card, version: "2.0", [FORMAT_STAMP]: FORMAT_VERSION }),
+	);
 	return `${JSON.stringify(stamped, null, 2)}\n`;
 }
 
 function candidates(input: unknown, maxTextLength: number, issues: IssueCollector): unknown[] {
-	let value = input;
-	if (typeof input === "string") {
-		if (input.length > maxTextLength) {
-			const message = `The text is longer than ${maxTextLength} characters`;
+	const isBytes = input instanceof ArrayBuffer || ArrayBuffer.isView(input);
+	if (!isBytes && typeof input !== "string") return Array.isArray(input) ? input : [input];
+	// The length is read in the try: that of a DataView on a detached buffer throws.
+	try {
+		// Bytes are counted as they are: UTF-8 never takes fewer of them than UTF-16 code units.
+		if ((isBytes ? input.byteLength : input.length) > maxTextLength) {
+			const unit = isBytes ? "bytes" : "characters";
+			const message = `The text is longer than ${maxTextLength} ${unit}`;
 			issues.push(issue("error", "json-too-large", message, ""));
 			return [];
 		}
-		try {
-			// A byte order mark is no JSON: editors write one and not every decoder removes it.
-			value = JSON.parse(input.startsWith("\uFEFF") ? input.slice(1) : input);
-		} catch (cause) {
-			issues.push(issue("error", "json-syntax", `The text is not JSON: ${cause}`, ""));
-			return [];
-		}
+		const text = isBytes ? decoder.decode(input) : input;
+		// A byte order mark is no JSON: editors write one.
+		const value: unknown = JSON.parse(text.startsWith("\uFEFF") ? text.slice(1) : text);
+		return Array.isArray(value) ? value : [value];
+	} catch (cause) {
+		issues.push(issue("error", "json-syntax", `The text is not JSON: ${cause}`, ""));
+		return [];
 	}
-	return Array.isArray(value) ? value : [value];
 }
 
 function readCard(candidate: unknown, report: Report): Card | null {
