@@ -1258,3 +1258,25 @@ and `lit/static-html.js`, whose `unsafeStatic` splices a string into the
 template itself. Both are banned by the same rule. The whole static
 module is, `literal` included: nothing in the app needs a tag name chosen
 at run time, and a ban by module is one line where a ban by export is not.
+
+2026-11-24 Workspace packages are wired once, through tsconfig paths
+--------------------------------------------------------------------
+
+Typecheck read `paths` in `tsconfig.base.json` and Vite and Vitest read a
+copy of it, the alias of `workspace-alias.ts`; the two had to be kept in
+sync by hand. Vite 8 reads `paths` itself with `resolve.tsconfigPaths`, so
+both configs set it and the alias file is gone. One trap stays and is now
+tested: with no wiring at all a sibling still resolves, to its `dist`
+through the workspace link, and every test passes against whatever was
+built last. A test of `convert` and one of the app, which has its own
+Vite config, fail when a sibling is not read from `src`.
+
+2026-11-24 The registry holds no component count
+------------------------------------------------
+
+`PropertySpec.components` said "the count the current RFC defines" and
+held 5 for `N` and 7 for `ADR`, the RFC 6350 counts; RFC 9554 made them 7
+and 18. Nothing read the field. The two counts that are used are two
+facts with one reader each, and stay with it: the 4.0 counts with the
+normaliser that pads to them, the 3.0 counts with the writer that cuts
+to them.

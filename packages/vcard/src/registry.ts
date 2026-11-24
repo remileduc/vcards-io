@@ -8,8 +8,6 @@ export interface PropertySpec {
 	readonly kind: VValueKind | Readonly<Partial<Record<VCardVersion, VValueKind>>>;
 	readonly versions: readonly VCardVersion[];
 	readonly cardinality: Cardinality;
-	/** Structured values: the component count the current RFC defines (N 5, ADR 7, ...). */
-	readonly components?: number;
 	/** Structured values whose components are never comma lists (ORG, GEO, X-ANDROID-CUSTOM). */
 	readonly commaIsLiteral?: boolean;
 	/** Property-specific parameters on top of the version's common set. */
@@ -77,7 +75,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: "structured",
 			versions: ALL,
 			cardinality: "*1",
-			components: 5,
 			params: ["SORT-AS", "PHONETIC", "SCRIPT", "JSCOMPS"],
 		},
 	],
@@ -94,7 +91,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: "structured",
 			versions: V4,
 			cardinality: "*1",
-			components: 2,
 			commaIsLiteral: true,
 			params: [],
 		},
@@ -105,7 +101,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: "structured",
 			versions: ALL,
 			cardinality: "*",
-			components: 7,
 			params: ["LABEL", "GEO", "TZ", "CC", "PHONETIC", "SCRIPT", "JSCOMPS"],
 		},
 	],
@@ -129,7 +124,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: { "2.1": "structured", "3.0": "structured", "4.0": "uri" },
 			versions: ALL,
 			cardinality: "*",
-			components: 2,
 			commaIsLiteral: true,
 			params: MEDIATYPE,
 		},
@@ -170,7 +164,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: "structured",
 			versions: V4,
 			cardinality: "*",
-			components: 2,
 			commaIsLiteral: true,
 			params: [],
 		},
@@ -213,7 +206,6 @@ export const PROPERTY_REGISTRY: ReadonlyMap<string, PropertySpec> = new Map<stri
 			kind: "structured",
 			versions: ALL,
 			cardinality: "*",
-			components: 16,
 			commaIsLiteral: true,
 			params: [],
 		},

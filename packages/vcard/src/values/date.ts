@@ -21,12 +21,6 @@ const TIME_FULL_EXT = new RegExp(`^(\\d{2})(?::(\\d{2})(?::(\\d{2})(?:[.,]\\d+)?
 const TIME_MINUTE = new RegExp(`^-(\\d{2})(\\d{2})?${ZONE}$`);
 const TIME_SECOND = new RegExp(`^--(\\d{2})${ZONE}$`);
 
-const TIMESTAMP = new RegExp(
-	`^(\\d{4})(\\d{2})(\\d{2})[Tt](\\d{2})(\\d{2})(\\d{2})(?:[.,]\\d+)?${ZONE}$`,
-);
-const TIMESTAMP_EXT = new RegExp(
-	`^(\\d{4})-(\\d{2})-(\\d{2})[Tt](\\d{2}):(\\d{2}):(\\d{2})(?:[.,]\\d+)?${ZONE_EXT}$`,
-);
 const UTC_OFFSET = /^([+-])(\d{2})(?::?(\d{2}))?$/;
 
 function daysInMonth(month: number, year: number | undefined): number {
@@ -251,27 +245,21 @@ export function formatDateAndOrTime(value: DateAndOrTime, options: DateFormatOpt
 	return `${date}T${time}`;
 }
 
+const TIMESTAMP_FIELDS = ["year", "month", "day", "hour", "minute", "second"] as const;
+
 /** Parses `YYYYMMDDTHHMMSS[Z|±HHMM]` or the extended ISO equivalent. Date-only input is rejected. */
 export function parseTimestamp(text: string): Timestamp | null {
-	const m = TIMESTAMP.exec(text) ?? TIMESTAMP_EXT.exec(text);
-	if (!m) return null;
-	const zone = parseZone(m[7]);
-	if (zone === null) return null;
-	const ts: Timestamp = {
-		year: Number(m[1]),
-		month: Number(m[2]),
-		day: Number(m[3]),
-		hour: Number(m[4]),
-		minute: Number(m[5]),
-		second: Number(m[6]),
-	};
-	if (zone !== undefined) ts.zone = zone;
-	return validDate(ts) && validTime(ts) ? ts : null;
+	const value = parseDateAndOrTime(text);
+	return value !== null && isComplete(value) ? value : null;
+}
+
+function isComplete(value: DateAndOrTime): value is Timestamp {
+	return TIMESTAMP_FIELDS.every((field) => value[field] !== undefined);
 }
 
 /** Formats a complete date-time. Throws a RangeError when a field is missing or out of range. */
 export function formatTimestamp(value: Timestamp, options: DateFormatOptions = {}): string {
-	for (const field of ["year", "month", "day", "hour", "minute", "second"] as const) {
+	for (const field of TIMESTAMP_FIELDS) {
 		if (value[field] === undefined) throw new RangeError(`Timestamp without ${field}`);
 	}
 	return formatDateAndOrTime(value, options);

@@ -26,15 +26,11 @@ describe("PROPERTY_REGISTRY", () => {
 		expect(defaultValueKind("X-NOT-A-THING", "4.0")).toBeUndefined();
 	});
 
-	test("structured properties carry their component count and comma rule", () => {
-		expect(PROPERTY_REGISTRY.get("N")).toMatchObject({ components: 5, cardinality: "*1" });
-		expect(PROPERTY_REGISTRY.get("ADR")).toMatchObject({ components: 7 });
+	test("structured properties carry their cardinality and comma rule", () => {
+		expect(PROPERTY_REGISTRY.get("N")).toMatchObject({ cardinality: "*1" });
 		expect(PROPERTY_REGISTRY.get("ORG")).toMatchObject({ commaIsLiteral: true });
 		expect(PROPERTY_REGISTRY.get("N")?.commaIsLiteral).toBeUndefined();
-		expect(PROPERTY_REGISTRY.get("X-ANDROID-CUSTOM")).toMatchObject({
-			components: 16,
-			commaIsLiteral: true,
-		});
+		expect(PROPERTY_REGISTRY.get("X-ANDROID-CUSTOM")).toMatchObject({ commaIsLiteral: true });
 	});
 
 	test("every entry is uppercase with a kind for each version it lists", () => {

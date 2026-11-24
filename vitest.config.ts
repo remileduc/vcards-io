@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
 import { defineConfig } from "vitest/config";
-import { workspaceAlias } from "./workspace-alias.ts";
 
 const libraries = ["vcard", "jscontact", "convert"];
 const sourceRoots = ["apps/web", ...libraries.map((name) => `packages/${name}`)];
@@ -16,7 +15,8 @@ for (const root of sourceRoots) {
 }
 
 export default defineConfig({
-	resolve: { alias: workspaceAlias },
+	// Workspace packages resolve from source through `paths` in tsconfig.base.json: no build first.
+	resolve: { tsconfigPaths: true },
 	test: {
 		projects: [
 			"apps/web",

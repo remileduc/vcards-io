@@ -11,7 +11,7 @@ import { derive, drop, hasType, type Rule, removeTypes, rewrite } from "./contex
 // A reference to another vCard: a hierarchical URI or one of the schemes a contact can point with.
 const REFERENCE_URI = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|(?:urn|cid|mailto|tel|data|xmpp|sip):)/i;
 
-/** RFC 9554 component counts; RFC 6350 had 5 and 7 and the registry keeps those. */
+/** RFC 9554 component counts; RFC 6350 had 5 and 7. */
 const COMPONENTS_40: ReadonlyMap<string, number> = new Map([
 	["N", 7],
 	["ADR", 18],

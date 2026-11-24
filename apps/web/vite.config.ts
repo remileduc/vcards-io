@@ -1,6 +1,5 @@
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
-import { workspaceAlias } from "../../workspace-alias.ts";
 
 const csp = [
 	"default-src 'self'",
@@ -31,7 +30,8 @@ export default defineConfig({
 	// GitHub Pages serves the site under /vcards-io/; dev and preview use the same path.
 	base: "/vcards-io/",
 	plugins: [cspMeta()],
-	resolve: { alias: workspaceAlias },
+	// Workspace packages resolve from source through `paths` in tsconfig.base.json: no build first.
+	resolve: { tsconfigPaths: true },
 	build: {
 		target: "esnext",
 		sourcemap: true,

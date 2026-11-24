@@ -112,9 +112,11 @@ describe("validateCard on arbitrary input", () => {
 	});
 
 	test("a Card that is accepted is read, written and read back without a throw", () => {
+		let generated = 0;
 		let accepted = 0;
 		assertHarmless(
 			fc.property(mutatedCard, (value) => {
+				generated += 1;
 				const { card } = validateCard(value);
 				fc.pre(card !== null);
 				accepted += 1;
@@ -130,7 +132,8 @@ describe("validateCard on arbitrary input", () => {
 			3000,
 		);
 		// A mutation lands in a vendor value, a patch or an enumerated value often enough.
-		expect(accepted).toBeGreaterThan(300);
+		// Runs refused by `fc.pre` are not counted in numRuns: only the ratio can tell.
+		expect(accepted / generated).toBeGreaterThan(0.1);
 	});
 
 	test("a Card that is refused names a place in it, or one a mandatory property is missing from", () => {
