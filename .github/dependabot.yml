@@ -8,9 +8,6 @@ updates:
     groups:
       dev-tooling:
         patterns: ["*"]
-    ignore:
-      # Test oracle, pinned: bumped by hand, with its list of divergences reviewed.
-      - dependency-name: "@sdxc/jscontact"
   - package-ecosystem: github-actions
     directory: /
     schedule:

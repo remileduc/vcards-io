@@ -1194,3 +1194,67 @@ throws on a property, and a value whose kind gives no text (`uri` or
 `property-not-written` instead of the text `undefined`. A card that is
 no object with a `properties` array still throws: no tool writes one,
 and reporting it would take an issue code that nothing else needs.
+
+2026-11-24 The deploy is a job of the CI workflow
+-------------------------------------------------
+
+`pages.yml` ran on `workflow_run`, after CI. That event checks out the
+head of the default branch, not the commit CI had just validated, so a
+second push could be published on the strength of the first one's checks;
+and its `branches: [main]` filter is matched by the name of the head
+branch, which a fork can also call `main`. The workflow is gone. `ci.yml`
+has a `deploy` job that `needs: check` and runs only for a push or a
+manual run on `refs/heads/main`, never for a pull request: it publishes
+the artifact the `check` job built, from the checkout that was linted and
+tested. The tests therefore run once, where the entry of 2026-11-18 ran
+them twice, and a manual run on `main` still publishes the badge. Only
+the `deploy` job holds `pages: write` and `id-token: write`. A run on
+`main` is no longer cancelled by the next push, since it may be in the
+middle of a deployment: it finishes, and the newest waiting run follows.
+A re-run keeps the commit of its first attempt, so the `deploy` job asks
+the API for the head of `main` and skips the deployment when it is no
+longer its own commit: re-running an old run cannot roll the site back.
+This costs the job `contents: read`.
+
+2026-11-24 The oracle is dropped
+--------------------------------
+
+`@sdxc/jscontact` and its test are removed, as the entries of 2026-11-18
+and 2026-11-20 allowed once milestone 3 was done. With the deploy inside
+CI, the job that builds the published site is the job that installs and
+runs every dev dependency, and the oracle brought about 90 packages
+there for one differential test. That test had done its work: each case
+both implementations agreed on and each divergence it listed is asserted
+by `patch.test.ts` with no second implementation. What is lost is the
+check of accept or refuse on generated patches, which those fixed cases
+now hold alone since `patch-fuzz.test.ts` only follows the patches that
+apply, and the warning a later release of the oracle could have given;
+it was pinned and bumped by hand, so it gave none unasked. Gone with it:
+the Dependabot exception and the Node 24.3 minimum of the root, back to
+24.
+
+2026-11-24 The app stays on the origin it shares with the account's sites
+-------------------------------------------------------------------------
+
+Browser storage (IndexedDB, and what a service worker caches) belongs to
+an origin, the scheme and host; the path is no boundary. The project site
+`remileduc.github.io/vcards-io/` shares its origin with every other Pages
+site of the account, so a script on any of them could open the contacts
+database, and the CSP of this app says nothing about those pages. A
+review asked for a dedicated origin before M6 adds the store. GitHub
+Pages has no setting for one: it takes a custom domain on the repository
+or a move to an organisation that publishes nothing else. The owner has
+no domain and will not move the repository, so the app stays where it
+is and the risk is accepted. What bounds it: every site on that origin
+is the owner's, so it only holds as long as none of them publishes
+content or scripts that are not trusted.
+
+2026-11-24 The Lit ban covers unsafeMathML and static templates
+---------------------------------------------------------------
+
+The Biome rule banned `unsafe-html.js` and `unsafe-svg.js`. Lit 3 has two
+more ways to turn a string into markup: `lit/directives/unsafe-mathml.js`
+and `lit/static-html.js`, whose `unsafeStatic` splices a string into the
+template itself. Both are banned by the same rule. The whole static
+module is, `literal` included: nothing in the app needs a tag name chosen
+at run time, and a ban by module is one line where a ban by export is not.

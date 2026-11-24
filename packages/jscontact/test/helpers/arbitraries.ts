@@ -73,10 +73,9 @@ function patchCase(names: string[]): fc.Arbitrary<PatchCase> {
 	});
 }
 
-/** A JSON value over a small set of names, and a case built of such values. */
+/** A JSON value over a small set of names. */
 export const jsonTree = tree(NAMES);
-export const jsonCase = patchCase(NAMES);
 
-/** The same two, with the hostile names among the others. */
+/** The same, and a case built of such values, with the hostile names among the others. */
 export const hostileTree = tree([...NAMES, ...HOSTILE_NAMES]);
 export const hostileCase = patchCase([...NAMES, ...HOSTILE_NAMES]);

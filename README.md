@@ -104,7 +104,7 @@ Supporting formats:
 Development
 -----------
 
-Requires Node 24.3 or later and pnpm 12.
+Requires Node 24 or later and pnpm 12.
 
 ```
 pnpm install

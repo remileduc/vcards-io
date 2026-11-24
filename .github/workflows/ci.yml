@@ -8,9 +8,10 @@ on:
 
 permissions: {}
 
+# A run on main may be deploying: it is queued behind the previous one, never cancelled.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   check:
@@ -31,9 +32,47 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm build
       - run: pnpm publint
+      # Shields endpoint behind the README coverage badge; after the build, which empties dist.
+      - run: |
+          jq '.total.lines.pct as $pct | {
+                schemaVersion: 1, label: "coverage", message: "\($pct | floor)%",
+                color: (if   $pct >= 95 then "brightgreen"
+                        elif $pct >= 90 then "green"
+                        elif $pct >= 85 then "yellowgreen"
+                        else "yellow" end)
+              }' coverage/coverage-summary.json > apps/web/dist/coverage.json
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          path: apps/web/dist
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
           path: coverage
           retention-days: 7
+
+  # Publishes the site the check job built, so what is deployed is the commit that passed.
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # A re-run keeps its first SHA: an older commit must not replace a newer deployment.
+      - id: tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - id: deployment
+        if: steps.tip.outputs.sha == github.sha
+        uses: actions/deploy-pages@v5

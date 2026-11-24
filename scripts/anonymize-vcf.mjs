@@ -6,7 +6,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 const [, , inPath, outPath] = process.argv;
-const SALT = "vcards-io-fixture-2026-11-06";
+// Per-run secret, never stored: fakes must not be recomputable from the originals.
+const SALT = crypto.randomBytes(32).toString("hex");
 
 function rng(seed) {
 	let s = crypto.createHash("sha256").update(`${SALT}|${seed}`).digest().readUInt32LE(0);
@@ -252,7 +253,14 @@ function fakeWord(token) {
 	}
 	return applyCase(wordMap.get(key), token);
 }
-const fakeDigits = (run, ctx) => digitsOf(rng(`digits|${ctx}|${run}`), run.length, run.length <= 3);
+// Every original run of 4+ digits: a fake equal to one would read as a leak.
+const origDigitRuns = new Set();
+function fakeDigits(run, ctx) {
+	for (let k = 0; ; k++) {
+		const fake = digitsOf(rng(`digits|${ctx}|${run}|${k}`), run.length, run.length <= 3);
+		if (!origDigitRuns.has(fake)) return fake;
+	}
+}
 function rewriteText(s, ctx, letterFn) {
 	return s.replace(/\p{L}+|\p{N}+/gu, (t) =>
 		/\p{N}/u.test(t) ? fakeDigits(t, ctx) : isStop(t) ? t : letterFn(t),
@@ -261,7 +269,6 @@ function rewriteText(s, ctx, letterFn) {
 const asNames = (s, ctx) => rewriteText(s, ctx, (t) => fakeName(t, "given"));
 const asWords = (s, ctx) => rewriteText(s, ctx, fakeWord);
 
-const origYears = new Set();
 function fakeDate(v) {
 	const r = rng(`date|${v}`);
 	const mm = String(1 + Math.floor(r() * 12)).padStart(2, "0");
@@ -270,7 +277,7 @@ function fakeDate(v) {
 	if (!/^\d{4}-\d\d-\d\d$/.test(v)) throw new Error(`unexpected date ${v}`);
 	let year;
 	do year = String(1940 + Math.floor(r() * 72));
-	while (origYears.has(year));
+	while (origDigitRuns.has(year));
 	return `${year}-${mm}-${dd}`;
 }
 
@@ -298,9 +305,11 @@ function fakeTel(v) {
 			fake = digits.slice(0, cc) + digitsOf(r, digits.length - cc, true);
 		} else fake = digitsOf(r, digits.length, true);
 		if (usedTels.has(fake)) continue;
-		usedTels.add(fake);
 		let i = 0;
-		return v.replace(/\d/g, () => fake[i++]);
+		const out = v.replace(/\d/g, () => fake[i++]);
+		if (out.match(/\d{4,}/g)?.some((run) => origDigitRuns.has(run))) continue;
+		usedTels.add(fake);
+		return out;
 	}
 }
 
@@ -461,7 +470,8 @@ for (const it of items) {
 			for (const t of c.match(/\p{L}+/gu) ?? [])
 				if (!isStop(t) && !roleOf.has(fold(t)))
 					roleOf.set(fold(t), i === 0 ? "surname" : "given");
-	for (const c of comps) if (/^\d{4}-\d\d-\d\d$/.test(c)) origYears.add(c.slice(0, 4));
+	for (const t of `${it.head} ${comps.join(" ")}`.match(/\p{N}{4,}/gu) ?? [])
+		origDigitRuns.add(t);
 	if (name === "TEL") usedTels.add(it.value.replace(/\D/g, ""));
 	if (
 		["N", "FN", "ADR", "ORG", "TITLE", "NOTE", "X-ANDROID-CUSTOM", "EMAIL", "URL"].includes(
@@ -554,10 +564,10 @@ for (const it of items) {
 }
 
 const result = serialize(items);
-fs.writeFileSync(outPath, result);
-console.log(`wrote ${outPath}: ${result.length} bytes (original ${orig.length})`);
 
-const reparsed = parse(result.toString("latin1").slice(0, -2).split("\r\n"));
+const outPhys = result.toString("latin1").slice(0, -2).split("\r\n");
+if (outPhys.length !== phys.length) throw new Error("physical line count changed");
+const reparsed = parse(outPhys);
 if (!serialize(reparsed).equals(result)) throw new Error("output does not round-trip");
 if (reparsed.length !== items.length) throw new Error("property count changed");
 const decoded = fold(
@@ -574,7 +584,7 @@ const leaks = [...sensitive].filter(
 	(s) => !ALLOW.has(s) && (outTokens.has(s) || (s.includes("@") && decoded.includes(s))),
 );
 console.log(`leak scan: ${sensitive.size} sensitive tokens checked, ${leaks.length} found`);
-if (leaks.length) console.log("LEAKS:", leaks);
-console.log(
-	`same physical line count: ${result.toString("latin1").split("\r\n").length === text.split("\r\n").length}; photos: ${photoCache.size} distinct`,
-);
+if (leaks.length) throw new Error(`leak scan failed, nothing written: ${leaks.join(", ")}`);
+fs.writeFileSync(outPath, result);
+console.log(`wrote ${outPath}: ${result.length} bytes (original ${orig.length})`);
+console.log(`photos: ${photoCache.size} distinct`);
