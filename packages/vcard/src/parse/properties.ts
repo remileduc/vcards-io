@@ -68,8 +68,7 @@ export class PropertyDecoder {
 
 	/**
 	 * Throws RangeError when `defaultCharset` is not an encoding label the platform knows.
-	 * Transcoded input is UTF-8 by construction: its CHARSET parameters and `defaultCharset`
-	 * describe bytes that no longer exist and are ignored with an info.
+	 * On transcoded input, CHARSET only applies to quoted-printable and base64 values.
 	 */
 	constructor(
 		defaultCharset: string,
@@ -87,13 +86,15 @@ export class PropertyDecoder {
 
 	decode(raw: RawLine, version: VCardVersion): VProperty {
 		const ctx = new Context(raw, version, this.issues);
-		const charset = this.charsetOf(raw, ctx);
-		const params = this.decodeParams(raw, version, charset, ctx);
+		const declared = this.charsetOf(raw, ctx);
+		// What the file holds as written is UTF-8 once transcoded; encoded bytes are not.
+		const literal = this.transcoded ? this.defaultCharset : declared;
+		const params = this.decodeParams(raw, version, literal, ctx);
 		const property: VProperty = {
 			group: raw.group,
 			name: raw.name,
 			params,
-			value: this.decodeValue(raw.value, params, charset, ctx),
+			value: this.decodeValue(raw.value, params, literal, declared, ctx),
 			line: raw.line,
 		};
 		return property;
@@ -122,14 +123,6 @@ export class PropertyDecoder {
 						"warning",
 						"charset-unknown",
 						`Unknown CHARSET "${label}", ${this.defaultCharset} used`,
-					);
-					return this.defaultCharset;
-				}
-				if (this.transcoded && charset !== "utf-8") {
-					ctx.report(
-						"info",
-						"charset-ignored",
-						`CHARSET=${label} ignored, the input is text`,
 					);
 					return this.defaultCharset;
 				}
@@ -172,15 +165,24 @@ export class PropertyDecoder {
 		return params;
 	}
 
-	private decodeValue(bytes: Uint8Array, params: VParams, charset: string, ctx: Context): VValue {
+	private decodeValue(
+		bytes: Uint8Array,
+		params: VParams,
+		literal: string,
+		declared: string,
+		ctx: Context,
+	): VValue {
 		const kind = resolveKind(ctx, params);
 		const encoding = encodingOf(params, ctx);
+		if (encoding === null && declared !== literal) {
+			ctx.report("info", "charset-ignored", `CHARSET=${declared} ignored, the input is text`);
+		}
 		if (encoding === "base64") {
 			try {
 				bytes = decodeBase64(latin1.decode(bytes));
 			} catch {
 				ctx.report("warning", "invalid-base64", "Value is not valid base64, kept as text");
-				return { kind: "unknown", raw: this.decodeText(bytes, charset, ctx) };
+				return { kind: "unknown", raw: this.decodeText(bytes, literal, ctx) };
 			}
 			// Base64 is the value itself for media, a transfer encoding for text (versit 2.1).
 			if (kind === "binary" || kind === "unknown" || isMediaProperty(ctx.name)) {
@@ -192,7 +194,7 @@ export class PropertyDecoder {
 			}
 		}
 		if (encoding === "quoted-printable") bytes = decodeQuotedPrintable(bytes);
-		const text = this.decodeText(bytes, charset, ctx);
+		const text = this.decodeText(bytes, encoding === null ? literal : declared, ctx);
 		return typeValue(text, kind, params, ctx);
 	}
 
@@ -333,7 +335,8 @@ function typeValue(text: string, kind: VValueKind, params: VParams, ctx: Context
 			if (text.includes("\\:")) {
 				// Google writes `http\://`, and some exports double it: strip the whole run.
 				ctx.report("warning", "uri-escaped-colon", "Escaped colon in URI repaired");
-				return { kind, value: text.replace(/\\+:/g, ":") };
+				// The lookbehind lets a match start only at the head of a run of "\": linear.
+				return { kind, value: text.replace(/(?<!\\)\\+:/g, ":") };
 			}
 			return { kind, value: text };
 		case "date-and-or-time":

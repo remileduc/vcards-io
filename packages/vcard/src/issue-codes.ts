@@ -7,6 +7,8 @@ export const PARSE_ISSUE_CODES = [
 	"bom-stripped",
 	"utf16-transcoded",
 	"line-too-long",
+	"too-many-lines",
+	"orphan-continuation",
 	"unindented-continuation",
 	"qp-soft-break-dangling",
 	"invalid-line",
@@ -67,6 +69,7 @@ export const UPGRADE_ISSUE_CODES = [
 	"android-relation",
 	"vendor-date-invalid",
 	"legacy-im-to-impp",
+	"legacy-im-duplicate",
 	"legacy-im-to-socialprofile",
 	"legacy-im-to-tel",
 	"impp-handle-invalid",
@@ -87,12 +90,14 @@ export const UPGRADE_ISSUE_CODES = [
 	"ablabel-to-type",
 ] as const;
 
-/** Codes `serializeVCards` raises: what vCard 3.0 cannot carry. */
+/** Codes `serializeVCards` raises: what a version cannot carry, and what no line can hold. */
 export const SERIALIZE_ISSUE_CODES = [
 	"param-not-in-30",
 	"param-value-not-in-30",
+	"param-value-not-in-40",
 	"pref-not-in-30",
 	"components-not-in-30",
+	"property-not-written",
 ] as const;
 
 export type CommonIssueCode = (typeof COMMON_ISSUE_CODES)[number];

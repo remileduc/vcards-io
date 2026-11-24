@@ -85,6 +85,8 @@ export interface Issue<Code extends string = IssueCode> {
 	 * `cards` argument from `serializeVCards`. Absent for lines outside a card and whole-input issues.
 	 */
 	card?: number;
+	/** Index of the property in `properties` of that card. From `serializeVCards` only. */
+	propertyIndex?: number;
 }
 
 export interface ParseOptions {
@@ -94,6 +96,8 @@ export interface ParseOptions {
 	maxLineLength?: number;
 	/** Largest input accepted, in bytes. Default 64 MiB. */
 	maxInputBytes?: number;
+	/** Most unfolded lines accepted, BEGIN and END included. Default 500 000. */
+	maxContentLines?: number;
 }
 
 export interface ParseResult {
@@ -111,6 +115,6 @@ export interface SerializeOptions {
 
 export interface SerializeResult {
 	text: string;
-	/** One warning per loss the version forced; nothing for 4.0. */
+	/** One warning per loss the version forced, one error per property that was left out. */
 	issues: Issue[];
 }

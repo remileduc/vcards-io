@@ -1,0 +1,33 @@
+// Held against the interfaces by types.test.ts and against the property table by schema.test.ts.
+
+/** The properties RFC 9553 sections 1 and 2 mark "mandatory", plus the two @type that must be set. */
+export const MANDATORY = {
+	Address: [],
+	AddressComponent: ["kind", "value"],
+	Anniversary: ["date", "kind"],
+	Author: [],
+	Calendar: ["kind", "uri"],
+	Card: ["@type", "version"],
+	CryptoKey: ["uri"],
+	Directory: ["kind", "uri"],
+	EmailAddress: ["address"],
+	LanguagePref: ["language"],
+	Link: ["uri"],
+	Media: ["kind", "uri"],
+	Name: [],
+	NameComponent: ["kind", "value"],
+	Nickname: ["name"],
+	Note: ["note"],
+	OnlineService: [],
+	OrgUnit: ["name"],
+	Organization: [],
+	PartialDate: [],
+	PersonalInfo: ["kind", "value"],
+	Phone: ["number"],
+	Pronouns: ["pronouns"],
+	Relation: [],
+	SchedulingAddress: ["uri"],
+	SpeakToAs: [],
+	Timestamp: ["@type", "utc"],
+	Title: ["name"],
+} as const satisfies Record<string, readonly string[]>;

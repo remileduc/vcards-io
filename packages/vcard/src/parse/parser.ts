@@ -22,7 +22,12 @@ export function parseVCards(
 		issues,
 	);
 	for (const issue of bytes.issues) issues.push(issue);
-	const lines = readLogicalLines(bytes.bytes, issues, options.maxLineLength);
+	const lines = readLogicalLines(
+		bytes.bytes,
+		issues,
+		options.maxLineLength,
+		options.maxContentLines,
+	);
 	const raws = groupCards(lines, issues);
 	const cards: VCard[] = raws.map((raw) => ({
 		version: raw.version,

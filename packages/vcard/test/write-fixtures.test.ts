@@ -3,7 +3,6 @@ import { describe, expect, test } from "vitest";
 import {
 	type Issue,
 	parseVCards,
-	SerializeError,
 	serializeVCards,
 	type VCard,
 	type VProperty,
@@ -117,8 +116,12 @@ describe("every fixture round-trips through the writer", () => {
 		const first = upgradeAll(parsed.cards);
 		const expectedCodes = codes(first.issues);
 		const kept = unwritable.length;
+		// The writer leaves these out and says so; the rest compares the cards without them.
+		const refused = serializeVCards(first.cards, { version: "4.0" }).issues;
+		expect(refused.map((i) => [i.severity, i.code, i.property])).toEqual(
+			unwritable.map((name) => ["error", "property-not-written", name]),
+		);
 		for (const name of unwritable) {
-			expect(() => serializeVCards(first.cards, { version: "4.0" })).toThrow(SerializeError);
 			expect(
 				first.cards.flatMap((c) => c.properties).filter((p) => p.name === name),
 			).toHaveLength(1);

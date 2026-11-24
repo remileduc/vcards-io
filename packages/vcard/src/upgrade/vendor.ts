@@ -1,7 +1,7 @@
 import { excerpt } from "../issues.js";
 import { firstParam, textOf } from "../model.js";
 import type { LegacyImProperty } from "../registry.js";
-import type { VProperty, VValue } from "../types.js";
+import type { VCard, VProperty, VValue } from "../types.js";
 import { formatDateAndOrTime, parseDateAndOrTime } from "../values/date.js";
 import { URI_SCHEME } from "../values/uri.js";
 import {
@@ -11,15 +11,14 @@ import {
 	findProperty,
 	groupAllocator,
 	groupIndex,
+	groupOf,
 	hasProperty,
-	labelOf,
-	membersOf,
 	type Rule,
 	removeTypes,
 	rewrite,
 	type UpgradeContext,
 } from "./context.js";
-import { relationTypeForAndroid, relationTypeForLabel } from "./relations.js";
+import { relationMappingForAndroid, relationMappingForLabel } from "./relations.js";
 
 const ANDROID_MIME = "vnd.android.cursor.item/";
 const APPLE_BUILTIN = /^_\$!<(.*)>!\$_$/;
@@ -76,14 +75,15 @@ const SOCIAL_SERVICES: ReadonlyMap<string, string> = new Map([
 /** TYPE words that say where, not which service, so they are never a SERVICE-TYPE. */
 const PLACE_TYPES: ReadonlySet<string> = new Set(["home", "work", "other"]);
 
-/** Apple built-in labels that mean a TYPE; HomePage and Other carry nothing a TYPE can say. */
+// Apple built-in labels that mean a TYPE; HomePage carries nothing a TYPE can say. Other is the
+// `type=OTHER` Apple writes on TEL and ADR, so both spellings end up as one.
 const APPLE_LABEL_TYPES: ReadonlyMap<string, string | null> = new Map([
 	["home", "home"],
 	["work", "work"],
 	["mobile", "cell"],
 	["main", "main"],
+	["other", "other"],
 	["homepage", null],
-	["other", null],
 ]);
 
 /** Properties Apple writes with the 1604 placeholder year; REV and the like are left alone. */
@@ -222,7 +222,7 @@ function androidRelation(
 	const name = component(p, 1);
 	if (name.trim() === "") return undefined;
 	const type = androidType(p, 0);
-	const relation = type === undefined ? undefined : relationTypeForAndroid(type);
+	const relation = type === undefined ? undefined : relationMappingForAndroid(type);
 	if (relation === undefined) {
 		ctx.warn(
 			"android-custom-unknown-type",
@@ -286,8 +286,46 @@ function skypeNumberToTel(p: VProperty, ctx: UpgradeContext): VProperty | undefi
 	return tel;
 }
 
-/** X-AIM and friends become IMPP, X-TWITTER a SOCIALPROFILE, X-SKYPE-PSTNNUMBER a TEL. */
+/** `service handle`, folded: what makes a legacy IM property and an IMPP the same account. */
+function accountKey(service: string, uri: string): string {
+	let handle = uri.slice(uri.indexOf(":") + 1);
+	try {
+		handle = decodeURIComponent(handle);
+	} catch {
+		// Not percent-encoding: compared as written.
+	}
+	return `${service} ${handle}`.toLowerCase();
+}
+
+/** The card's IMPP lines by account: by service, or by scheme when none is named. */
+function imppAccounts(card: VCard): Map<string, VProperty> {
+	const accounts = new Map<string, VProperty>();
+	for (const p of card.properties) {
+		if (p.name !== "IMPP" || p.value.kind !== "uri") continue;
+		const uri = p.value.value;
+		const service =
+			firstParam(p, "SERVICE-TYPE") ??
+			firstParam(p, "X-SERVICE-TYPE") ??
+			uri.split(":", 1)[0];
+		const key = accountKey(service ?? "", uri);
+		if (!accounts.has(key)) accounts.set(key, p);
+	}
+	return accounts;
+}
+
+/** What a dropped legacy line says of the account goes to the IMPP that stays. */
+function mergeInto(impp: VProperty, legacy: VProperty): void {
+	for (const type of legacy.params.get("TYPE") ?? []) addType(impp, type);
+	const pref = legacy.params.get("PREF");
+	if (pref !== undefined && !impp.params.has("PREF")) impp.params.set("PREF", [...pref]);
+}
+
+// X-AIM and friends become IMPP, X-TWITTER a SOCIALPROFILE, X-SKYPE-PSTNNUMBER a TEL. Apple
+// writes an account both ways (with `aim:` for ICQ): the IMPP stays, the legacy line goes.
 const legacyIm: Rule = (card, ctx) => {
+	const accounts = imppAccounts(card);
+	const index = groupIndex(card);
+	const orphaned = new Set<VProperty>();
 	rewrite(card, (p) => {
 		if (p.name === "X-TWITTER") return twitterToSocialProfile(p, ctx);
 		if (p.name === "X-SKYPE-PSTNNUMBER") return skypeNumberToTel(p, ctx);
@@ -300,11 +338,29 @@ const legacyIm: Rule = (card, ctx) => {
 			ctx.warn("impp-handle-invalid", `${p.name} handle cannot be a URI, kept as written`, p);
 			return undefined;
 		}
+		const kept =
+			accounts.get(accountKey(im.service ?? im.scheme, uri)) ??
+			accounts.get(accountKey(im.scheme, uri));
+		if (kept !== undefined) {
+			mergeInto(kept, p);
+			const group = groupOf(index, p);
+			const label = group?.members.length === 1 ? group.label : undefined;
+			if (label !== undefined) orphaned.add(label);
+			ctx.info(
+				"legacy-im-duplicate",
+				`${p.name} repeats an IMPP of the card, dropped${
+					label === undefined ? "" : ` with its X-ABLabel ${excerpt(textOf(label) ?? "")}`
+				}`,
+				p,
+			);
+			return [];
+		}
 		const impp = derive(p, "IMPP", { kind: "uri", value: uri });
 		if (im.service !== undefined) impp.params.set("SERVICE-TYPE", [im.service]);
 		ctx.info("legacy-im-to-impp", `${p.name} rewritten as IMPP ${im.scheme}: URI`, p);
 		return impp;
 	});
+	drop(card, orphaned);
 };
 
 /** Apple's X-SERVICE-TYPE on IMPP is RFC 9554's SERVICE-TYPE. */
@@ -350,7 +406,7 @@ const appleDates: Rule = (card, ctx) => {
 	let placed = hasProperty(card, "ANNIVERSARY");
 	for (const p of card.properties) {
 		if (p.name !== "X-ABDATE" || p.value.kind !== "date-and-or-time" || placed) continue;
-		const label = labelOf(index, p.group);
+		const label = groupOf(index, p)?.label;
 		if (builtinLabel(label)?.toLowerCase() !== "anniversary") continue;
 		p.name = "ANNIVERSARY";
 		placed = true;
@@ -373,10 +429,10 @@ const appleRelatedNames: Rule = (card, ctx) => {
 		if (p.name !== "X-ABRELATEDNAMES") continue;
 		const name = textOf(p);
 		if (name === undefined || p.value.kind === "unknown") continue;
-		const label = labelOf(index, p.group);
+		const label = groupOf(index, p)?.label;
 		const text = label === undefined ? undefined : textOf(label);
 		const builtin = builtinLabel(label);
-		const relation = text === undefined ? undefined : relationTypeForLabel(builtin ?? text);
+		const relation = text === undefined ? undefined : relationMappingForLabel(builtin ?? text);
 		p.name = "RELATED";
 		p.value = { kind: "text", value: name };
 		let type: string | undefined;
@@ -443,7 +499,7 @@ const appleCountryCode: Rule = (card, ctx) => {
 			);
 			continue;
 		}
-		const adr = membersOf(index, p.group).find((m) => m.name === "ADR");
+		const adr = groupOf(index, p)?.adr;
 		if (adr === undefined) continue;
 		if (!adr.params.has("CC")) adr.params.set("CC", [code.toUpperCase()]);
 		doomed.add(p);
@@ -512,7 +568,7 @@ const legacyGender: Rule = (card, ctx) => {
 };
 
 // Apple labels, last: built-ins that mean a TYPE move onto the grouped property, HomePage /
-// Other / empty / IMPP-service labels say nothing and go, custom text stays for the converter.
+// empty / IMPP-service labels say nothing and go, custom text stays for the converter.
 const appleLabels: Rule = (card, ctx) => {
 	if (!hasProperty(card, "X-ABLABEL")) return;
 	const index = groupIndex(card);
@@ -526,7 +582,10 @@ const appleLabels: Rule = (card, ctx) => {
 			ctx.info("ablabel-dropped", "Empty X-ABLabel dropped", label);
 			continue;
 		}
-		const members = membersOf(index, label.group);
+		const group = groupOf(index, label);
+		// One of several labels in its group: which one is meant is a guess, so all stay.
+		if (group !== undefined && group.label !== label) continue;
+		const members = group?.members ?? [];
 		if (members.length === 0) {
 			ctx.warn(
 				"ablabel-orphan",

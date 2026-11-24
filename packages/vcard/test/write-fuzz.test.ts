@@ -3,7 +3,6 @@ import { describe, expect, test } from "vitest";
 import {
 	escapeText,
 	parseVCards,
-	SerializeError,
 	serializeVCards,
 	upgradeTo40,
 	type VCard,
@@ -253,8 +252,10 @@ describe("writer round trip", () => {
 				expect(out.text).toBe("BEGIN:VCARD\r\nVERSION:3.0\r\nTEL:1\r\nEND:VCARD\r\n");
 				expect(out.issues.map((i) => i.code)).toEqual(["param-value-not-in-30"]);
 				if (!/[\r\n]/.test(value)) {
-					// 4.0 caret-encodes a newline, so only the other control characters fail there.
-					expect(() => serializeVCards([c], { version: "4.0" })).toThrow(SerializeError);
+					// 4.0 caret-encodes a newline, so only the other control characters go there.
+					const v40 = serializeVCards([c], { version: "4.0" });
+					expect(v40.text).toBe("BEGIN:VCARD\r\nVERSION:4.0\r\nTEL:1\r\nEND:VCARD\r\n");
+					expect(v40.issues.map((i) => i.code)).toEqual(["param-value-not-in-40"]);
 				}
 			}),
 		);

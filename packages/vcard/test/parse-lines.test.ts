@@ -3,10 +3,12 @@ import type { Issue } from "../src/index.js";
 import { readLogicalLines } from "../src/parse/lines.js";
 
 const utf8 = (s: string) => new TextEncoder().encode(s);
-const text = (b: Uint8Array) => new TextDecoder().decode(b);
+// ignoreBOM: a U+FEFF opening a line must show in what the tests compare.
+const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+const text = (b: Uint8Array) => decoder.decode(b);
 
-function lines(input: string, issues: Issue[] = [], max?: number) {
-	return readLogicalLines(utf8(input), issues, max).map((l) => [l.line, text(l.bytes)]);
+function lines(input: string, issues: Issue[] = [], max?: number, maxLines?: number) {
+	return readLogicalLines(utf8(input), issues, max, maxLines).map((l) => [l.line, text(l.bytes)]);
 }
 
 describe("readLogicalLines", () => {
@@ -40,6 +42,47 @@ describe("readLogicalLines", () => {
 			[1, " FN:x"],
 			[2, "N:y"],
 		]);
+	});
+
+	test("an indented line with nothing to continue is a line of its own, with a warning", () => {
+		const issues: Issue[] = [];
+		expect(lines("NOTE:x\r\n\r\n def:ghi\r\n jkl\r\nFN:y", issues)).toEqual([
+			[1, "NOTE:x"],
+			[3, " def:ghijkl"],
+			[5, "FN:y"],
+		]);
+		expect(issues).toEqual([
+			expect.objectContaining({ severity: "warning", code: "orphan-continuation", line: 3 }),
+		]);
+		// Whitespace an editor left behind is no broken fold: the lexer's warning is enough.
+		const blank: Issue[] = [];
+		lines("FN:x\r\n\r\n \t\r\n", blank);
+		expect(blank).toEqual([]);
+	});
+
+	test("removes the BOM of a second file joined to the first, and no other", () => {
+		const issues: Issue[] = [];
+		const input = "END:VCARD\r\n\uFEFFBEGIN:VCARD\r\n\uFEFFFN:x\r\nNOTE:a\r\n \uFEFFb";
+		expect(lines(input, issues)).toEqual([
+			[1, "END:VCARD"],
+			[2, "BEGIN:VCARD"],
+			[3, "\uFEFFFN:x"],
+			[4, "NOTE:a\uFEFFb"],
+		]);
+		expect(issues).toEqual([
+			expect.objectContaining({ severity: "info", code: "bom-stripped", line: 2 }),
+		]);
+	});
+
+	test("refuses the whole input past the cap on content lines, folds not counted", () => {
+		const input = "A:1\r\n 2\r\nB:3\r\nC:4\r\n";
+		expect(lines(input, [], undefined, 3)).toHaveLength(3);
+		const issues: Issue[] = [];
+		expect(lines(input, issues, undefined, 2)).toEqual([]);
+		expect(issues).toEqual([
+			expect.objectContaining({ severity: "error", code: "too-many-lines" }),
+		]);
+		expect(issues[0]?.line).toBeUndefined();
 	});
 
 	test("reassembles a UTF-8 sequence split by a careless folder", () => {
@@ -318,6 +361,8 @@ describe("readLogicalLines", () => {
 
 	test("throws on a nonsensical limit", () => {
 		expect(() => readLogicalLines(utf8("FN:x"), [], 0)).toThrow(RangeError);
+		expect(() => readLogicalLines(utf8("FN:x"), [], undefined, 0)).toThrow(RangeError);
+		expect(() => readLogicalLines(utf8("FN:x"), [], undefined, 1.5)).toThrow(RangeError);
 	});
 
 	test("stays linear on a large folded photo", () => {

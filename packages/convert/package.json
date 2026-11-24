@@ -48,9 +48,5 @@
   "dependencies": {
     "@vcards-io/jscontact": "workspace:^",
     "@vcards-io/vcard": "workspace:^"
-  },
-  "devDependencies": {
-    "typescript": "^7.0.2",
-    "vitest": "^5.1.0"
   }
 }

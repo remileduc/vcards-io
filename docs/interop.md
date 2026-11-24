@@ -193,8 +193,9 @@ Export dialect (verified from iOS 8 to 18 samples):
 |              | Father, Parent, Brother, Sister, Child, Friend, Spouse,           |
 |              | Partner, Assistant, Manager, Other, custom text                   |
 | IM           | `itemN.IMPP;X-SERVICE-TYPE=Skype;type=pref:skype:user`,           |
-|              | GoogleTalk→`xmpp:`, Yahoo→`ymsgr:`, QQ→`x-apple:`; legacy         |
-|              | `itemN.X-MSN:` + `X-ABLabel:MSN` also emitted                     |
+|              | GoogleTalk→`xmpp:`, Yahoo→`ymsgr:`, ICQ→`aim:`, QQ→`x-apple:`;    |
+|              | MSN, AIM, Yahoo, ICQ and Jabber accounts are emitted a second     |
+|              | time as legacy `itemN.X-MSN:` + `X-ABLabel:MSN`                   |
 | social       | `X-SOCIALPROFILE;type=twitter;x-user=u:http://twitter.com/u`      |
 | PHOTO        | `PHOTO;ENCODING=b;TYPE=JPEG:` folded at 75 with leading space;    |
 |              | macOS may omit TYPE                                               |

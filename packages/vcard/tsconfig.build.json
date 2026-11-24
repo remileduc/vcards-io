@@ -6,5 +6,5 @@
     "noEmit": false,
     "paths": {}
   },
-  "include": ["src"]
+  "include": ["src", "../../platform-globals.d.ts"]
 }

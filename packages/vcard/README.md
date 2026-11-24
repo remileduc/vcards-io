@@ -41,7 +41,7 @@ Every step reports what it changed as `Issue` objects (`error`, `warning`
 or `info`) so a UI can show them; nothing is dropped silently.
 
 ```ts
-interface Issue { severity; code: IssueCode; message: string; line?: number; property?: string; card?: number }
+interface Issue { severity; code: IssueCode; message: string; line?: number; property?: string; card?: number; propertyIndex?: number }
 ```
 
 `code` is a union of string literals, built from one exported list per
@@ -53,7 +53,9 @@ package that adds its own codes to the same shape.
 `card` is the index of the card the issue is about: in the returned `cards`
 for the parser, in the `cards` argument for the writer. Parser issues about
 a line outside any card or about the whole input have none; `upgradeTo40`
-takes one card and sets none.
+takes one card and sets none. `propertyIndex` is the writer's alone: the
+index of the property in `properties` of that card, since a card built
+in code has no `line` and its three `TEL` share one `property`.
 
 The model
 ---------
@@ -83,7 +85,11 @@ Pipeline
 
 The parser handles BOMs and UTF-16, quoted-printable, inline base64,
 charset parameters, 2.1 bare parameters, folding of every flavour and
-hostile sizes (caps are reported as issues). The normaliser applies the
+hostile sizes. Three caps, each an option of `parseVCards` and each
+reported as an `error` issue: `maxInputBytes` (64 MiB) and
+`maxContentLines` (500 000 unfolded lines), past which nothing is parsed,
+and `maxLineLength` (1 MiB), past which the line is dropped. The
+normaliser applies the
 standard rules (`TYPE=pref` to `PREF=1`, inline binary to `data:` URIs,
 `LABEL` to the `ADR` parameter, `GEO` to `geo:`, ...) and then the
 Android, Apple and Google vendor rules (`X-ANDROID-CUSTOM`, `X-ABLabel`
@@ -99,19 +105,21 @@ CRLF, raw UTF-8, no BOM, no `CHARSET`, never quoted-printable, lines
 folded at 75 octets without splitting a UTF-8 sequence or an escape.
 Properties are written in the order the model holds them: whoever builds
 the card decides the order. `issues` holds one `warning` per loss the
-version forced, each with the `card` index and the `group.NAME`; 4.0
-never raises one.
+version forced and one `error` per property that was left out, each with
+the `card` index, the `propertyIndex` in that card and the `group.NAME`.
 
 | Version | Syntax                                                                     |
 | ------- | -------------------------------------------------------------------------- |
 | 4.0     | RFC 6350: parameters as given, caret-encoded and quoted when needed, comma |
 |         | lists, basic ISO dates, `data:` URIs for media. A `binary` value is an     |
-|         | error: run `upgradeTo40` first.                                            |
+|         | error: run `upgradeTo40` first. Dropped and reported as a warning: a       |
+|         | parameter value with a control character (`param-value-not-in-40`).        |
 | 3.0     | RFC 2426 as the phones read it: `TYPE=A;TYPE=B` repeated and uppercased    |
 |         | (`X-` labels keep their case), `PREF=1` as a last `TYPE=PREF`, inline      |
 |         | base64 with `ENCODING=b;TYPE=JPEG` (a `data:` URI on PHOTO/LOGO/SOUND/KEY  |
 |         | is decoded back), exactly 5 `N` and 7 `ADR` components, extended ISO       |
-|         | dates. Only `TYPE`, `VALUE`, `LANGUAGE`, `CALSCALE` and `X-` parameters    |
+|         | dates, `UID` as text and a plain `geo:` URI as `GEO:lat;lon`. Only         |
+|         | `TYPE`, `VALUE`, `LANGUAGE`, `CALSCALE` and `X-` parameters                |
 |         | are written. Dropped and reported as a warning: every other 4.0 parameter  |
 |         | (`param-not-in-30`), a value with a quote or a control character           |
 |         | (`param-value-not-in-30`), any `PREF` but 1 (`pref-not-in-30`), a          |
@@ -134,18 +142,18 @@ always end in CRLF, as both RFCs require.
 
 A value outside these is a `RangeError`.
 
-`SerializeError` is thrown for what no version can express: a `binary` value
-in 4.0, a control character a 4.0 parameter cannot caret-encode, a `TYPE`
-value holding a comma (readers split it even when quoted), a date shape
-outside the grammar, an integer that is not safe or a float that is not
-finite, a property or parameter name outside `[A-Za-z0-9-]`, `BEGIN`, `END`
-or `VERSION` as a property, a line break the escaping cannot absorb, or a
-value without the fields of its kind. It carries the card index and the
-`group.NAME` as the caller wrote them, which is also what the warnings in
-`issues` carry. These are defects of the caller's model, never of
-input that went through the parser and the normaliser, with two exceptions
-the caller must filter: a property whose name the parser flagged as invalid,
-and a bare `END:` line kept as a property.
+The writer never throws on a property, whatever it holds; a card only
+has to be an object with `properties`. A property no line can hold is left
+out and reported as an `error` (`property-not-written`), and everything
+else is written: a `binary` value in 4.0, a `TYPE` value holding a comma
+(readers split it even when quoted), a date shape outside the grammar, an
+integer that is not safe or a float that is not finite, a property, group
+or parameter name outside `[A-Za-z0-9-]`, `BEGIN`, `END` or `VERSION` as a
+property, a line break in a value that has no escape for one, or a value
+without the fields of its kind. Most are defects of a hand-built model,
+but the tolerant parser keeps a few of them without an issue (a parameter
+named `a_b`, a group named `it_em`, a bare `END:` line), so check `issues`
+for errors before telling a user the export is complete.
 
 Exports
 -------
@@ -155,8 +163,8 @@ major release.
 
 | Stable contract    | Exports                                                      |
 | ------------------ | ------------------------------------------------------------ |
-| Pipeline           | `parseVCards`, `upgradeTo40`, `serializeVCards`,             |
-|                    | `SerializeError`, their option and result types, `VERSION`   |
+| Pipeline           | `parseVCards`, `upgradeTo40`, `serializeVCards`, their       |
+|                    | option and result types, `VERSION`                           |
 | Model              | `VCard`, `VProperty`, `VParams`, `VValue`, `VValueKind`,     |
 |                    | `VCardVersion`, `DateAndOrTime`, `Timestamp`, `UtcOffset`    |
 | Issues             | `Issue`, `IssueSeverity`, `IssueCode`, the four              |
@@ -185,8 +193,8 @@ change in any release; pin an exact version if you depend on them.
 |                      | `isMediaProperty`, `TEXT_FAMILY`, `VALUE_TOKENS`           |
 | Media type words     | `MEDIA_TYPE_NAMES`, `mediaTypeFromName`, `mediaTypeName`,  |
 |                      | `declaredMediaType`                                        |
-| Relations            | `RELATION_TYPES`, `RelationType`,                          |
-|                      | `relationTypeForAndroid`, `relationTypeForLabel`           |
+| Relations            | `RELATION_MAPPINGS`, `RelationMapping`,                    |
+|                      | `relationMappingForAndroid`, `relationMappingForLabel`     |
 | Grammar              | `URI_SCHEME`                                               |
 
 There is no public unfolder and no quoted-printable encoder: unfolding is

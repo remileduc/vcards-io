@@ -3,9 +3,9 @@ import {
 	type Issue,
 	parseVCards,
 	propertyId,
-	RELATION_TYPES,
-	relationTypeForAndroid,
-	relationTypeForLabel,
+	RELATION_MAPPINGS,
+	relationMappingForAndroid,
+	relationMappingForLabel,
 	upgradeTo40,
 	type VCard,
 	type VCardVersion,
@@ -48,18 +48,20 @@ function android(mime: string, ...data: string[]): string {
 
 describe("relation table", () => {
 	test("covers every Android type number once and maps Apple and Google labels", () => {
-		expect(new Set(RELATION_TYPES.map((r) => r.android)).size).toBe(RELATION_TYPES.length);
-		expect([...RELATION_TYPES.map((r) => r.android)].sort((a, b) => a - b)).toEqual(
+		expect(new Set(RELATION_MAPPINGS.map((r) => r.android)).size).toBe(
+			RELATION_MAPPINGS.length,
+		);
+		expect([...RELATION_MAPPINGS.map((r) => r.android)].sort((a, b) => a - b)).toEqual(
 			Array.from({ length: 15 }, (_, i) => i),
 		);
-		expect(relationTypeForAndroid(8)?.type).toBe("x-mother");
-		expect(relationTypeForAndroid(12)?.type).toBe("kin");
-		expect(relationTypeForAndroid(99)).toBeUndefined();
-		expect(relationTypeForLabel("Mother")?.type).toBe("x-mother");
-		expect(relationTypeForLabel("REFERRED_BY")?.type).toBe("x-referred-by");
-		expect(relationTypeForLabel("domestic-partner")?.android).toBe(4);
-		expect(relationTypeForLabel("RELATIVE")?.type).toBe("kin");
-		expect(relationTypeForLabel("Other")).toBeUndefined();
+		expect(relationMappingForAndroid(8)?.type).toBe("x-mother");
+		expect(relationMappingForAndroid(12)?.type).toBe("kin");
+		expect(relationMappingForAndroid(99)).toBeUndefined();
+		expect(relationMappingForLabel("Mother")?.type).toBe("x-mother");
+		expect(relationMappingForLabel("REFERRED_BY")?.type).toBe("x-referred-by");
+		expect(relationMappingForLabel("domestic-partner")?.android).toBe(4);
+		expect(relationMappingForLabel("RELATIVE")?.type).toBe("kin");
+		expect(relationMappingForLabel("Other")).toBeUndefined();
 	});
 });
 
@@ -145,7 +147,7 @@ describe("Android X-ANDROID-CUSTOM", () => {
 	});
 
 	test("relation rows become RELATED;VALUE=text with the mapped TYPE", () => {
-		for (const relation of RELATION_TYPES.filter((r) => r.android !== 0)) {
+		for (const relation of RELATION_MAPPINGS.filter((r) => r.android !== 0)) {
 			const related = only("2.1", android("relation", "Someone", String(relation.android)));
 			expect(related, relation.type).toMatchObject({
 				group: null,
@@ -518,7 +520,7 @@ describe("Apple labels", () => {
 		]);
 	});
 
-	test("HomePage, Other, empty and redundant IMPP labels are dropped", () => {
+	test("HomePage, empty and redundant IMPP labels are dropped, Other is the TYPE Apple writes on TEL", () => {
 		const { props, issues } = upgrade(
 			"3.0",
 			"item1.URL;type=pref:http://h",
@@ -540,7 +542,79 @@ describe("Apple labels", () => {
 			"item5.IMPP",
 		]);
 		expect(params(props[0])).toEqual({ PREF: ["1"] });
-		expect(codes(issues).filter((c) => c === "ablabel-dropped")).toHaveLength(5);
+		expect(params(props[1])).toEqual({ TYPE: ["other"] });
+		expect(codes(issues).filter((c) => c === "ablabel-dropped")).toHaveLength(4);
+		expect(params(upgrade("3.0", "TEL;type=OTHER;type=VOICE:1").props[0])).toEqual({
+			TYPE: ["other", "voice"],
+		});
+	});
+
+	test("several labels in a group are all left as written, an empty one aside", () => {
+		const { props } = upgrade(
+			"3.0",
+			"item1.TEL:1",
+			"item1.X-ABLabel:_$!<Home>!$_",
+			"item1.X-ABLabel:_$!<Work>!$_",
+			"item2.TEL:2",
+			"item2.X-ABLabel:",
+			"item2.X-ABLabel:_$!<Home>!$_",
+		);
+		expect(names(props)).toEqual([
+			"item1.TEL",
+			"item1.X-ABLABEL",
+			"item1.X-ABLABEL",
+			"item2.TEL",
+		]);
+		expect(params(props[0])).toEqual({});
+		expect(params(props[3])).toEqual({ TYPE: ["home"] });
+	});
+
+	test("a legacy IM line repeating an IMPP of the card goes, with the label it alone carried", () => {
+		const { props, issues } = upgrade(
+			"3.0",
+			"item1.X-AIM;type=HOME:bob",
+			"item1.X-ABLabel:AIM",
+			"item2.X-ICQ:42",
+			"item2.TEL:1",
+			"item2.X-ABLabel:Mine",
+			"X-JABBER:a@b.c",
+			"X-YAHOO:bob",
+			"item3.IMPP;X-SERVICE-TYPE=AIM;type=HOME:aim:Bob",
+			"item4.IMPP;X-SERVICE-TYPE=ICQ:aim:42",
+			"IMPP:xmpp:a%40b.c",
+		);
+		expect(names(props)).toEqual([
+			"item2.TEL",
+			"item2.X-ABLABEL",
+			"IMPP",
+			"item3.IMPP",
+			"item4.IMPP",
+			"IMPP",
+		]);
+		// Apple writes ICQ with the aim: scheme: the service tells the two apart, not the URI.
+		expect(props[2]?.value).toEqual({ kind: "uri", value: "ymsgr:bob" });
+		expect(codes(issues).filter((c) => c === "legacy-im-duplicate")).toHaveLength(3);
+		expect(issues.find((i) => i.property === "item1.X-AIM")?.message).toContain(
+			'X-ABLabel "AIM"',
+		);
+		expect(names(upgrade("3.0", "X-AIM:42", "IMPP;X-SERVICE-TYPE=ICQ:aim:42").props)).toEqual([
+			"IMPP",
+			"IMPP",
+		]);
+	});
+
+	test("a dropped legacy IM line leaves its TYPE and PREF on the IMPP that stays", () => {
+		const { props } = upgrade(
+			"3.0",
+			"X-JABBER;TYPE=WORK;TYPE=PREF:bob@x.com",
+			"X-AIM;TYPE=HOME:al",
+			"IMPP:xmpp:bob@x.com",
+			"IMPP;X-SERVICE-TYPE=AIM;TYPE=WORK;TYPE=PREF:aim:al",
+		);
+		expect(props.map(params)).toEqual([
+			{ TYPE: ["work"], PREF: ["1"] },
+			{ "SERVICE-TYPE": ["AIM"], TYPE: ["work", "home"], PREF: ["1"] },
+		]);
 	});
 
 	test("custom text, orphans, unknown built-ins and labels on raw X- properties are kept", () => {
