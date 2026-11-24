@@ -41,7 +41,7 @@ Every step reports what it changed as `Issue` objects (`error`, `warning`
 or `info`) so a UI can show them; nothing is dropped silently.
 
 ```ts
-interface Issue { severity; code: IssueCode; message: string; line?: number; property?: string; card?: number }
+interface Issue { severity; code: IssueCode; message: string; line?: number; property?: string; card?: number; propertyIndex?: number }
 ```
 
 `code` is a union of string literals, built from one exported list per
@@ -53,7 +53,9 @@ package that adds its own codes to the same shape.
 `card` is the index of the card the issue is about: in the returned `cards`
 for the parser, in the `cards` argument for the writer. Parser issues about
 a line outside any card or about the whole input have none; `upgradeTo40`
-takes one card and sets none.
+takes one card and sets none. `propertyIndex` is the writer's alone: the
+index of the property in `properties` of that card, since a card built
+in code has no `line` and its three `TEL` share one `property`.
 
 The model
 ---------
@@ -104,7 +106,7 @@ folded at 75 octets without splitting a UTF-8 sequence or an escape.
 Properties are written in the order the model holds them: whoever builds
 the card decides the order. `issues` holds one `warning` per loss the
 version forced and one `error` per property that was left out, each with
-the `card` index and the `group.NAME`.
+the `card` index, the `propertyIndex` in that card and the `group.NAME`.
 
 | Version | Syntax                                                                     |
 | ------- | -------------------------------------------------------------------------- |
@@ -140,7 +142,8 @@ always end in CRLF, as both RFCs require.
 
 A value outside these is a `RangeError`.
 
-The writer never throws on a model. A property no line can hold is left
+The writer never throws on a property, whatever it holds; a card only
+has to be an object with `properties`. A property no line can hold is left
 out and reported as an `error` (`property-not-written`), and everything
 else is written: a `binary` value in 4.0, a `TYPE` value holding a comma
 (readers split it even when quoted), a date shape outside the grammar, an

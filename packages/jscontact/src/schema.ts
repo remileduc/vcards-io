@@ -1,7 +1,7 @@
 // The properties of every JSContact object, in the order RFC 9553 defines them, with what each
 // one holds and which are mandatory: what normalizeCard orders and validateCard checks.
 
-import { NICKNAME_KIND } from "./vendor.js";
+import { NICKNAME_KIND, VENDOR_LABEL } from "./vendor.js";
 
 export type ObjectType =
 	| "Card"
@@ -108,7 +108,7 @@ export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 		personalInfo: { map: "PersonalInfo" },
 		vCardProps: "jCardProps",
 	}),
-	Relation: object({ relation: "set" }),
+	Relation: object({ relation: "set", [VENDOR_LABEL]: "string" }),
 	Name: object({
 		components: { list: "NameComponent" },
 		isOrdered: "boolean",
@@ -124,6 +124,7 @@ export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 		contexts: "set",
 		pref: "unsignedInt",
 		[NICKNAME_KIND]: "string",
+		[VENDOR_LABEL]: "string",
 	}),
 	Organization: object({
 		name: "string",
@@ -176,6 +177,7 @@ export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 		pref: "unsignedInt",
 		phoneticScript: "string",
 		phoneticSystem: "string",
+		[VENDOR_LABEL]: "string",
 	}),
 	AddressComponent: component,
 	CryptoKey: object(resource),
@@ -186,6 +188,7 @@ export const PROPERTIES: Readonly<Record<ObjectType, Properties>> = {
 		kind: "string",
 		date: { object: ["PartialDate", "Timestamp"] },
 		place: { object: ["Address"] },
+		[VENDOR_LABEL]: "string",
 	}),
 	PartialDate: object({
 		year: "unsignedInt",

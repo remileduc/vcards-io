@@ -38,7 +38,7 @@ without an issue. The codes of the `yes` rows:
 |                       | object                                                |
 | `property-missing`    | every "is mandatory" row, `@type` and `version` of    |
 |                       | the Card included                                     |
-| `type-mismatch`       | an `@type` that is not the type expected there        |
+| `at-type-mismatch`    | an `@type` that is not the type expected there        |
 | `version-unsupported` | `version-unregistered`                                |
 | `set-value-not-true`  | a set value that is not `true`                        |
 | `id-invalid`          | the four Id rows                                      |
@@ -245,7 +245,7 @@ Cards the validator must accept
 | 1.4.5         | Non-zero fractional seconds without trailing zeros are valid            | `utc-date-time-fraction`       |
 | 1.5.3         | pref is in the range 1 to 100                                           | `pref-bounds`                  |
 | 1.7.4         | An unknown property with a valid name MUST NOT be treated as invalid    | `unknown-property`             |
-| 1.8           | The extensions of this project: Nickname kind and vendor relation types | `project-vendor-extensions`    |
+| 1.8           | The extensions of this project: Nickname kind, label, vendor relations  | `project-vendor-extensions`    |
 | 1.8.1         | A vendor property MAY be set in any object, with any JSON value         | `vendor-property`              |
 | 1.8.2         | An enumerated property accepts a vendor-specific value                  | `vendor-values`                |
 | 2.1.2         | Any valid version "1.0" Card is also valid in "2.0" (RFC 9982)          | `version-1.0-with-uid`         |
@@ -284,7 +284,7 @@ each one lands.
 | 1.7.4      | Only registered or vendor properties MUST be set                 | converter, editor                       |
 | 1.8.1      | Vendor properties MUST be preserved and their value never        | everything that copies a Card; the      |
 |            | rejected, unless the vendor is this project                      | validator asks a string of our Nickname |
-|            |                                                                  | kind, and nothing of any other          |
+|            |                                                                  | kind and label, nothing of any other    |
 | 1.8.1      | The vendor prefix MUST be a domain under the vendor's control    | `VENDOR_PREFIX`                         |
 | 1.8.1      | The prefix ietf.org and its subdomains are reserved for the IETF | never set; not checked on input         |
 | 2.2.1.1    | Components in name order MUST set isOrdered to true; the same    | converter (`JSCOMPS`), editor           |
@@ -292,7 +292,7 @@ each one lands.
 | 2.3.2      | Service names MUST be compared case-insensitively                | converter, card matching                |
 | 2.7.1      | Localizing: copy without localizations, then apply the patches   | `localize`                              |
 | 2.8.1      | year, month and day MUST be Gregorian whatever the calendarScale | converter, editor                       |
-| RFC 9982 3 | Created data MUST be of version "2.0" and say so                 | converter, `parseJSContact` (1.0 input) |
+| RFC 9982 3 | Created data MUST be of version "2.0" and say so                 | converter, `parseCards` (1.0 input)     |
 | RFC 9982 5 | No uid MUST be generated for a vCard without UID                 | converter; only the app assigns one     |
 
 Where the RFC leaves room

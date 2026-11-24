@@ -7,8 +7,8 @@ import {
 	FORMAT_STAMP,
 	FORMAT_VERSION,
 	normalizeCard,
-	parseJSContact,
-	stringifyCards,
+	parseCards,
+	serializeCards,
 } from "../src/index.js";
 import { MAX_ISSUES_PER_CODE } from "../src/issues.js";
 import { type ConstraintCase, readFixture } from "./helpers/fixtures.js";
@@ -24,9 +24,9 @@ const stamped = (card: object, stamp: unknown = FORMAT_VERSION): object => ({
 	[FORMAT_STAMP]: stamp,
 });
 
-/** The code, the Card and the path of each issue. */
+/** The code, the position in the input and the path of each issue. */
 const found = (issues: CardIssue[]): unknown[] =>
-	issues.map(({ code, card, path }) => [code, card, path]);
+	issues.map(({ code, input, path }) => [code, input, path]);
 
 describe("the format stamp", () => {
 	test("is a vendor property of this project holding a positive integer", () => {
@@ -35,9 +35,9 @@ describe("the format stamp", () => {
 	});
 });
 
-describe("stringifyCards", () => {
+describe("serializeCards", () => {
 	test("writes an array of stamped Cards as two-space JSON ending with a line feed", () => {
-		expect(stringifyCards([john])).toBe(`[
+		expect(serializeCards([john])).toBe(`[
   {
     "@type": "Card",
     "version": "2.0",
@@ -48,7 +48,7 @@ describe("stringifyCards", () => {
   }
 ]
 `);
-		expect(stringifyCards([])).toBe("[]\n");
+		expect(serializeCards([])).toBe("[]\n");
 	});
 
 	test("writes each Card as normalizeCard orders it, the stamp before the pictures", () => {
@@ -60,7 +60,7 @@ describe("stringifyCards", () => {
 			version: "2.0",
 			"@type": "Card",
 		} as Card;
-		const [written] = JSON.parse(stringifyCards([card])) as [{ media: { m1: object } }];
+		const [written] = JSON.parse(serializeCards([card])) as [{ media: { m1: object } }];
 		expect(Object.keys(written)).toEqual([
 			"@type",
 			"version",
@@ -74,57 +74,57 @@ describe("stringifyCards", () => {
 
 	test("leaves the Cards it is given without a stamp", () => {
 		const cards = [Object.freeze({ ...john })];
-		stringifyCards(cards);
+		serializeCards(cards);
 		expect(cards).toEqual([john]);
 	});
 
 	test("writes a Card of version 1.0 as 2.0, which is what it is read back as", () => {
 		const old = Object.freeze({ ...john, version: "1.0" }) as Card;
-		const text = stringifyCards([old]);
+		const text = serializeCards([old]);
 		expect(JSON.parse(text)).toEqual([stamped(john)]);
-		expect(parseJSContact(text)).toEqual({ cards: [john], refused: 0, issues: [] });
+		expect(parseCards(text)).toEqual({ cards: [john], refused: 0, issues: [] });
 	});
 
 	test("replaces a stamp a Card should not have had", () => {
-		const text = stringifyCards([stamped(john, 7) as Card]);
+		const text = serializeCards([stamped(john, 7) as Card]);
 		expect(JSON.parse(text)).toEqual([stamped(john)]);
 	});
 });
 
-describe("parseJSContact", () => {
-	test("reads what stringifyCards wrote: the same Cards, normalized, without the stamp", () => {
+describe("parseCards", () => {
+	test("reads what serializeCards wrote: the same Cards, normalized, without the stamp", () => {
 		// The two Cards of version 1.0 among them come back as 2.0, see below.
 		const cards = [
 			...Object.values(figures),
 			...Object.values(valid).map((c) => c.card as Card),
 		].filter((card) => card.version === "2.0");
 		expect(cards).toHaveLength(60);
-		const result = parseJSContact(stringifyCards(cards));
+		const result = parseCards(serializeCards(cards));
 		expect(result.issues).toEqual([]);
 		expect(result.cards.map((card) => JSON.stringify(card))).toEqual(
 			cards.map((card) => JSON.stringify(normalizeCard(card))),
 		);
 		// Once normalized, a Card is written as it is read.
-		expect(stringifyCards(result.cards)).toBe(stringifyCards(cards));
+		expect(serializeCards(result.cards)).toBe(serializeCards(cards));
 	});
 
 	test("reads the text of one Card, or of an array of them", () => {
-		expect(parseJSContact(JSON.stringify(john))).toEqual({
+		expect(parseCards(JSON.stringify(john))).toEqual({
 			cards: [john],
 			refused: 0,
 			issues: [],
 		});
-		expect(parseJSContact(JSON.stringify([john, jane]))).toEqual({
+		expect(parseCards(JSON.stringify([john, jane]))).toEqual({
 			cards: [john, jane],
 			refused: 0,
 			issues: [],
 		});
-		expect(parseJSContact("[]")).toEqual({ cards: [], refused: 0, issues: [] });
+		expect(parseCards("[]")).toEqual({ cards: [], refused: 0, issues: [] });
 	});
 
 	test("reads a value that is already parsed, and a Card no tool of ours stamped", () => {
-		expect(parseJSContact(john).cards).toEqual([john]);
-		expect(parseJSContact([john, jane])).toEqual({
+		expect(parseCards(john).cards).toEqual([john]);
+		expect(parseCards([john, jane])).toEqual({
 			cards: [john, jane],
 			refused: 0,
 			issues: [],
@@ -133,36 +133,36 @@ describe("parseJSContact", () => {
 
 	test("skips a byte order mark before the text", () => {
 		const text = `${String.fromCharCode(0xfeff)}${JSON.stringify([john])}`;
-		expect(parseJSContact(text)).toEqual({ cards: [john], refused: 0, issues: [] });
+		expect(parseCards(text)).toEqual({ cards: [john], refused: 0, issues: [] });
 	});
 
 	test("changes nothing it is given: a stamped Card comes back as a copy", () => {
 		const given = Object.freeze(stamped(john));
-		const { cards, issues } = parseJSContact(Object.freeze([given]));
+		const { cards, issues } = parseCards(Object.freeze([given]));
 		expect(issues).toEqual([]);
 		expect(cards).toEqual([john]);
 		expect(given).toEqual(stamped(john));
 	});
 
 	test("a Card it has nothing to change in is returned itself; a copy shares what it holds", () => {
-		expect(parseJSContact([john]).cards[0]).toBe(john);
-		const [unstamped] = parseJSContact(stamped(john)).cards;
+		expect(parseCards([john]).cards[0]).toBe(john);
+		const [unstamped] = parseCards(stamped(john)).cards;
 		expect(unstamped).not.toBe(john);
 		expect(unstamped?.name).toBe(john.name);
 		const old = { ...john, version: "1.0" };
-		expect(parseJSContact(old).cards[0]?.name).toBe(john.name);
+		expect(parseCards(old).cards[0]?.name).toBe(john.name);
 	});
 
 	test("a number no double holds, which JSON text can write, is refused when read", () => {
 		const text = '[{ "@type": "Card", "version": "2.0", "example.com:n": 1e999 }]';
-		const { cards, issues } = parseJSContact(text);
+		const { cards, issues } = parseCards(text);
 		expect(cards).toEqual([]);
 		expect(found(issues)).toEqual([["value-not-json", 0, "/example.com:n"]]);
 	});
 
 	test("a Card of version 1.0 comes back as 2.0, with an info", () => {
 		const old = Object.freeze({ "@type": "Card", version: "1.0", uid: "1", name: {} });
-		const { cards, issues } = parseJSContact([jane, old]);
+		const { cards, issues } = parseCards([jane, old]);
 		expect(cards[1]).toEqual({ "@type": "Card", version: "2.0", uid: "1", name: {} });
 		expect(Object.keys(cards[1] ?? {})).toEqual(Object.keys(old));
 		expect(issues).toEqual([
@@ -172,13 +172,28 @@ describe("parseJSContact", () => {
 				message: 'Version "1.0" read as "2.0": every valid 1.0 Card is a valid 2.0 Card',
 				path: "/version",
 				card: 1,
+				input: 1,
 			},
 		]);
 	});
 
+	test("an issue names its Card in `cards` when it was kept, and always in the input", () => {
+		const old = { "@type": "Card", version: "1.0", uid: "1" };
+		const { cards, issues } = parseCards([null, old, {}, stamped(jane, FORMAT_VERSION + 1)]);
+		expect(issues.map(({ code, input, card }) => [code, input, card])).toEqual([
+			["card-not-an-object", 0, undefined],
+			["version-upgraded", 1, 0],
+			["property-missing", 2, undefined],
+			["property-missing", 2, undefined],
+			["format-version-newer", 3, 1],
+		]);
+		expect(issues[0]).not.toHaveProperty("card");
+		expect(cards[1]).toEqual(jane);
+	});
+
 	test("a refused Card is left out, and its issues say which one it was", () => {
 		const broken = { "@type": "Card", version: "2.0", name: "John", phones: { p1: {} } };
-		const { cards, refused, issues } = parseJSContact([john, broken, null, jane]);
+		const { cards, refused, issues } = parseCards([john, broken, null, jane]);
 		expect(cards).toEqual([john, jane]);
 		expect(refused).toBe(2);
 		expect(found(issues)).toEqual([
@@ -189,28 +204,28 @@ describe("parseJSContact", () => {
 	});
 
 	test.each([["42"], ['"a Card"'], ["null"]])("the text %s is JSON and no Card", (text) => {
-		expect(found(parseJSContact(text).issues)).toEqual([["card-not-an-object", 0, ""]]);
+		expect(found(parseCards(text).issues)).toEqual([["card-not-an-object", 0, ""]]);
 	});
 
 	test("a value that is no text and no Card is reported the same way", () => {
-		expect(found(parseJSContact(undefined).issues)).toEqual([["card-not-an-object", 0, ""]]);
-		expect(found(parseJSContact(42).issues)).toEqual([["card-not-an-object", 0, ""]]);
+		expect(found(parseCards(undefined).issues)).toEqual([["card-not-an-object", 0, ""]]);
+		expect(found(parseCards(42).issues)).toEqual([["card-not-an-object", 0, ""]]);
 	});
 
 	test("bytes are the text in UTF-8, in whatever view, with or without a byte order mark", () => {
 		const josé: Card = { ...john, name: { full: "José 孫" } };
 		const bytes = new TextEncoder().encode(`\uFEFF${JSON.stringify([josé])}`);
 		const expected = { cards: [josé], refused: 0, issues: [] };
-		expect(parseJSContact(bytes)).toEqual(expected);
-		expect(parseJSContact(bytes.subarray(3))).toEqual(expected);
-		expect(parseJSContact(bytes.buffer)).toEqual(expected);
-		expect(parseJSContact(new DataView(bytes.buffer, 3))).toEqual(expected);
+		expect(parseCards(bytes)).toEqual(expected);
+		expect(parseCards(bytes.subarray(3))).toEqual(expected);
+		expect(parseCards(bytes.buffer)).toEqual(expected);
+		expect(parseCards(new DataView(bytes.buffer, 3))).toEqual(expected);
 	});
 
 	test("two byte order marks are refused, as bytes as they are as text", () => {
 		const text = "\uFEFF\uFEFF[]";
-		expect(found(parseJSContact(text).issues)).toEqual([["json-syntax", undefined, ""]]);
-		expect(found(parseJSContact(new TextEncoder().encode(text)).issues)).toEqual([
+		expect(found(parseCards(text).issues)).toEqual([["json-syntax", undefined, ""]]);
+		expect(found(parseCards(new TextEncoder().encode(text)).issues)).toEqual([
 			["json-syntax", undefined, ""],
 		]);
 	});
@@ -219,11 +234,11 @@ describe("parseJSContact", () => {
 		const buffer = new ArrayBuffer(2);
 		const view = new DataView(buffer);
 		buffer.transfer();
-		expect(found(parseJSContact(view).issues)).toEqual([["json-syntax", undefined, ""]]);
+		expect(found(parseCards(view).issues)).toEqual([["json-syntax", undefined, ""]]);
 	});
 
 	test("bytes are capped as bytes, before any is decoded, and never read as a Card", () => {
-		const { cards, refused, issues } = parseJSContact(new Uint8Array(100), {
+		const { cards, refused, issues } = parseCards(new Uint8Array(100), {
 			maxTextLength: 99,
 		});
 		expect({ cards, refused }).toEqual({ cards: [], refused: 0 });
@@ -235,14 +250,14 @@ describe("parseJSContact", () => {
 				path: "",
 			},
 		]);
-		expect(found(parseJSContact(new Uint8Array(100)).issues)).toEqual([
+		expect(found(parseCards(new Uint8Array(100)).issues)).toEqual([
 			["json-syntax", undefined, ""],
 		]);
 	});
 
 	test("bytes that are not UTF-8 are no JSON", () => {
 		const latin1 = Uint8Array.of(0x5b, 0x22, 0xe9, 0x22, 0x5d);
-		const { cards, issues } = parseJSContact(latin1);
+		const { cards, issues } = parseCards(latin1);
 		expect(cards).toEqual([]);
 		expect(found(issues)).toEqual([["json-syntax", undefined, ""]]);
 		expect(issues[0]?.message).toMatch(/^The text is not JSON: TypeError: /);
@@ -251,17 +266,18 @@ describe("parseJSContact", () => {
 	test.each([[""], ["{"], ["[{}, ]"], ["BEGIN:VCARD\r\nVERSION:3.0\r\nEND:VCARD\r\n"]])(
 		"the text %j is not JSON",
 		(text) => {
-			const { cards, issues } = parseJSContact(text);
+			const { cards, issues } = parseCards(text);
 			expect(cards).toEqual([]);
 			expect(issues).toHaveLength(1);
 			expect(issues[0]).toMatchObject({ severity: "error", code: "json-syntax", path: "" });
 			expect(issues[0]?.message).toMatch(/^The text is not JSON: SyntaxError: /);
 			expect(issues[0]).not.toHaveProperty("card");
+			expect(issues[0]).not.toHaveProperty("input");
 		},
 	);
 
 	test("a text longer than the cap is not parsed", () => {
-		const { cards, refused, issues } = parseJSContact(" ".repeat(DEFAULT_MAX_TEXT_LENGTH + 1));
+		const { cards, refused, issues } = parseCards(" ".repeat(DEFAULT_MAX_TEXT_LENGTH + 1));
 		expect(cards).toEqual([]);
 		// No Card was read, so none was refused: the issue stands for the file.
 		expect(refused).toBe(0);
@@ -273,33 +289,33 @@ describe("parseJSContact", () => {
 				path: "",
 			},
 		]);
-		expect(parseJSContact(`${" ".repeat(DEFAULT_MAX_TEXT_LENGTH - 2)}[]`).issues).toEqual([]);
+		expect(parseCards(`${" ".repeat(DEFAULT_MAX_TEXT_LENGTH - 2)}[]`).issues).toEqual([]);
 	});
 
-	test("the cap is an option: stringifyCards has none and may write more than the default", () => {
+	test("the cap is an option: serializeCards has none and may write more than the default", () => {
 		const text = JSON.stringify([john]);
-		const short = parseJSContact(text, { maxTextLength: text.length - 1 });
+		const short = parseCards(text, { maxTextLength: text.length - 1 });
 		expect(short.cards).toEqual([]);
 		expect(found(short.issues)).toEqual([["json-too-large", undefined, ""]]);
-		expect(parseJSContact(text, { maxTextLength: text.length }).cards).toEqual([john]);
+		expect(parseCards(text, { maxTextLength: text.length }).cards).toEqual([john]);
 	});
 
 	test.each([[0], [-1], [1.5], [Number.NaN], [-Infinity]])(
 		"a cap of %s is thrown back",
 		(cap) => {
-			expect(() => parseJSContact("[]", { maxTextLength: cap })).toThrow(RangeError);
+			expect(() => parseCards("[]", { maxTextLength: cap })).toThrow(RangeError);
 		},
 	);
 
 	test("a cap of Infinity is no cap", () => {
-		expect(parseJSContact(JSON.stringify([john]), { maxTextLength: Infinity }).cards).toEqual([
+		expect(parseCards(JSON.stringify([john]), { maxTextLength: Infinity }).cards).toEqual([
 			john,
 		]);
 	});
 
 	test("the issues of a whole file are capped by code too, the count of refused Cards is not", () => {
 		const nothing = new Array(MAX_ISSUES_PER_CODE + 500).fill(null);
-		const { cards, refused, issues } = parseJSContact([...nothing, john]);
+		const { cards, refused, issues } = parseCards([...nothing, john]);
 		expect(cards).toEqual([john]);
 		expect(refused).toBe(nothing.length);
 		expect(issues).toHaveLength(MAX_ISSUES_PER_CODE + 1);
@@ -307,11 +323,11 @@ describe("parseJSContact", () => {
 	});
 });
 
-describe("parseJSContact and the format stamp", () => {
+describe("parseCards and the format stamp", () => {
 	test.each([[0], [-1], [1.5], ["1"], [null], [true], [Number.MAX_VALUE]])(
 		"a stamp of %j is an error and the Card is refused",
 		(stamp) => {
-			const { cards, issues } = parseJSContact([john, stamped(jane, stamp)]);
+			const { cards, issues } = parseCards([john, stamped(jane, stamp)]);
 			expect(cards).toEqual([john]);
 			expect(found(issues)).toEqual([["format-version-invalid", 1, `/${FORMAT_STAMP}`]]);
 			expect(issues[0]?.severity).toBe("error");
@@ -319,7 +335,7 @@ describe("parseJSContact and the format stamp", () => {
 	);
 
 	test("the Card of an invalid stamp is validated all the same", () => {
-		const { issues } = parseJSContact(stamped({ "@type": "Card" }, 0));
+		const { issues } = parseCards(stamped({ "@type": "Card" }, 0));
 		expect(found(issues)).toEqual([
 			["format-version-invalid", 0, `/${FORMAT_STAMP}`],
 			["property-missing", 0, "/version"],
@@ -328,7 +344,7 @@ describe("parseJSContact and the format stamp", () => {
 
 	test("a later format is read as it stands, with a warning", () => {
 		const later = stamped({ ...john, futureProperty: { a: 1 } }, FORMAT_VERSION + 1);
-		const { cards, issues } = parseJSContact(JSON.stringify([later]));
+		const { cards, issues } = parseCards(JSON.stringify([later]));
 		expect(cards).toEqual([{ ...john, futureProperty: { a: 1 } }]);
 		expect(issues).toEqual([
 			{
@@ -338,19 +354,20 @@ describe("parseJSContact and the format stamp", () => {
 					"Written in format 2, later than the format 1 read here: taken as it stands",
 				path: `/${FORMAT_STAMP}`,
 				card: 0,
+				input: 0,
 			},
 		]);
 	});
 
 	test("a stamp does not stand for validation", () => {
-		const { cards, issues } = parseJSContact(stamped({ "@type": "Card", version: "9.9" }));
+		const { cards, issues } = parseCards(stamped({ "@type": "Card", version: "9.9" }));
 		expect(cards).toEqual([]);
 		expect(found(issues)).toEqual([["version-unsupported", 0, "/version"]]);
 	});
 
 	test("a stamp a prototype would answer for is not one", () => {
 		const text = `{ "@type": "Card", "version": "2.0", "__proto__": { "${FORMAT_STAMP}": 1 } }`;
-		const { cards, issues } = parseJSContact(text);
+		const { cards, issues } = parseCards(text);
 		expect(cards).toEqual([]);
 		expect(found(issues)).toEqual([["prototype-key", 0, "/__proto__"]]);
 	});
@@ -364,7 +381,7 @@ describe("issue codes", () => {
 			stamped(john, 0),
 			stamped(john, FORMAT_VERSION + 1),
 			{ ...john, version: "1.0" },
-		].flatMap((input) => parseJSContact(input).issues.map(({ code }) => code));
+		].flatMap((input) => parseCards(input).issues.map(({ code }) => code));
 		expect(raised).toEqual([...BACKUP_ISSUE_CODES]);
 	});
 });

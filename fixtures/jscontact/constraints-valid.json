@@ -165,7 +165,7 @@
   },
   "project-vendor-extensions": {
     "section": "1.8",
-    "rule": "The extensions of this project: Nickname kind and vendor relation types",
+    "rule": "The extensions of this project: Nickname kind, label, vendor relations",
     "card": {
       "@type": "Card",
       "version": "2.0",
@@ -173,6 +173,11 @@
         "n1": {
           "name": "Smith",
           "remileduc.github.io:kind": "maiden"
+        },
+        "n2": {
+          "name": "Jo",
+          "remileduc.github.io:kind": "custom",
+          "remileduc.github.io:label": "Stage name"
         }
       },
       "relatedTo": {

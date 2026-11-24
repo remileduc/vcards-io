@@ -1155,3 +1155,42 @@ Card, not as bytes; bytes too many for the engine to decode under
 `maxTextLength: Infinity` are `json-syntax`; and a cap sized from the
 text refuses the same text as bytes, the cap being in the unit of the
 input, as the option says.
+
+2026-11-24 One meaning for `card`, one naming for both libraries, a vendor label
+--------------------------------------------------------------------------------
+
+Four findings about the shape of the two APIs rather than about input,
+fixed before a first release makes them a major one. `CardIssue.card`
+was the position of the Card in the input while vcard's `Issue.card`
+indexes the returned cards, so `cards[issue.card]` was right in one
+package and silently wrong in the other as soon as a Card was refused.
+`card` now means the same in both, an index in the `cards` returned,
+set when the Card was kept; the position in the input, which a refused
+Card needs, is a second field, `input`. Renamed, to read alike in an app
+that imports both: `parseJSContact` and `stringifyCards` are
+`parseCards` and `serializeCards`, beside `parseVCards` and
+`serializeVCards` (their types `ParseCardsOptions` and
+`ParseCardsResult`); `equal` is `jsonEqual`, which says what it
+compares where it is imported; the code `type-mismatch` is
+`at-type-mismatch`, since it is about `@type` and stood next to
+`property-wrong-type`, which is about the JSON type. Earlier entries of
+this log keep the old names. Address, Anniversary, Nickname and Relation
+have no `label` in RFC 9553 and a phone labels all four (Android
+`ADR;TYPE=X-Chalet`, its custom nickname and relation, Apple
+`X-ABLabel`), so they declare one vendor property,
+`remileduc.github.io:label` (`VENDOR_LABEL`), a string in the property
+table like the Nickname kind: one property and not `vCardParams`, so the
+editor shows and edits a label the same way wherever it is, and M4 has
+its target; this closes what checkpoint 1 of M3 left to M4. Whether an
+Android custom event becomes an Anniversary with that label stays M4's.
+And the writer's issues carry `propertyIndex`, the index of the property
+in `card.properties`: a card the converter builds has no `line`, so
+three `TEL` losing their `PREF` gave three identical warnings. An index
+and not a change to `property`: `group.NAME` stays what `propertyId`
+gives, and the parser and the normaliser, which have the line, set none.
+The promise of 2026-11-23 is worded as what it covers: the writer never
+throws on a property, and a value whose kind gives no text (`uri` or
+`language-tag` without `value`, a kind the model does not have) is now
+`property-not-written` instead of the text `undefined`. A card that is
+no object with a `properties` array still throws: no tool writes one,
+and reporting it would take an issue code that nothing else needs.

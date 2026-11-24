@@ -4,7 +4,13 @@
 import { applyPatch, localize as oracleLocalize } from "@sdxc/jscontact";
 import fc from "fast-check";
 import { describe, expect, test } from "vitest";
-import { applyPatchObject, type Card, equal, localize, type PatchObject } from "../src/index.js";
+import {
+	applyPatchObject,
+	type Card,
+	jsonEqual,
+	localize,
+	type PatchObject,
+} from "../src/index.js";
 import { jsonCase } from "./helpers/arbitraries.js";
 import { type ConstraintCase, readFixture } from "./helpers/fixtures.js";
 
@@ -139,9 +145,9 @@ describe("applyPatchObject against @sdxc/jscontact", () => {
 				const mine = ours(target, patch);
 				const other = theirs(target, patch);
 				expect(mine).toEqual(other);
-				// toEqual forgives an undefined member; equal does not.
+				// toEqual forgives an undefined member; jsonEqual does not.
 				if (typeof mine === "object" && typeof other === "object") {
-					expect(equal(mine.value, other.value)).toBe(true);
+					expect(jsonEqual(mine.value, other.value)).toBe(true);
 				}
 			}),
 			{ numRuns: 2000 },

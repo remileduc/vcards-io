@@ -25,7 +25,7 @@ export const VALIDATION_ISSUE_CODES = [
 	"card-too-large",
 	"prototype-key",
 	"value-not-json",
-	"type-mismatch",
+	"at-type-mismatch",
 	"version-unsupported",
 	"property-wrong-type",
 	"property-missing",
@@ -35,7 +35,7 @@ export const VALIDATION_ISSUE_CODES = [
 ] as const;
 export type ValidationIssueCode = (typeof VALIDATION_ISSUE_CODES)[number];
 
-/** Codes `parseJSContact` adds to the validator's: the text, the format stamp, the version. */
+/** Codes `parseCards` adds to the validator's: the text, the format stamp, the version. */
 export const BACKUP_ISSUE_CODES = [
 	"json-too-large",
 	"json-syntax",

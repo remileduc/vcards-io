@@ -85,6 +85,8 @@ export interface Issue<Code extends string = IssueCode> {
 	 * `cards` argument from `serializeVCards`. Absent for lines outside a card and whole-input issues.
 	 */
 	card?: number;
+	/** Index of the property in `properties` of that card. From `serializeVCards` only. */
+	propertyIndex?: number;
 }
 
 export interface ParseOptions {

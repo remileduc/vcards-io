@@ -14,6 +14,9 @@ export const NICKNAME_KIND = `${VENDOR_PREFIX}kind` as const;
 export const NICKNAME_KINDS = ["maiden", "short", "initials", "other", "custom"] as const;
 export type NicknameKind = (typeof NICKNAME_KINDS)[number];
 
+/** Custom label of an Address, Anniversary, Nickname or Relation: RFC 9553 gives them none. */
+export const VENDOR_LABEL = `${VENDOR_PREFIX}label` as const;
+
 /** Relation names of the phones; the key in `Relation.relation` is `VENDOR_PREFIX` + name. */
 export const VENDOR_RELATIONS = [
 	"mother",
@@ -28,7 +31,7 @@ export const VENDOR_RELATIONS = [
 ] as const;
 export type VendorRelation = (typeof VENDOR_RELATIONS)[number];
 
-/** Property `stringifyCards` sets on each Card of a JSON backup and `parseJSContact` removes. */
+/** Property `serializeCards` sets on each Card of a JSON backup and `parseCards` removes. */
 export const FORMAT_STAMP = `${VENDOR_PREFIX}formatVersion` as const;
 
 /** The format this version writes: raised when what a backup holds changes shape, not per release. */

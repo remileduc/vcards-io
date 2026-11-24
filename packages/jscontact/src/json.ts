@@ -85,7 +85,7 @@ export function cloneJson<T>(value: T): T {
 }
 
 /** Deep equality of two JSON values; the order of the keys of an object does not count. */
-export function equal(a: unknown, b: unknown): boolean {
+export function jsonEqual(a: unknown, b: unknown): boolean {
 	const pending: [left: unknown, right: unknown][] = [[a, b]];
 	for (let pair = pending.pop(); pair !== undefined; pair = pending.pop()) {
 		const [left, right] = pair;

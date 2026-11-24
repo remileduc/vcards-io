@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, test } from "vitest";
-import { equal, jsonPointer } from "../src/index.js";
+import { jsonEqual, jsonPointer } from "../src/index.js";
 import { cloneJson } from "../src/json.js";
 
 /** The JSON text of a value with the keys of every object sorted: equal values, equal text. */
@@ -12,17 +12,20 @@ function canonical(value: unknown): string {
 	);
 }
 
-describe("equal", () => {
+describe("jsonEqual", () => {
 	test("the order of keys does not count, at any depth", () => {
 		expect(
-			equal({ a: 1, b: { c: [1, { d: 2, e: 3 }] } }, { b: { c: [1, { e: 3, d: 2 }] }, a: 1 }),
+			jsonEqual(
+				{ a: 1, b: { c: [1, { d: 2, e: 3 }] } },
+				{ b: { c: [1, { e: 3, d: 2 }] }, a: 1 },
+			),
 		).toBe(true);
 	});
 
 	test("the order of an array does", () => {
-		expect(equal([1, 2], [2, 1])).toBe(false);
-		expect(equal([1, 2], [1, 2, 3])).toBe(false);
-		expect(equal([1, 2, 3], [1, 2])).toBe(false);
+		expect(jsonEqual([1, 2], [2, 1])).toBe(false);
+		expect(jsonEqual([1, 2], [1, 2, 3])).toBe(false);
+		expect(jsonEqual([1, 2, 3], [1, 2])).toBe(false);
 	});
 
 	test.each<[a: unknown, b: unknown]>([
@@ -58,18 +61,18 @@ describe("equal", () => {
 		[{ a: null }, { b: null }],
 		["a", "b"],
 	])("%j and %j differ", (a, b) => {
-		expect(equal(a, b)).toBe(false);
-		expect(equal(b, a)).toBe(false);
+		expect(jsonEqual(a, b)).toBe(false);
+		expect(jsonEqual(b, a)).toBe(false);
 	});
 
 	test("only own properties are compared", () => {
-		expect(equal({}, { toString: Object.prototype.toString })).toBe(false);
-		expect(equal({ constructor: Object }, {})).toBe(false);
-		expect(equal(JSON.parse('{ "__proto__": 1 }'), {})).toBe(false);
-		expect(equal(JSON.parse('{ "__proto__": 1 }'), JSON.parse('{ "__proto__": 1 }'))).toBe(
+		expect(jsonEqual({}, { toString: Object.prototype.toString })).toBe(false);
+		expect(jsonEqual({ constructor: Object }, {})).toBe(false);
+		expect(jsonEqual(JSON.parse('{ "__proto__": 1 }'), {})).toBe(false);
+		expect(jsonEqual(JSON.parse('{ "__proto__": 1 }'), JSON.parse('{ "__proto__": 1 }'))).toBe(
 			true,
 		);
-		expect(equal(JSON.parse('{ "__proto__": 1 }'), JSON.parse('{ "__proto__": 2 }'))).toBe(
+		expect(jsonEqual(JSON.parse('{ "__proto__": 1 }'), JSON.parse('{ "__proto__": 2 }'))).toBe(
 			false,
 		);
 	});
@@ -87,8 +90,8 @@ describe("equal", () => {
 				const changed: unknown = JSON.parse(JSON.stringify(value));
 				const pointer = path.map((token) => `/${jsonPointer.escape(token)}`).join("");
 				expect(jsonPointer.set(changed, pointer, "changed by the test")).toBe(true);
-				expect(equal(value, changed)).toBe(false);
-				expect(equal(changed, value)).toBe(false);
+				expect(jsonEqual(value, changed)).toBe(false);
+				expect(jsonEqual(changed, value)).toBe(false);
 			}),
 		);
 	});
@@ -96,16 +99,16 @@ describe("equal", () => {
 	test("agrees with the comparison of the sorted JSON text", () => {
 		fc.assert(
 			fc.property(fc.jsonValue(), fc.jsonValue(), (a, b) => {
-				expect(equal(a, b)).toBe(canonical(a) === canonical(b));
-				expect(equal(a, JSON.parse(canonical(a)))).toBe(true);
+				expect(jsonEqual(a, b)).toBe(canonical(a) === canonical(b));
+				expect(jsonEqual(a, JSON.parse(canonical(a)))).toBe(true);
 			}),
 		);
 	});
 
 	test("a nesting deeper than the call stack is compared without recursion", () => {
 		const deep = `${"[".repeat(200_000)}1${"]".repeat(200_000)}`;
-		expect(equal(JSON.parse(deep), JSON.parse(deep))).toBe(true);
-		expect(equal(JSON.parse(deep), JSON.parse(deep.replace("1", "2")))).toBe(false);
+		expect(jsonEqual(JSON.parse(deep), JSON.parse(deep))).toBe(true);
+		expect(jsonEqual(JSON.parse(deep), JSON.parse(deep.replace("1", "2")))).toBe(false);
 	});
 });
 
@@ -139,7 +142,7 @@ describe("cloneJson", () => {
 	test("a copy equals its original", () => {
 		fc.assert(
 			fc.property(fc.jsonValue(), (value) => {
-				expect(equal(cloneJson(value), value)).toBe(true);
+				expect(jsonEqual(cloneJson(value), value)).toBe(true);
 				expect(JSON.stringify(cloneJson(value))).toBe(JSON.stringify(value));
 			}),
 		);
@@ -147,6 +150,6 @@ describe("cloneJson", () => {
 
 	test("a nesting deeper than the call stack is copied without recursion", () => {
 		const deep: unknown = JSON.parse(`${"[".repeat(200_000)}1${"]".repeat(200_000)}`);
-		expect(equal(cloneJson(deep), deep)).toBe(true);
+		expect(jsonEqual(cloneJson(deep), deep)).toBe(true);
 	});
 });

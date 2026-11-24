@@ -4,6 +4,7 @@ import { encodeBase64 } from "../text/base64.js";
 import { escapeText } from "../text/escape.js";
 import { assertFoldAt, foldLine } from "../text/fold.js";
 import type {
+	Issue,
 	SerializeOptions,
 	SerializeResult,
 	VCard,
@@ -32,7 +33,8 @@ const LINE_BREAK = /[\r\n]/;
  * folded, `blankLinesBetweenCards` empty lines between cards (none by default). VERSION is the
  * requested one whatever `card.version` says. Every loss the version forces is a warning in
  * `issues`; a property no line can hold is left out with an `error` there, so one odd contact
- * never costs the export of the others. Throws RangeError only for options that make no sense.
+ * never costs the export of the others. Both kinds name their `card` and `propertyIndex`. Throws
+ * RangeError for options that make no sense, TypeError for a card without a `properties` array.
  */
 export function serializeVCards(
 	cards: readonly VCard[],
@@ -50,8 +52,8 @@ export function serializeVCards(
 	cards.forEach((card, index) => {
 		if (index > 0) text += separator;
 		text += `BEGIN:VCARD\r\nVERSION:${table.version}\r\n`;
-		for (const p of card.properties) {
-			const line = writeProperty(p, table, index, issues);
+		for (const [propertyIndex, p] of card.properties.entries()) {
+			const line = writeProperty(p, table, { card: index, propertyIndex }, issues);
 			if (line !== undefined) text += `${foldLine(line, fold)}\r\n`;
 		}
 		text += "END:VCARD\r\n";
@@ -70,15 +72,18 @@ function assertBlankLines(count: number): void {
 	}
 }
 
+/** Where a property is in the `cards` argument: `property` alone does not tell three TEL apart. */
+type Position = Required<Pick<Issue, "card" | "propertyIndex">>;
+
 /** One logical line, or undefined after an `error` issue for a property no line can hold. */
 function writeProperty(
 	p: VProperty,
 	table: SyntaxTable,
-	card: number,
+	position: Position,
 	issues: IssueCollector,
 ): string | undefined {
 	try {
-		return contentLine(p, table, card, issues);
+		return contentLine(p, table, position, issues);
 	} catch (error) {
 		// A TypeError is a value that lacks the fields of its kind: JSON read without the types.
 		const malformed = error instanceof TypeError;
@@ -89,8 +94,7 @@ function writeProperty(
 		const id = typeof p?.name === "string" ? propertyId(p) : undefined;
 		const what = malformed ? `Malformed property: ${error.message}` : error.message;
 		const filed = issue("error", "property-not-written", `Not written: ${what}`, p?.line, id);
-		filed.card = card;
-		issues.push(filed);
+		issues.push({ ...filed, ...position });
 		return undefined;
 	}
 }
@@ -98,7 +102,7 @@ function writeProperty(
 function contentLine(
 	source: VProperty,
 	table: SyntaxTable,
-	card: number,
+	position: Position,
 	issues: IssueCollector,
 ): string {
 	const p = canonical(source);
@@ -109,9 +113,7 @@ function contentLine(
 	// The id of the caller's property, not of the canonical copy: it is what their propertyId gives.
 	const id = propertyId(source);
 	const warn: Warn = (code, message) => {
-		const filed = issue("warning", code, message, p.line, id);
-		filed.card = card;
-		issues.push(filed);
+		issues.push({ ...issue("warning", code, message, p.line, id), ...position });
 	};
 	const { params, value } = table.prepare(p, warn);
 	// Derived, never copied, and always first: the same model must give the same text.
@@ -121,8 +123,11 @@ function contentLine(
 	for (const [name, values] of params) {
 		if (name !== "VALUE") line += parameter(name, values, table, warn);
 	}
+	const text = formatValue(value, table);
+	// JSON read without the types: a kind no case knows, or a `uri` without its `value`.
+	if (typeof text !== "string") throw new TypeError("the value has no text of its kind");
 	// A lone surrogate has no UTF-8 form; every encoder writes U+FFFD, so do it once, here.
-	line = `${line}:${formatValue(value, table)}`.toWellFormed();
+	line = `${line}:${text}`.toWellFormed();
 	// Text is escaped above; a line break anywhere else would forge a property on re-read.
 	if (LINE_BREAK.test(line)) {
 		throw new SerializeError("Line break in a value that cannot escape it");

@@ -29,16 +29,16 @@ Usage
 import {
 	cardDisplayName,
 	localize,
-	parseJSContact,
-	stringifyCards,
+	parseCards,
+	serializeCards,
 	validateCard,
 } from "@vcards-io/jscontact";
 
 // Text or a parsed value in: one Card or an array. Never throws on input.
-const { cards, issues } = parseJSContact(await file.text());
+const { cards, issues } = parseCards(await file.text());
 
 // Stable, human-readable JSON out: properties in RFC order, pictures last.
-const backup = stringifyCards(cards);
+const backup = serializeCards(cards);
 
 // A value from anywhere else: `card` is the value itself, typed, or null.
 const { card, issues: found } = validateCard(JSON.parse(text));
@@ -49,14 +49,14 @@ if (card !== null) {
 }
 ```
 
-`validateCard`, `parseJSContact`, `applyPatchObject`, `localize` and the
+`validateCard`, `parseCards`, `applyPatchObject`, `localize` and the
 `jsonPointer` functions take any value, hostile JSON included, and
 report through `CardIssue` objects instead of throwing. `cardDisplayName`,
-`normalizeCard` and `stringifyCards` expect a Card the validator
+`normalizeCard` and `serializeCards` expect a Card the validator
 accepted.
 
 ```ts
-interface CardIssue { severity: "error" | "warning" | "info"; code: CardIssueCode; message: string; path: string; card?: number }
+interface CardIssue { severity: "error" | "warning" | "info"; code: CardIssueCode; message: string; path: string; card?: number; input?: number }
 ```
 
 `path` is a JSON Pointer from the root of the value checked, `""` being
@@ -64,8 +64,10 @@ the root. `code` is a union of string literals built from one exported
 list per source (`VALIDATION_ISSUE_CODES`, `PATCH_ISSUE_CODES`,
 `BACKUP_ISSUE_CODES`, plus `COMMON_ISSUE_CODES` for the cap of 1000
 issues per code), so a `Record<CardIssueCode, string>` is a complete
-string table and `message` is only the English fallback. `card` is set by
-`parseJSContact` alone: the position of the Card in the input.
+string table and `message` is only the English fallback. `parseCards`
+alone sets the last two: `input` is the position of the Card in the
+input, and `card` its index in the returned `cards`, as in
+`@vcards-io/vcard`, so a refused Card has an `input` and no `card`.
 
 The types
 ---------
@@ -82,6 +84,9 @@ enumerated property (`CARD_KINDS`, `PHONE_FEATURES`, `RELATION_TYPES`,
 - `uid` is optional, as RFC 9982 has it.
 - "At least one of" and the other rules between properties are not in
   the types: they stay optional properties with a comment.
+- Address, Anniversary, Nickname and Relation have no `label` in the RFC
+  and a phone gives each a custom one: they declare
+  `"remileduc.github.io:label"` (`VENDOR_LABEL`), a string.
 
 At runtime an enumerated property may hold a word its list does not
 have: a later JSContact version may register one, and such a Card must
@@ -104,7 +109,7 @@ Every issue it raises is an `error`, and one is enough for `card` to be
 | a known property has its JSON type;      | `property-wrong-type`            |
 | `null` is no value                       |                                  |
 | a mandatory property is there            | `property-missing`               |
-| `@type`, where set, is the expected type | `type-mismatch`                  |
+| `@type`, where set, is the expected type | `at-type-mismatch`               |
 | `version` is "1.0" or "2.0"              | `version-unsupported`            |
 | a set holds `true` only                  | `set-value-not-true`             |
 | an Id has 1 to 255 of `A-Za-z0-9-_`      | `id-invalid`                     |
@@ -141,26 +146,26 @@ patch rejects it, and every invalid one is reported.
 JSON backup
 -----------
 
-`stringifyCards(cards)` writes an array of Cards as two-space JSON:
+`serializeCards(cards)` writes an array of Cards as two-space JSON:
 properties in the order of RFC 9553, unknown and vendor ones after by
 name, `media` last, empty maps left out (`normalizeCard` does the same
 for one Card). Each Card is written as version "2.0" and stamped with
 `"remileduc.github.io:formatVersion": 1`, the format of the file, so a
 later version can repair what an earlier one wrote.
 
-`parseJSContact(input, options?)` takes that text, or any JSON text, its
+`parseCards(input, options?)` takes that text, or any JSON text, its
 UTF-8 bytes or the parsed value, holding one Card or an array, removes
-the stamp and validates each Card. Refused Cards are left out, counted
-in `refused` and reported with their index, up to the cap of 1000 issues
-per code. A Card of version "1.0" comes back as "2.0" with an `info`. A
-stamp that is no positive integer is an error; a stamp from a later
-format is a warning and the Card is read as it stands. A byte order mark
-before the text is skipped.
+the stamp and validates each Card. Refused Cards are left out, counted in
+`refused` and reported with their position in the input, up to the cap of
+1000 issues per code. A Card of version "1.0" comes back as "2.0" with an
+`info`. A stamp that is no positive integer is an error; a stamp from a
+later format is a warning and the Card is read as it stands. A byte order
+mark before the text is skipped.
 
 Text over 64 Mi characters or bytes (`DEFAULT_MAX_TEXT_LENGTH`) is not
 parsed, unless `maxTextLength` says otherwise: a positive integer, or
 `Infinity` for no cap, anything else throws a `RangeError`.
-`stringifyCards` has no such cap: to read back a backup that may be
+`serializeCards` has no such cap: to read back a backup that may be
 larger, pass a `maxTextLength` that fits it.
 
 Exports
@@ -178,12 +183,12 @@ major release.
 | Enumerations    | the eighteen `as const` lists and their union types,          |
 |                 | `isListed`                                                    |
 | Validation      | `validateCard`, `ValidationResult`                            |
-| Backup          | `parseJSContact`, `ParseJSContactOptions`,                    |
-|                 | `ParseJSContactResult`, `stringifyCards`, `normalizeCard`,    |
-|                 | `FORMAT_STAMP`, `FORMAT_VERSION`, `DEFAULT_MAX_TEXT_LENGTH`   |
+| Backup          | `parseCards`, `ParseCardsOptions`, `ParseCardsResult`,        |
+|                 | `serializeCards`, `normalizeCard`, `FORMAT_STAMP`,            |
+|                 | `FORMAT_VERSION`, `DEFAULT_MAX_TEXT_LENGTH`                   |
 | Patches         | `jsonPointer`, `applyPatchObject`, `PatchResult`, `localize`, |
 |                 | `LocalizeResult`                                              |
-| Utilities       | `equal`, `cardDisplayName`, `isId`, `nextId`, `newUid`,       |
+| Utilities       | `jsonEqual`, `cardDisplayName`, `isId`, `nextId`, `newUid`,   |
 |                 | `VERSION`                                                     |
 | Issues          | `CardIssue`, `CardIssueSeverity`, `CardIssueCode`, the four   |
 |                 | `*_ISSUE_CODES` lists and their types                         |
@@ -201,6 +206,7 @@ change in any release; pin an exact version if you depend on it.
 | For sibling packages | Exports                                             |
 | -------------------- | --------------------------------------------------- |
 | Nickname kinds       | `NICKNAME_KIND`, `NICKNAME_KINDS`, `NicknameKind`   |
+| Custom labels        | `VENDOR_LABEL`                                      |
 | Relations            | `VENDOR_RELATIONS`, `VendorRelation`                |
 
 Ids are never random: `nextId(map, prefix)` gives the smallest unused

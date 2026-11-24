@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { type Card, equal, localize, normalizeCard, type PatchObject } from "../src/index.js";
+import { type Card, jsonEqual, localize, normalizeCard, type PatchObject } from "../src/index.js";
 import { type ConstraintCase, readFixture } from "./helpers/fixtures.js";
 
 const figures = readFixture<Record<string, Card>>("rfc9553-figures.json");
@@ -97,7 +97,7 @@ describe("normalizeCard", () => {
 		const card = fullCard();
 		expect(keys(card)).toEqual(CARD_ORDER.toReversed());
 		expect(keys(normalizeCard(card))).toEqual(CARD_ORDER);
-		expect(equal(normalizeCard(card), card)).toBe(true);
+		expect(jsonEqual(normalizeCard(card), card)).toBe(true);
 	});
 
 	test("orders every object it knows, wherever it is", () => {
@@ -234,7 +234,7 @@ describe("normalizeCard", () => {
 		expect(keys(death?.date)).toEqual(["@type", "utc", "example.com:a"]);
 	});
 
-	test("the Nickname kind of this project is a property it knows, written after pref", () => {
+	test("the Nickname kind and the label of this project are known, written after pref", () => {
 		const card = normalizeCard({
 			"@type": "Card",
 			version: "2.0",
@@ -242,6 +242,7 @@ describe("normalizeCard", () => {
 				n1: {
 					"example.com:a": 1,
 					vCardName: "nickname",
+					"remileduc.github.io:label": "Née",
 					"remileduc.github.io:kind": "maiden",
 					pref: 1,
 					name: "Smith",
@@ -252,6 +253,7 @@ describe("normalizeCard", () => {
 			"name",
 			"pref",
 			"remileduc.github.io:kind",
+			"remileduc.github.io:label",
 			"vCardName",
 			"example.com:a",
 		]);
@@ -440,7 +442,7 @@ describe("normalizeCard", () => {
 		// No fixture relies on an empty map but the Relation of relation-undefined.
 		const relatedTo = Object.values(card.relatedTo ?? {});
 		if (relatedTo.every((relation) => JSON.stringify(relation.relation) !== "{}")) {
-			expect(equal(once, card)).toBe(true);
+			expect(jsonEqual(once, card)).toBe(true);
 		}
 	});
 });

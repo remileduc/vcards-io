@@ -8,6 +8,7 @@ import {
 	normalizeCard,
 	VALIDATION_ISSUE_CODES,
 	type ValidationIssueCode,
+	VENDOR_LABEL,
 	validateCard,
 } from "../src/index.js";
 import { MAX_ISSUES_PER_CODE } from "../src/issues.js";
@@ -46,7 +47,7 @@ function accepted(value: unknown): void {
 /** What each `yes` row of docs/jscontact-constraints.md is refused for, and where. */
 const REFUSED: Record<string, Found> = {
 	"type-missing-on-card": ["property-missing", "/@type"],
-	"type-mismatch": ["type-mismatch", "/name/@type"],
+	"type-mismatch": ["at-type-mismatch", "/name/@type"],
 	"id-empty": ["id-invalid", "/phones/"],
 	"id-too-long": ["id-invalid", `/phones/${"p".repeat(256)}`],
 	"id-bad-character": ["id-invalid", "/phones/tel#1"],
@@ -54,14 +55,14 @@ const REFUSED: Record<string, Found> = {
 	"unsigned-int-fraction": ["property-wrong-type", "/emails/e1/pref"],
 	"unsigned-int-unsafe": ["property-wrong-type", "/anniversaries/a1/date/year"],
 	"unsigned-int-string": ["property-wrong-type", "/emails/e1/pref"],
-	"resource-type-resource": ["type-mismatch", "/links/l1/@type"],
+	"resource-type-resource": ["at-type-mismatch", "/links/l1/@type"],
 	"resource-uri-missing": ["property-missing", "/media/m1/uri"],
 	"context-not-boolean": ["set-value-not-true", "/emails/e1/contexts/work"],
 	"context-false": ["set-value-not-true", "/emails/e1/contexts/work"],
 	"property-wrong-type": ["property-wrong-type", "/name"],
 	"property-null": ["property-wrong-type", "/language"],
-	"type-case-variant": ["type-mismatch", "/name/@type"],
-	"card-type-wrong": ["type-mismatch", "/@type"],
+	"type-case-variant": ["at-type-mismatch", "/name/@type"],
+	"card-type-wrong": ["at-type-mismatch", "/@type"],
 	"version-missing": ["property-missing", "/version"],
 	"version-unregistered": ["version-unsupported", "/version"],
 	"version-not-a-string": ["property-wrong-type", "/version"],
@@ -212,6 +213,16 @@ describe("JSON types", () => {
 			{ nicknames: { n1: { name: "x", [NICKNAME_KIND]: 1 } } },
 			"/nicknames/n1/remileduc.github.io:kind",
 		],
+		[
+			"a string",
+			{ relatedTo: { u1: { [VENDOR_LABEL]: ["Godmother"] } } },
+			"/relatedTo/u1/remileduc.github.io:label",
+		],
+		[
+			"a string",
+			{ anniversaries: { a1: { kind: "birth", date: {}, place: { [VENDOR_LABEL]: 1 } } } },
+			"/anniversaries/a1/place/remileduc.github.io:label",
+		],
 		["a boolean", { name: { isOrdered: "true" } }, "/name/isOrdered"],
 		[
 			"a non-negative integer",
@@ -289,9 +300,9 @@ describe("@type", () => {
 			media: { m1: { "@type": "Link", kind: "photo", uri: "x" } },
 		});
 		expect(refused(value)).toEqual([
-			["type-mismatch", "/name/components/0/@type"],
-			["type-mismatch", "/phones/p1/@type"],
-			["type-mismatch", "/media/m1/@type"],
+			["at-type-mismatch", "/name/components/0/@type"],
+			["at-type-mismatch", "/phones/p1/@type"],
+			["at-type-mismatch", "/media/m1/@type"],
 		]);
 		expect(validateCard(value).issues[1]?.message).toBe(
 			'Expected @type "Phone", found the number 1',
@@ -310,7 +321,7 @@ describe("@type", () => {
 		]);
 		const { issues } = validateCard(anniversary({ "@type": "timestamp", year: -1 }));
 		expect(found(issues)).toEqual([
-			["type-mismatch", "/anniversaries/a1/date/@type"],
+			["at-type-mismatch", "/anniversaries/a1/date/@type"],
 			["property-wrong-type", "/anniversaries/a1/date/year"],
 		]);
 		expect(issues[0]?.message).toBe(
@@ -583,7 +594,7 @@ describe("issue codes", () => {
 		"card-too-large": card({ "example.com:x": new Array(MAX_CARD_NODES).fill(0) }),
 		"prototype-key": JSON.parse('{ "@type": "Card", "version": "2.0", "__proto__": {} }'),
 		"value-not-json": card({ uid: Number.NaN }),
-		"type-mismatch": card({ "@type": "card" }),
+		"at-type-mismatch": card({ "@type": "card" }),
 		"version-unsupported": card({ version: "3.0" }),
 		"property-wrong-type": card({ uid: 1 }),
 		"property-missing": { "@type": "Card" },

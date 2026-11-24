@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { NICKNAME_KIND, VENDOR_PREFIX } from "../src/index.js";
+import { NICKNAME_KIND, VENDOR_LABEL, VENDOR_PREFIX } from "../src/index.js";
 import {
 	type ObjectType,
 	PROPERTIES,
@@ -68,13 +68,19 @@ describe("property table", () => {
 		);
 	});
 
-	test("the Nickname kind is the one property of this project in the table", () => {
+	test("the Nickname kind and the label are the properties of this project in the table", () => {
 		const vendor = Object.entries(PROPERTIES).flatMap(([type, properties]) =>
 			Object.keys(properties)
 				.filter((name) => name.startsWith(VENDOR_PREFIX))
 				.map((name) => [type, name, properties[name]]),
 		);
-		expect(vendor).toEqual([["Nickname", NICKNAME_KIND, "string"]]);
+		expect(vendor).toEqual([
+			["Relation", VENDOR_LABEL, "string"],
+			["Nickname", NICKNAME_KIND, "string"],
+			["Nickname", VENDOR_LABEL, "string"],
+			["Address", VENDOR_LABEL, "string"],
+			["Anniversary", VENDOR_LABEL, "string"],
+		]);
 	});
 
 	test("the mandatory properties are the ones the interfaces require", () => {

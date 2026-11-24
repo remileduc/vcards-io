@@ -124,7 +124,7 @@ function checkObject(
 	if (named === undefined && Object.hasOwn(value, "@type")) {
 		const expected = types.map((name) => `"${name}"`).join(" or ");
 		const message = `Expected @type ${expected}, found ${describeValue(declared)}`;
-		issues.push(error("type-mismatch", message, `${path}/@type`));
+		issues.push(error("at-type-mismatch", message, `${path}/@type`));
 	}
 	// As section 1.3.4 reads an object without @type: the first type the property holds.
 	const type = named ?? types[0];

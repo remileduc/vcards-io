@@ -118,6 +118,8 @@ export interface Relation extends JSContactObject {
 	"@type"?: "Relation";
 	/** Absent or empty: related, in an unspecified way. */
 	relation?: FlagSet<RelationType>;
+	/** Project extension, `VENDOR_LABEL` in vendor.ts: the custom label a phone shows. */
+	"remileduc.github.io:label"?: string;
 }
 
 /** At least one of `components` and `full`. */
@@ -151,6 +153,8 @@ export interface Nickname extends JSContactObject {
 	pref?: number;
 	/** Project extension, `NICKNAME_KIND` in vendor.ts: the Android nickname type. */
 	"remileduc.github.io:kind"?: NicknameKind;
+	/** Project extension, `VENDOR_LABEL` in vendor.ts: the custom label a phone shows. */
+	"remileduc.github.io:label"?: string;
 }
 
 /** At least one of `name` and `units`. */
@@ -275,6 +279,8 @@ export interface Address extends JSContactObject {
 	/** RFC 5646 script subtag of the components' `phonetic` values. */
 	phoneticScript?: string;
 	phoneticSystem?: PhoneticSystem | VendorExtension;
+	/** Project extension, `VENDOR_LABEL` in vendor.ts: the custom label a phone shows. */
+	"remileduc.github.io:label"?: string;
 }
 
 export interface AddressComponent extends JSContactObject {
@@ -314,6 +320,8 @@ export interface Anniversary extends JSContactObject {
 	/** A PartialDate unless `@type` says "Timestamp". */
 	date: PartialDate | Timestamp;
 	place?: Address;
+	/** Project extension, `VENDOR_LABEL` in vendor.ts: the custom label a phone shows. */
+	"remileduc.github.io:label"?: string;
 }
 
 /** A date, a year, a year and month, or a month and day, always in the Gregorian calendar. */

@@ -275,9 +275,23 @@ describe("values", () => {
 				severity: "error",
 				code: "property-not-written",
 				card: 1,
+				propertyIndex: 0,
 				property: "g.BDAY",
 				line: 7,
 			},
+		]);
+	});
+
+	test("tells the properties of one name apart by their index in the card", () => {
+		const ranked = (rank: string) => prop("TEL", text("1"), { PREF: [rank] });
+		const { issues } = serializeVCards(
+			[card(prop("FN", text("A")), ranked("2"), ranked("1"), ranked("2"), ranked("2"))],
+			{ version: "3.0" },
+		);
+		expect(issues.map((i) => [i.code, i.property, i.card, i.propertyIndex])).toEqual([
+			["pref-not-in-30", "TEL", 0, 1],
+			["pref-not-in-30", "TEL", 0, 3],
+			["pref-not-in-30", "TEL", 0, 4],
 		]);
 	});
 
@@ -285,7 +299,9 @@ describe("values", () => {
 		// The shape `utc-offset` had before its fields were nested under `value`.
 		const flat = { kind: "utc-offset", sign: -1, hours: 5, minutes: 0 } as unknown as VValue;
 		const list = { kind: "text-list" } as unknown as VValue;
-		for (const value of [flat, list]) {
+		// These three gave no TypeError: they were written as the text `undefined`.
+		const noText = ["uri", "language-tag", "bogus"].map((kind) => ({ kind }) as VValue);
+		for (const value of [flat, list, ...noText]) {
 			const { issues } = serializeVCards(
 				[card(prop("FN", text("A"))), card(prop("TZ", value))],
 				{ version: "4.0" },
@@ -304,7 +320,9 @@ describe("values", () => {
 				{ version: "4.0" },
 			);
 			expect(out).toBe("BEGIN:VCARD\r\nVERSION:4.0\r\nFN:A\r\nEND:VCARD\r\n");
-			expect(issues).toMatchObject([{ code: "property-not-written", card: 0 }]);
+			expect(issues).toMatchObject([
+				{ code: "property-not-written", card: 0, propertyIndex: 1 },
+			]);
 			expect(issues[0]?.property).toBeUndefined();
 		}
 	});
@@ -487,6 +505,7 @@ describe("3.0 parameters", () => {
 				message: expect.stringContaining('PREF="2" dropped'),
 				property: "TEL",
 				card: 0,
+				propertyIndex: 0,
 			},
 		]);
 		expect(issuesOf(prop("TEL", text("1"), { PREF: [""] }), { version: "3.0" })).toEqual([]);
@@ -577,6 +596,7 @@ describe("3.0 parameters", () => {
 					"ALTID, PID, LABEL, GEO, CC, MEDIATYPE dropped: vCard 3.0 has no such parameter",
 				property: "ADR",
 				card: 0,
+				propertyIndex: 0,
 			},
 		]);
 		// Transport parameters are the writer's own: dropped in silence.
@@ -619,6 +639,7 @@ describe("3.0 parameters", () => {
 				line: 4,
 				property: "GEO",
 				card: 0,
+				propertyIndex: 1,
 			},
 		]);
 	});

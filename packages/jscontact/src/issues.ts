@@ -11,8 +11,10 @@ export interface CardIssue {
 	message: string;
 	/** JSON Pointer to what the issue is about, from the root of the value checked; `""` is the root. */
 	path: string;
-	/** Position of the Card in the input of `parseJSContact`, which alone sets it. */
+	/** Index in `ParseCardsResult.cards`, as in @vcards-io/vcard: a refused Card has none. */
 	card?: number;
+	/** Position of the Card in the input of `parseCards`, which alone sets it and `card`. */
+	input?: number;
 }
 
 export const MAX_ISSUES_PER_CODE = 1000;

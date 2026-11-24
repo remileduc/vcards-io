@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
 	applyPatchObject,
 	type Card,
-	equal,
+	jsonEqual,
 	jsonPointer,
 	localize,
 	type PatchObject,
@@ -86,16 +86,16 @@ describe("applyPatchObject on arbitrary input", () => {
 				for (const [key, value] of patches) {
 					const found = jsonPointer.get(patched, `/${key}`);
 					if (value === null) expect(found).toBeUndefined();
-					else expect(equal(found, value)).toBe(true);
+					else expect(jsonEqual(found, value)).toBe(true);
 				}
 				const pointers = patches.map(([key]) => jsonPointer.parse(`/${key}`) ?? []);
 				for (const path of memberPaths(target)) {
 					// A member neither patched nor holding a patched one.
 					if (pointers.some((p) => startsWith(path, p) || startsWith(p, path))) continue;
 					const at = path.map((token) => `/${jsonPointer.escape(token)}`).join("");
-					expect(equal(jsonPointer.get(patched, at), jsonPointer.get(target, at))).toBe(
-						true,
-					);
+					expect(
+						jsonEqual(jsonPointer.get(patched, at), jsonPointer.get(target, at)),
+					).toBe(true);
 				}
 			}),
 			3000,

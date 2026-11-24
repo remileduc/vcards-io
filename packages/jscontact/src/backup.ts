@@ -8,21 +8,21 @@ import type { Card } from "./types.js";
 import { validateCard } from "./validate.js";
 import { FORMAT_STAMP, FORMAT_VERSION } from "./vendor.js";
 
-export interface ParseJSContactOptions {
+export interface ParseCardsOptions {
 	/** Bytes or UTF-16 code units of JSON text read at most; `Infinity` is no cap. */
 	maxTextLength?: number;
 }
 
-export interface ParseJSContactResult {
+export interface ParseCardsResult {
 	/** The Cards the validator accepted, in the order of the input, without their stamp. */
 	cards: Card[];
 	/** How many Cards were left out: past the cap of a code, no issue names them any more. */
 	refused: number;
-	/** `card` is the position in the input, not in `cards`: a refused Card leaves a gap. */
+	/** `input`: position in the input; `card`: index in `cards`, set for a Card that was kept. */
 	issues: CardIssue[];
 }
 
-/** The vCard reader takes as many bytes. `stringifyCards` has no cap: it may write more. */
+/** The vCard reader takes as many bytes. `serializeCards` has no cap: it may write more. */
 export const DEFAULT_MAX_TEXT_LENGTH = 64 * 1024 * 1024;
 
 type Report = (found: CardIssue) => void;
@@ -34,10 +34,10 @@ const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
  * Reads a backup: JSON text, its UTF-8 bytes, or the value it holds, being one Card or an array of
  * Cards. No input makes it throw and it changes nothing it is given.
  */
-export function parseJSContact(
+export function parseCards(
 	input: unknown,
-	{ maxTextLength = DEFAULT_MAX_TEXT_LENGTH }: ParseJSContactOptions = {},
-): ParseJSContactResult {
+	{ maxTextLength = DEFAULT_MAX_TEXT_LENGTH }: ParseCardsOptions = {},
+): ParseCardsResult {
 	const isLength = Number.isInteger(maxTextLength) || maxTextLength === Infinity;
 	if (!isLength || maxTextLength < 1) {
 		throw new RangeError(
@@ -47,8 +47,12 @@ export function parseJSContact(
 	const issues = new IssueCollector();
 	const cards: Card[] = [];
 	let refused = 0;
-	for (const [index, candidate] of candidates(input, maxTextLength, issues).entries()) {
-		const card = readCard(candidate, (found) => issues.push({ ...found, card: index }));
+	for (const [position, candidate] of candidates(input, maxTextLength, issues).entries()) {
+		const found: CardIssue[] = [];
+		const card = readCard(candidate, (raised) => found.push(raised));
+		// `card` as @vcards-io/vcard sets it: an index in `cards`, where a refused Card is not.
+		const place = card === null ? { input: position } : { input: position, card: cards.length };
+		for (const raised of found) issues.push({ ...raised, ...place });
 		if (card === null) refused += 1;
 		else cards.push(card);
 	}
@@ -57,9 +61,9 @@ export function parseJSContact(
 
 /**
  * The backup text of Cards the validator accepted: stamped, normalized, two-space JSON. Written
- * as version "2.0", which is what `parseJSContact` reads a "1.0" Card as.
+ * as version "2.0", which is what `parseCards` reads a "1.0" Card as.
  */
-export function stringifyCards(cards: readonly Card[]): string {
+export function serializeCards(cards: readonly Card[]): string {
 	// Stamped first: normalizeCard then sorts the stamp among the vendor properties.
 	const stamped = cards.map((card) =>
 		normalizeCard({ ...card, version: "2.0", [FORMAT_STAMP]: FORMAT_VERSION }),

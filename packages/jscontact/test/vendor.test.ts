@@ -1,11 +1,15 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
 import {
+	type Address,
+	type Anniversary,
+	type EmailAddress,
 	NICKNAME_KIND,
 	NICKNAME_KINDS,
 	type Nickname,
 	type NicknameKind,
 	RELATION_TYPES,
 	type Relation,
+	VENDOR_LABEL,
 	VENDOR_PREFIX,
 	VENDOR_RELATIONS,
 	type VendorExtension,
@@ -36,6 +40,15 @@ describe("vendor extensions", () => {
 		expect(nickname({ name: "Smith", [NICKNAME_KIND]: "maiden" })).toBeDefined();
 		// @ts-expect-error: "default" is how Android calls the absence of a kind
 		nickname({ name: "Johnny", [NICKNAME_KIND]: "default" });
+	});
+
+	test("the label is a vendor property of the objects RFC 9553 gives no label", () => {
+		expect(VENDOR_LABEL).toBe("remileduc.github.io:label");
+		expect(VENDOR_LABEL).toMatch(V_EXTENSION);
+		type Labelled = Address | Anniversary | Nickname | Relation;
+		expectTypeOf<Labelled[typeof VENDOR_LABEL]>().toEqualTypeOf<string | undefined>();
+		// An object with a standard `label` has no second one: there it is any vendor property.
+		expectTypeOf<EmailAddress[typeof VENDOR_LABEL]>().toBeUnknown();
 	});
 
 	test("the nine vendor relations make valid keys and shadow no RFC 9553 relation type", () => {

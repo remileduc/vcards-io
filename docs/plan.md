@@ -196,7 +196,8 @@ serializeVCards(cards: VCard[], opts: SerializeOptions): SerializeResult
 // SerializeOptions = { version: '3.0' | '4.0', foldAt?: number | 'none' /* 75 octets */,
 //                      blankLinesBetweenCards?: number /* 0..9, default 0 */ }   // CRLF always
 // SerializeResult  = { text: string; issues: Issue[] }   // a warning per loss the version forced, an error per
-//                                                          // property left out, `card` index set; never throws on a model
+//                                                          // property left out, `card` and `propertyIndex` set; never
+//                                                          // throws on a property
 
 interface VCard   { version: '2.1' | '3.0' | '4.0'; properties: VProperty[] }   // order preserved; VERSION is `version`, never a property
 interface VProperty {
@@ -218,7 +219,8 @@ type VValue =
   | { kind: 'binary'; data: Uint8Array; mediaType?: string } // inline base64 (2.1/3.0); writer re-encodes for 3.0
   | { kind: 'unknown'; raw: string }                          // unparsed, escapes kept
 
-interface Issue<Code extends string = IssueCode> { severity: 'error' | 'warning' | 'info'; code: Code; message: string; line?: number; property?: string; card?: number }
+interface Issue<Code extends string = IssueCode> { severity: 'error' | 'warning' | 'info'; code: Code; message: string; line?: number; property?: string; card?: number; propertyIndex?: number }
+// propertyIndex = index in `card.properties`, set by the writer alone: a card built in code has no `line`
 // IssueCode = the union of four `as const` lists, one per stage, all exported:
 // COMMON_ISSUE_CODES (issues-truncated), PARSE_ISSUE_CODES, UPGRADE_ISSUE_CODES, SERIALIZE_ISSUE_CODES.
 // Every stage reports through helpers typed with its own list (parse: error/warn/info and the
@@ -461,7 +463,7 @@ This is where the "understand Android fields" requirement lives:
 | Vendor property                                           | 4.0 output                                                                |
 | --------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `X-ANDROID-CUSTOM:vnd.android.cursor.item/nickname;`      | `NICKNAME`, plus `X-KIND=other|maiden|short|initials|custom[:<label>]`    |
-| `<name>;<type>;<label>;...`                               | for types 2-5 and 0 (consumed by convert into the vendor Nickname kind)   |
+| `<name>;<type>;<label>;...`                               | for types 2-5 and 0 (convert reads it into the vendor `kind` and `label`) |
 | `.../contact_event;<date>;1;...` (anniversary)            | `ANNIVERSARY:<date>` if none yet, else kept raw                           |
 | `.../contact_event;<date>;3;...` (birthday)               | `BDAY:<date>` if no BDAY yet, else kept raw                               |
 | `.../contact_event;<date>;2|0;<label>;...`                | kept raw (→ `vCardProps`, re-emitted verbatim); unparseable date: warning |
@@ -522,7 +524,7 @@ and Apple rules, the converter and the export profiles):
 | 7 manager / Manager                            | `x-manager`          | `remileduc.github.io:manager`          |
 | 11 referred by / REFERRED_BY (Google)          | `x-referred-by`      | `remileduc.github.io:referred-by`      |
 | 12 relative / RELATIVE (Google)                | `kin`                | `kin`                                  |
-| 0 custom / free label                          | `x-custom`           | `{}` + `label`                         |
+| 0 custom / free label                          | `x-custom`           | `{}` + vendor `label`                  |
 
 Issues: every semantic rewrite is an `info` naming the source line and
 `group.NAME`, so the UI can list what changed; a `warning` means the input
@@ -610,10 +612,13 @@ its rows sit in 20 000 groups or in one (two tests keep it so).
   `group.NAME;PARAM` lets a fold land before the first `=`, and the
   unfolder's N/ADR/ORG tolerance then joins that first line to the
   property above; impossible at 75 for any real name.
-- The writer never throws on a model, only on options. A property no
-  line can hold is left out and reported as an `error`
-  (`property-not-written`, with the card index and `group.NAME` as the
-  caller wrote them, the id the warnings carry), and every other property
+- The writer never throws on a property, only on options and on a card
+  that is no object with a `properties` array (a `TypeError`: no tool
+  writes one, and a guard would need an issue code of its own). A property
+  no line can hold is left out and reported as an `error`
+  (`property-not-written`, with the card index, the index of the
+  property in that card (`propertyIndex`) and `group.NAME` as the caller
+  wrote them, the three the warnings carry), and every other property
   and card is written: `binary` in 4.0 (the input is a card in 4.0
   semantics; a parsed 2.1 card must go through `upgradeTo40` first or its
   escapes are doubled), a `TYPE` value holding a comma (readers split it
@@ -723,6 +728,9 @@ What the types settle:
   `components`.
 - `Nickname` declares the project's `remileduc.github.io:kind` with its
   values, so the converter and the UI read it typed.
+- Address, Anniversary, Nickname and Relation declare the project's
+  `remileduc.github.io:label`, a string: the four objects a phone labels
+  and RFC 9553 gives no `label`.
 
 ### Vendor extensions (`vendor.ts`)
 
@@ -733,16 +741,22 @@ map them back:
 | Extension                              | Where             | Values                                           |
 | -------------------------------------- | ----------------- | ------------------------------------------------ |
 | `remileduc.github.io:kind` on Nickname | Nickname object   | `maiden`, `short`, `initials`, `other`, `custom` |
+| `remileduc.github.io:label`            | Address,          | free text: the custom label of the phone         |
+|                                        | Anniversary,      | (Android `ADR;TYPE=X-Chalet`, a custom nickname  |
+|                                        | Nickname,         | or relation, Apple `X-ABLabel`)                  |
+|                                        | Relation          |                                                  |
 | vendor relation keys                   | Relation.relation | the nine vendor keys in the relation table above |
 
 The vendor relation names are listed here bare (`VENDOR_RELATIONS`:
 `mother`, not the whole key); the vcard relation table only knows the
 `x-<name>` TYPE words, and `convert` maps `x-<name>` to
-`remileduc.github.io:<name>` and back (a test in `convert` holds the
-words of the two libraries together, relations and nickname kinds, since
-they do not see each other). `NICKNAME_KIND` is
-the property name, `NICKNAME_KINDS` its values, `VendorKey<Name>` the type
-of a prefixed name. Nothing else: Android "other/custom" events,
+`remileduc.github.io:<name>` and back (a test in `convert` holds the words
+of the two libraries together, relations and nickname kinds, since they do
+not see each other). `NICKNAME_KIND` is the property name,
+`NICKNAME_KINDS` its values, `VendorKey<Name>` the type of a prefixed
+name. `VENDOR_LABEL` is the one label property of the four objects that
+have no standard `label`; the others keep theirs, so a label is `label` or
+`VENDOR_LABEL`, never both. Nothing else: Android "other/custom" events,
 `X-PHONETIC-*`, `X-MS-*` stay in `vCardProps` until fixtures show they
 matter.
 
@@ -750,7 +764,7 @@ matter.
 
 ```ts
 validateCard(value: unknown): ValidationResult  // { card: Card | null; issues: CardIssue[] }
-// CardIssue = { severity: 'error' | 'warning' | 'info'; code: CardIssueCode; message: string; path: string; card?: number }
+// CardIssue = { severity: 'error' | 'warning' | 'info'; code: CardIssueCode; message: string; path: string; card?: number; input?: number }
 // path = JSON Pointer from the Card root, '' for the Card itself
 // card = the input typed as Card when no issue is an `error`, else null
 ```
@@ -760,7 +774,7 @@ read as the `Card` the types describe. It is not an RFC 9553 conformance
 checker (decision of 2026-11-22). JSContact is this project's internal
 model: a Card comes from our converter, from our editor or from a backup
 we wrote. Hence three callers, the converter on its own result, the
-editor on Save and `parseJSContact`, which all ask the same question:
+editor on Save and `parseCards`, which all ask the same question:
 would our code misread this value? What the RFC calls invalid and our
 code reads without harm is accepted, kept and written back, so that a
 backup is never refused for a rule nothing here depends on, be it broken
@@ -776,7 +790,7 @@ code, the `issues-truncated` warning joins them). It reports:
   (`card-not-an-object`), any other (`property-wrong-type`);
 - `@type`: missing on the Card (`property-missing`); not "Card" on it
   or, elsewhere, when set, not the type the property holds, a case
-  variant and "Resource" included (`type-mismatch`). `Anniversary.date`
+  variant and "Resource" included (`at-type-mismatch`). `Anniversary.date`
   is read as the type its `@type` names, a PartialDate when it has none
   or one it should not have;
 - `version` missing (`property-missing`), not a string
@@ -800,8 +814,10 @@ code, the `issues-truncated` warning joins them). It reports:
   number, a boolean or a list of such); of `vCardParams` (strings or
   lists of strings) and of `localizations` (language to object), both
   `property-wrong-type`;
-- `remileduc.github.io:kind` of a Nickname that is no string: the one
-  vendor property `types.ts` declares, so the one in the table;
+- `remileduc.github.io:kind` of a Nickname and `remileduc.github.io:label`
+  of an Address, an Anniversary, a Nickname or a Relation that is no
+  string: the vendor properties `types.ts` declares, so the ones in the
+  table;
 - hostile input, reported and never thrown: more than `MAX_CARD_DEPTH`
   levels of nesting, 64 with the Card (`card-too-deep`; the types need
   eight), more than `MAX_CARD_NODES` members in all, 100 000
@@ -866,7 +882,7 @@ since it cannot import them:
   with its cap, `COMMON_ISSUE_CODES` and `PATCH_ISSUE_CODES` exist since
   checkpoint 2 (`issues.ts`, `issue-codes.ts`), the patch code being the
   first to report; `VALIDATION_ISSUE_CODES` is the validator's list and
-  `BACKUP_ISSUE_CODES` the one of `parseJSContact`. The cap is a
+  `BACKUP_ISSUE_CODES` the one of `parseCards`. The cap is a
   constant: no caller needs another, so there is no options argument.
 - **Hostile input.** Pointer and patch code walks own properties only and
   never assigns a `__proto__` key. Lookups keyed by input are `Map`s or
@@ -938,8 +954,8 @@ since it cannot import them:
   `/localizations/<tag>/<escaped key>`. The result is not validated and
   not typed a Card: a patch may set any value anywhere, so the caller
   gets a Card from `validateCard`, not from a cast.
-- `equal(a, b)`: deep equality of JSON values, key order ignored.
-- The copy (`cloneJson`, internal), `equal`, the pointer and the patch
+- `jsonEqual(a, b)`: deep equality of JSON values, key order ignored.
+- The copy (`cloneJson`, internal), `jsonEqual`, the pointer and the patch
   code loop where they could recurse: `JSON.parse` accepts a nesting that
   `structuredClone` and any recursive walk answer with a `RangeError`.
 - `cardDisplayName(card)`: the first that is not blank of `name.full`,
@@ -963,8 +979,9 @@ since it cannot import them:
   object `@type` first, then the properties in the order RFC 9553 defines
   them, `vCardName` and `vCardParams`, then the properties this version
   does not know (vendor ones included) by name; in a Card `media` goes
-  last of all, as PHOTO does in a `.vcf`. The Nickname kind of this
-  project is in the table, so it follows `pref`. A property that is an empty map
+  last of all, as PHOTO does in a `.vcf`. The Nickname kind and the label
+  of this project are in the table, so they close the properties of their
+  object, the kind before the label. A property that is an empty map
   (`phones: {}`, `contexts: {}`, `vCardParams: {}`) is left out, unless
   the Card has localization patches: one may land in an empty map
   (`titles/t1` needs `titles`), so such a Card keeps them all. Not
@@ -983,30 +1000,32 @@ since it cannot import them:
   one list of properties and differ on `kind`. Tests hold the table
   against the registry fixture and the list against the interfaces.
   `normalizeCard` reads the first, `validateCard` both.
-- `parseJSContact(input, options?)` → `ParseJSContactResult`, `{ cards:
-  Card[]; refused: number; issues: CardIssue[] }`: the reader of the
-  JSON backup. A string is JSON text, at most `maxTextLength` UTF-16
-  code units, the one option (`ParseJSContactOptions`; by default
+- `parseCards(input, options?)` → `ParseCardsResult`, `{ cards: Card[];
+  refused: number; issues: CardIssue[] }`: the reader of the JSON
+  backup. A string is JSON text, at most `maxTextLength` UTF-16 code
+  units, the one option (`ParseCardsOptions`; by default
   `DEFAULT_MAX_TEXT_LENGTH`, 64 Mi, the number the vCard reader caps
   bytes at; `json-too-large`, and `json-syntax` for what `JSON.parse`
   refuses). An `ArrayBuffer` or a view on one is that text in UTF-8:
   capped by its bytes before any is decoded, and `json-syntax` when it
   is not UTF-8. A cap that is neither a positive integer nor `Infinity`
   (no cap) is a `RangeError`. A byte order mark before the text is
-  skipped; anything else is the value already parsed. One
-  Card or an array of them, and what is neither is one candidate the
-  validator refuses. For each one the format stamp is read and removed,
-  then `validateCard` runs; a "1.0" Card that passes comes back as "2.0"
-  with a `version-upgraded` info (RFC 9982: every valid 1.0 Card is a
-  valid 2.0 Card). `cards` holds the accepted ones in input order; each
-  issue has the `card` index of the input, so a refused Card leaves a
-  gap. Nothing given is changed: a Card is copied one level deep when
-  its stamp or its version is, and returned itself otherwise. The
-  issues of the file go through one collector, so the cap per code
-  holds for the file; `refused` counts the Cards left out, which the
-  issues stop naming past that cap. `JSON.parse` keeps the last of two
-  members of the same name and nothing here detects it.
-- `stringifyCards(cards)` → the format stamp and version "2.0" set on
+  skipped; anything else is the value already parsed. One Card or an
+  array of them, and what is neither is one candidate the validator
+  refuses. For each one the format stamp is read and removed, then
+  `validateCard` runs; a "1.0" Card that passes comes back as "2.0" with
+  a `version-upgraded` info (RFC 9982: every valid 1.0 Card is a valid
+  2.0 Card). `cards` holds the accepted ones in input order; each issue
+  has the position of its Card in the input (`input`) and, when the Card
+  was kept, its index in `cards` (`card`, which means what it does in
+  the vcard package: `cards[issue.card]`). Nothing given is changed: a
+  Card is copied one level deep when its stamp or its version is, and
+  returned itself otherwise. The issues of the file go through one
+  collector, so the cap per code holds for the file; `refused` counts
+  the Cards left out, which the issues stop naming past that cap.
+  `JSON.parse` keeps the last of two members of the same name and
+  nothing here detects it.
+- `serializeCards(cards)` → the format stamp and version "2.0" set on
   each Card (a "1.0" Card is written as what the reader makes of it),
   `normalizeCard`, `JSON.stringify(..., 2)` and a final line feed: the
   one place the human-readable JSON rule is implemented. It expects
@@ -1022,7 +1041,7 @@ since it cannot import them:
   validator runs after them. At format 1 there is none and no code for
   them either: the reader checks the stamp, and a comment marks where
   they will run. The stamp belongs to the file, not
-  to the Card: `stringifyCards` alone writes it and `parseJSContact`
+  to the Card: `serializeCards` alone writes it and `parseCards`
   removes it, so no Card in memory or in the store carries it and no
   profile reports it as a vendor property it cannot export. Normalized
   with the Card, it is written among the vendor properties, before
@@ -1056,7 +1075,7 @@ since it cannot import them:
   the patch code throw, and none can reach a prototype. A fixture Card
   with one member replaced by anything, at any depth, is either refused
   at a path that exists or read by `cardDisplayName`, written by
-  `stringifyCards` and read back equal.
+  `serializeCards` and read back equal.
 - Differential tests against `@sdxc/jscontact` (MIT, the only other
   JSContact implementation on npm): a dev dependency of this package
   only, pinned to an exact release (pnpm installs its `remix` peer by
@@ -1070,17 +1089,17 @@ since it cannot import them:
 
 Two tiers, listed in the package README, as for the vcard package. The
 stable contract is everything above but `schema.ts`: the types and the
-enumerated lists, `validateCard`, `parseJSContact`, `stringifyCards`
-with `FORMAT_STAMP` and `FORMAT_VERSION`, the pointer, patch and
-localization functions, the utilities, the issue types and the four code
-lists, `VENDOR_PREFIX`. A new enumerated value follows the IANA registry
-and is a minor release, since code reads these properties through
-`isListed`; a change to the issue codes is a major one. The second tier
-is the vocabulary of the phones (`NICKNAME_KIND`, `NICKNAME_KINDS`,
-`VENDOR_RELATIONS` and their types): it follows what the importers
-write, is there for `convert` and the app, and carries no stability
-promise. `PROPERTIES` and `MANDATORY` are not exported: nothing outside
-the package reads them yet.
+enumerated lists, `validateCard`, `parseCards`, `serializeCards` with
+`FORMAT_STAMP` and `FORMAT_VERSION`, the pointer, patch and localization
+functions, the utilities, the issue types and the four code lists,
+`VENDOR_PREFIX`. A new enumerated value follows the IANA registry and is
+a minor release, since code reads these properties through `isListed`; a
+change to the issue codes is a major one. The second tier is the
+vocabulary of the phones (`NICKNAME_KIND`, `NICKNAME_KINDS`,
+`VENDOR_LABEL`, `VENDOR_RELATIONS` and their types): it follows what the
+importers write, is there for `convert` and the app, and carries no
+stability promise. `PROPERTIES` and `MANDATORY` are not exported: nothing
+outside the package reads them yet.
 
 ### Match, diff, merge (milestone 4.5)
 
@@ -1195,13 +1214,15 @@ exportVCards(cards: Card[], opts: { profile }): { text: string; issues: Issue[] 
    - GENDER → `vCardProps` only.
    - RELATED → `relatedTo[value].relation` with TYPE keys mapped through the
      relation table (standard keys as-is, `x-mother` → vendor key,
-     `x-custom` → `{}`), `label` from X-ABLabel/Android label.
+     `x-custom` → `{}`), vendor `label` from X-ABLabel/Android label.
    - NICKNAME → one Nickname per list value; `X-KIND` param (from the
-     normaliser) → vendor `kind`.
+     normaliser) → vendor `kind`, the text after `custom:` → vendor
+     `label`.
    - CATEGORIES → `keywords`; MEMBER → `members`; ORG → `organizations`
      (first comp `name`, rest `units`); TITLE/ROLE → `titles` with
      `organizationId` when exactly one ORG shares the group; X-ABLabel →
-     `label` on the same-group object; IMPP/SOCIALPROFILE →
+     `label` on the same-group object (the vendor `label` on an Address,
+     an Anniversary, a Nickname or a Relation); IMPP/SOCIALPROFILE →
      `onlineServices` with `vCardName` and `service` from SERVICE-TYPE;
      PHOTO/LOGO/SOUND → `media` (`data:` or `https:` URI verbatim);
      EXPERTISE/HOBBY/INTEREST → `personalInfo`; LANG → `preferredLanguages`;
@@ -1232,8 +1253,8 @@ reverse. The phone profiles emit what the device importer actually reads.
 | name                     | `N` 5 comps + `FN` (always both; AOSP builds the   | same                                               | `N` 7 comps, `JSCOMPS`, `FN`    |
 |                          | display name from FN)                              |                                                    |                                 |
 | nicknames                | `NICKNAME` one per line (AOSP does not split       | `NICKNAME`                                         | `NICKNAME` list, `PROP-ID`      |
-|                          | lists) + `X-ANDROID-CUSTOM:.../nickname;n;<type>`  |                                                    |                                 |
-|                          | for non-default vendor kinds                       |                                                    |                                 |
+|                          | lists) + for non-default vendor kinds              |                                                    |                                 |
+|                          | `X-ANDROID-CUSTOM:.../nickname;n;<type>;<label>`   |                                                    |                                 |
 | phones                   | `TEL;TYPE=CELL                                     | HOME                                               | WORK                            | FAX                                                | PAGER                           | PREF`; custom | `TEL;type=CELL;type=VOICE;type=pref`, `IPHONE`, | `TEL;VALUE=uri:tel:` + `PREF=n` |
 |                          | label → `TYPE=X-<label>` (AOSP strips `X-`); never | `MAIN`; custom label → `itemN.` + `X-ABLabel`      | + TYPE                          |
 |                          | `VOICE` alone (→ OTHER) nor `INTERNET`; warn when  |                                                    |                                 |
@@ -1444,30 +1465,31 @@ test + build green, docs updated, then stop for review and commit.
    the RFC text into `fixtures/jscontact/` and a constraint checklist;
    type tests. Done 2026-11-18. Left to checkpoint 3 by the checklist:
    the severity and code of each row, and the points listed under "Where
-   the RFC leaves room". Left to M4: where the label of an Android custom
-   nickname goes (the normaliser writes `X-KIND=custom:<label>`) and the
-   one of a custom relation (the relation table above says `{}` +
-   `label`): neither Nickname nor Relation has a `label` in RFC 9553, so
-   both need a vendor property or `vCardParams`.
+   the RFC leaves room". Left to M4 then, settled on 2026-11-24: the
+   label of an Android custom nickname (the normaliser writes
+   `X-KIND=custom:<label>`) and the one of a custom relation (the
+   relation table above said `{}` + `label`) go to the vendor `label`
+   property, since neither Nickname nor Relation has a `label` in RFC
+   9553.
 2. **Pointer, patch, utilities.** JSON Pointer, `applyPatchObject`,
-   `localize`, `equal`, `nextId`/`newUid`, `isListed`, `cardDisplayName`,
-   `normalizeCard`; differential tests of patch and localize against
-   `@sdxc/jscontact`. Done 2026-11-22, with the issue types, the patch
-   codes and the property table (`schema.ts`) the validator builds on.
-   Left to checkpoint 3: refining the `value` shape of the property
-   table into the types the validator checks; making a value of the wrong
-   JSON type and a missing mandatory property errors, which
-   `cardDisplayName` and `normalizeCard` rely on. Settled on 2026-11-22
-   by the narrower validator, and no longer open: the localized Card is
-   validated by whoever calls `localize`, not by `validateCard`; two
-   `localizations` keys that differ by case only are not reported
-   (`localize` takes the first); the cap of 1000 issues per code stays a
-   constant; a SpeakToAs whose only member is `pronouns: {}` is accepted,
-   as every "at least one of" case is.
+   `localize`, `jsonEqual`, `nextId`/`newUid`, `isListed`,
+   `cardDisplayName`, `normalizeCard`; differential tests of patch and
+   localize against `@sdxc/jscontact`. Done 2026-11-22, with the issue
+   types, the patch codes and the property table (`schema.ts`) the
+   validator builds on. Left to checkpoint 3: refining the `value` shape
+   of the property table into the types the validator checks; making a
+   value of the wrong JSON type and a missing mandatory property errors,
+   which `cardDisplayName` and `normalizeCard` rely on. Settled on
+   2026-11-22 by the narrower validator, and no longer open: the
+   localized Card is validated by whoever calls `localize`, not by
+   `validateCard`; two `localizations` keys that differ by case only are
+   not reported (`localize` takes the first); the cap of 1000 issues per
+   code stays a constant; a SpeakToAs whose only member is `pronouns: {}`
+   is accepted, as every "at least one of" case is.
 3. **Validator and API freeze.** Scope narrowed on 2026-11-22, before it
    was started: `validateCard` as the runtime form of the types (errors
    only, its code list, the `Checked` column of the checklist as its
-   contract), `parseJSContact`/`stringifyCards` with the format stamp
+   contract), `parseCards`/`serializeCards` with the format stamp
    (`FORMAT_VERSION` and the property name in `vendor.ts`), fuzz tests,
    README with the two export tiers. Dropped: the warning tier, RFC
    conformance and the differential validator tests. Done 2026-11-22,

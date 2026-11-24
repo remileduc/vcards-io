@@ -7,10 +7,10 @@ export const VERSION = "0.1.0";
 
 export {
 	DEFAULT_MAX_TEXT_LENGTH,
-	type ParseJSContactOptions,
-	type ParseJSContactResult,
-	parseJSContact,
-	stringifyCards,
+	type ParseCardsOptions,
+	type ParseCardsResult,
+	parseCards,
+	serializeCards,
 } from "./backup.js";
 export { cardDisplayName } from "./display-name.js";
 export {
@@ -65,7 +65,7 @@ export {
 	type ValidationIssueCode,
 } from "./issue-codes.js";
 export type { CardIssue, CardIssueSeverity } from "./issues.js";
-export { equal } from "./json.js";
+export { jsonEqual } from "./json.js";
 export { normalizeCard } from "./normalize.js";
 export { applyPatchObject, type LocalizeResult, localize, type PatchResult } from "./patch.js";
 export * as jsonPointer from "./pointer.js";
@@ -77,6 +77,7 @@ export {
 	NICKNAME_KIND,
 	NICKNAME_KINDS,
 	type NicknameKind,
+	VENDOR_LABEL,
 	VENDOR_PREFIX,
 	VENDOR_RELATIONS,
 	type VendorKey,

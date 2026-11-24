@@ -2,13 +2,13 @@ import fc from "fast-check";
 import { describe, expect, test } from "vitest";
 import {
 	cardDisplayName,
-	equal,
 	FORMAT_STAMP,
+	jsonEqual,
 	jsonPointer,
 	localize,
 	normalizeCard,
-	parseJSContact,
-	stringifyCards,
+	parseCards,
+	serializeCards,
 	validateCard,
 } from "../src/index.js";
 import { hostileTree, jsonTree, memberPaths } from "./helpers/arbitraries.js";
@@ -122,10 +122,10 @@ describe("validateCard on arbitrary input", () => {
 				for (const tag of Object.keys(card.localizations ?? {})) localize(card, tag);
 
 				const normalized = normalizeCard(card);
-				const { cards, issues } = parseJSContact(stringifyCards([card]));
+				const { cards, issues } = parseCards(serializeCards([card]));
 				expect(hasError(issues)).toBe(false);
 				expect(cards).toHaveLength(1);
-				expect(equal({ ...cards[0], version: card.version }, normalized)).toBe(true);
+				expect(jsonEqual({ ...cards[0], version: card.version }, normalized)).toBe(true);
 			}),
 			3000,
 		);
@@ -155,7 +155,7 @@ describe("validateCard on arbitrary input", () => {
 	});
 });
 
-describe("parseJSContact on arbitrary input", () => {
+describe("parseCards on arbitrary input", () => {
 	test("nothing throws, and what comes back is a list of valid Cards without a stamp", () => {
 		const stamp = fc.oneof(fc.constantFrom(1, 2, 0, "1", null), anyValue);
 		// JSON.stringify throws on a bigint, which a mutated Card may hold.
@@ -177,14 +177,17 @@ describe("parseJSContact on arbitrary input", () => {
 		assertHarmless(
 			fc.property(input, (value) => {
 				const before = fc.stringify(value);
-				const { cards, issues } = parseJSContact(value);
+				const { cards, issues } = parseCards(value);
 				expect(fc.stringify(value)).toBe(before);
 				for (const card of cards) {
 					expect(validateCard(card)).toEqual({ card, issues: [] });
 					expect(card.version).toBe("2.0");
 					expect(Object.hasOwn(card, FORMAT_STAMP)).toBe(false);
 				}
-				for (const issue of issues) expect(jsonPointer.parse(issue.path)).toBeDefined();
+				for (const issue of issues) {
+					expect(jsonPointer.parse(issue.path)).toBeDefined();
+					if (issue.card !== undefined) expect(cards[issue.card]).toBeDefined();
+				}
 			}),
 			4000,
 		);
