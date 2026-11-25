@@ -66,7 +66,7 @@ describe("parseVCards", () => {
 		expect(codes(issues)).toEqual(["version-missing"]);
 	});
 
-	test("issues carry the index of the card they are about, none outside a card", () => {
+	test("issues come in source order with the card they are about, none outside a card", () => {
 		const input = [
 			"FN:lost",
 			"BEGIN:VCARD",
@@ -84,13 +84,13 @@ describe("parseVCards", () => {
 		expect(cards).toHaveLength(3);
 		expect(issues.map((i) => [i.code, i.line, i.card])).toEqual([
 			["bom-stripped", undefined, undefined],
-			["line-too-long", 10, 2],
 			["line-outside-card", 1, undefined],
-			["nested-begin", 8, 1],
-			["version-missing", 6, 1],
-			["missing-end", 11, 2],
 			["uri-escaped-colon", 4, 0],
+			["version-missing", 6, 1],
 			["invalid-value", 7, 1],
+			["nested-begin", 8, 1],
+			["line-too-long", 10, 2],
+			["missing-end", 11, 2],
 		]);
 	});
 
@@ -109,8 +109,8 @@ describe("parseVCards", () => {
 		expect(cards.map((c) => c.version)).toEqual(["3.0", "3.0", "3.0"]);
 		expect(issues.map((i) => [i.code, i.line, i.card])).toEqual([
 			["nested-begin", 4, 0],
-			["nested-begin", 6, 1],
 			["version-missing", 4, 1],
+			["nested-begin", 6, 1],
 			["version-missing", 6, 2],
 		]);
 	});
@@ -166,6 +166,26 @@ describe("parseVCards caps", () => {
 			},
 		]);
 		expect(() => parseVCards(input, { maxContentLines: 0 })).toThrow(RangeError);
+		expect(() => parseVCards(input, { maxContentLines: 1.5 })).toThrow(RangeError);
+	});
+
+	test("the cap counts unfolded lines, comments and lines outside a card too", () => {
+		const input = `# c\r\nX:1\r\n${card("3.0", "NOTE:a\r\n b\r\n c")}`;
+		expect(parseVCards(input, { maxContentLines: 6 }).cards).toHaveLength(1);
+		expect(parseVCards(input, { maxContentLines: 5 }).cards).toEqual([]);
+	});
+
+	test("a refused file keeps what was said of the input, not of the lines read", () => {
+		const input = `\uFEFFX:1\r\n${card(null, "FN:A")}\r\n${card("3.0", "FN:B")}`;
+		expect(codes(parseVCards(input).issues)).toEqual([
+			"bom-stripped",
+			"line-outside-card",
+			"version-missing",
+		]);
+		expect(codes(parseVCards(input, { maxContentLines: 5 }).issues)).toEqual([
+			"bom-stripped",
+			"too-many-lines",
+		]);
 	});
 
 	test("two files joined into one, each with its BOM, give both cards", () => {
@@ -640,6 +660,8 @@ describe("hostile input", () => {
 		const { issues } = parseVCards(card("4.0", ...Array<string>(3000).fill("garbage")));
 		expect(issues.filter((i) => i.code === "invalid-line")).toHaveLength(1000);
 		expect(issues.filter((i) => i.code === "issues-truncated")).toHaveLength(1);
+		// On the line of the first issue it replaces, so it follows the last one kept.
+		expect(issues[1000]).toMatchObject({ code: "issues-truncated", line: 1003, card: 0 });
 	});
 
 	test("BOM, UTF-16, missing END and nested BEGIN come through the public API", () => {

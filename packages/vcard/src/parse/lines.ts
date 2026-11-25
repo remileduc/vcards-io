@@ -3,7 +3,6 @@ import { lexContentLine } from "./lexer.js";
 import { error, info, warn } from "./report.js";
 
 export const DEFAULT_MAX_LINE_LENGTH = 1024 * 1024;
-export const DEFAULT_MAX_CONTENT_LINES = 500_000;
 
 const HTAB = 0x09;
 const LF = 0x0a;
@@ -33,28 +32,34 @@ type Join = "fold" | "soft-break" | "base64" | "unindented";
 // AOSP joins an unindented line without ":" to these; writers do break them that way.
 const JOINABLE = new Set(["N", "ADR", "ORG"]);
 
-/** Splits on CRLF, LF or CR and unfolds, with the tolerance rules of docs/plan.md step 3. */
+/**
+ * Splits on CRLF, LF or CR and unfolds, with the tolerance rules of docs/plan.md step 3.
+ * One line at a time: the reader holds a card's lines, never the whole input's.
+ */
 export function readLogicalLines(
 	bytes: Uint8Array,
 	issues: IssueSink,
 	maxLineLength = DEFAULT_MAX_LINE_LENGTH,
-	maxContentLines = DEFAULT_MAX_CONTENT_LINES,
-): LogicalLine[] {
+): Generator<LogicalLine> {
+	// Checked here, not in the generator: a bad option has to throw at the call.
 	if (!Number.isInteger(maxLineLength) || maxLineLength < 1) {
 		throw new RangeError(`maxLineLength must be a positive integer, got ${maxLineLength}`);
 	}
-	if (!Number.isInteger(maxContentLines) || maxContentLines < 1) {
-		throw new RangeError(`maxContentLines must be a positive integer, got ${maxContentLines}`);
-	}
-	const out: LogicalLine[] = [];
+	return unfold(bytes, issues, maxLineLength);
+}
+
+function* unfold(
+	bytes: Uint8Array,
+	issues: IssueSink,
+	maxLineLength: number,
+): Generator<LogicalLine> {
 	const pending = new Pending();
 	let dropping = false;
 
-	const flush = (): void => {
-		if (pending.open) out.push(pending.take());
-	};
+	const flush = (): LogicalLine | null => (pending.open ? pending.take() : null);
 
-	const handle = (segment: Uint8Array, line: number): void => {
+	/** Reads one physical line; returns the logical line it ends, if any. */
+	const handle = (segment: Uint8Array, line: number): LogicalLine | null => {
 		if (hasBom(segment) && isCardDelimiter(segment.subarray(3))) {
 			// Two files joined into one: the BOM would hide the BEGIN and lose the card.
 			segment = segment.subarray(3);
@@ -76,12 +81,12 @@ export function readLogicalLines(
 					line,
 				),
 			);
-			if (continues) pending.discard();
-			else flush();
 			dropping = true;
-			return;
+			if (!continues) return flush();
+			pending.discard();
+			return null;
 		}
-		if (dropping && indented) return;
+		if (dropping && indented) return null;
 		dropping = false;
 		if (pending.open) {
 			const join = pending.joins(segment, indented);
@@ -97,7 +102,7 @@ export function readLogicalLines(
 					);
 				}
 				pending.append(join === "fold" ? segment.subarray(1) : segment);
-				return;
+				return null;
 			}
 			if (
 				pending.encoding === "quoted-printable" &&
@@ -114,8 +119,8 @@ export function readLogicalLines(
 				);
 			}
 		}
-		flush();
-		if (segment.length === 0) return;
+		const ended = flush();
+		if (segment.length === 0) return ended;
 		if (indented && !isBlank(segment)) {
 			// Read as a line of its own, as AOSP does, but a broken fold must not pass unnoticed.
 			issues.push(
@@ -127,30 +132,22 @@ export function readLogicalLines(
 			);
 		}
 		pending.start(segment, line);
+		return ended;
 	};
 
 	let pos = 0;
 	let line = 0;
 	const n = bytes.length;
-	while (pos < n && out.length <= maxContentLines) {
+	while (pos < n) {
 		line++;
 		let end = pos;
 		while (end < n && bytes[end] !== CR && bytes[end] !== LF) end++;
-		handle(bytes.subarray(pos, end), line);
+		const ended = handle(bytes.subarray(pos, end), line);
+		if (ended !== null) yield ended;
 		pos = end + (bytes[end] === CR && bytes[end + 1] === LF ? 2 : 1);
 	}
-	flush();
-	if (out.length > maxContentLines) {
-		// A line costs about a kilobyte of model whatever its length: stop before memory does.
-		issues.push(
-			error(
-				"too-many-lines",
-				`Input has more than ${maxContentLines} content lines, nothing parsed`,
-			),
-		);
-		return [];
-	}
-	return out;
+	const last = flush();
+	if (last !== null) yield last;
 }
 
 /** Where the header scanner is, mirroring the lexer's states at each parameter byte. */

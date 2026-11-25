@@ -44,8 +44,5 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --root ../.. --project jscontact"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "@sdxc/jscontact": "2026.11.10"
-  }
+  "dependencies": {}
 }

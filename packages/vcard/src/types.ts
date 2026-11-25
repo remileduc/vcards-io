@@ -102,6 +102,7 @@ export interface ParseOptions {
 
 export interface ParseResult {
 	cards: VCard[];
+	/** In source order, by `line`; those about the whole input have none and come first. */
 	issues: Issue[];
 }
 

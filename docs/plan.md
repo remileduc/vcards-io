@@ -142,12 +142,12 @@ Repository layout
 
 ```
 vcards-io/
-  package.json              private root; "engines": { "node": ">=24.3" }, "packageManager": "pnpm@12.x"
+  package.json              private root; "engines": { "node": ">=24" }, "packageManager": "pnpm@12.x"
   pnpm-workspace.yaml       packages/*, apps/*
   biome.json
   tsconfig.base.json        strict, ES2025 target, verbatimModuleSyntax, exactOptionalPropertyTypes
   platform-globals.d.ts     TextEncoder/TextDecoder, structuredClone, crypto: in the `include` of every library
-  .github/workflows/        ci.yml, pages.yml, (later) release.yml
+  .github/workflows/        ci.yml (checks, then deploys main), (later) release.yml
   fixtures/
     rfc/                    examples lifted from the RFCs (.vcf + expected .json)
     android/                AOSP-style 2.1 samples (cozy-vcard android-full.vcf, MIT) + yours
@@ -187,7 +187,8 @@ only has to know 4.0; a writer engine with syntax tables for 3.0 and 4.0.
 
 ```ts
 parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): ParseResult
-// ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card
+// ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card;
+//                                                     // issues in source order, those without a line first
 // ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number,
 //                  maxContentLines?: number }
 
@@ -275,6 +276,14 @@ writer as unparseable text.
 
 ### Internal pipeline
 
+Steps 2 to 6 run card by card, not stage by stage: the line reader and the
+card grouper are generators, and a card is decoded as soon as it closes.
+Its unfolded lines and lexed headers are garbage from then on, so the
+peak is the input plus the model (4 to 20 times the input, the most for
+text with no photo) and not twice that. The issues are sorted by line
+once the last card is read: source order whichever stage spoke, those
+about the whole input, which have no line, first.
+
 1. **Bytes in.** A `string` input is encoded to UTF-8 bytes so there is one
    code path. BOM sniffing: `EF BB BF` → UTF-8 (strip; we never write one);
    `FF FE`/`FE FF` → transcode UTF-16 to UTF-8 bytes; BOM-less UTF-16
@@ -289,12 +298,16 @@ writer as unparseable text.
 2. **Physical lines.** Split on CRLF, LF or CR at byte level. Track line
    numbers. Enforce `maxLineLength` (default 1 MiB) and `maxInputBytes`
    (default 64 MiB) as `error` issues, not exceptions. Issues themselves are
-   capped at 1000 per code (then one `issues-truncated` warning per code),
+   capped at 1000 per code (then one `issues-truncated` warning per code,
+   on the line of the first issue it replaces),
    since a file that warns on every line would otherwise cost gigabytes.
    `maxContentLines` (default 500 000 unfolded lines, BEGIN and END
    included) caps the model itself: a line costs about a kilobyte of it
    whatever its length, so 4 MiB of `A:` lines took a gigabyte. Past it
    nothing is parsed (`too-many-lines`, an `error`), as for `maxInputBytes`.
+   Reading stops one line past the cap; the cards read until then are
+   dropped, and with them every issue but those about the input as a whole.
+   The card the cap cut is not decoded.
 3. **Logical lines (unfold), version-agnostic.** Join a line starting with SP
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:
@@ -1076,14 +1089,11 @@ since it cannot import them:
   with one member replaced by anything, at any depth, is either refused
   at a path that exists or read by `cardDisplayName`, written by
   `serializeCards` and read back equal.
-- Differential tests against `@sdxc/jscontact` (MIT, the only other
-  JSContact implementation on npm): a dev dependency of this package
-  only, pinned to an exact release (pnpm installs its `remix` peer by
-  itself), never imported from `src`. On our fixtures, on targeted
-  patches and on `fast-check` cases, both must agree on the result of a
-  patch or a localization; every intended divergence is listed in the
-  test beside its reason. The validator is not compared: it no longer
-  aims at what the RFC calls valid, which is what the oracle answers.
+- No second implementation is compared any more. Until 2026-11-24 patches
+  and localizations were checked against `@sdxc/jscontact`, a pinned dev
+  dependency of this package; it was removed with its test once M3 was
+  done (decision of that date). What the comparison found, the agreed
+  cases and each divergence, is asserted by `patch.test.ts` on its own.
 
 ### Exports
 
@@ -1330,7 +1340,13 @@ App: `apps/web`
   blob:; media-src data: blob:; connect-src 'none'; object-src 'none';
   base-uri 'none'`. Links from card data are rendered only for `http(s):`,
   `mailto:`, `tel:` with `rel="noopener noreferrer"`; everything else is text.
-  Lit templates escape by default; `unsafeHTML` is banned (Biome rule).
+  Lit templates escape by default; `unsafeHTML`, `unsafeSVG`,
+  `unsafeMathML` and `lit/static-html.js` (`unsafeStatic`) are banned
+  (Biome rule).
+- The origin is shared. Browser storage belongs to `remileduc.github.io`,
+  whatever the path, so the other Pages sites of the account can open the
+  contacts database. Accepted (decision of 2026-11-24): those sites are
+  the owner's, and nothing untrusted is published there.
 - Photos are rendered through `URL.createObjectURL(new Blob([...], {type}))`
   only when the media type is `image/*`.
 - Input caps: file size (64 MiB), number of cards per import (warn > 5000).
@@ -1409,9 +1425,10 @@ pnpm test && pnpm build` clean, docs updated.
 - Three empty packages + app with `exports`, `publint` and `attw` passing.
 - CI (`ci.yml`): `setup-node` with `node-version: latest` so new Node releases break CI first, pnpm cache, `lint`,
   `typecheck`, `test --coverage` (80 % gate), `build`, `publint`.
-  `pages.yml`: build app with `base: '/vcards-io/'`, `deploy-pages`; also
-  publishes `coverage.json`, the endpoint behind the README coverage badge.
-  `permissions: {}` at top. Dependabot monthly.
+  On `main`, a `deploy` job that `needs` these checks publishes the app
+  they built (`base: '/vcards-io/'`, `deploy-pages`) with `coverage.json`,
+  the endpoint behind the README coverage badge; there is no separate
+  Pages workflow. `permissions: {}` at top. Dependabot monthly.
 - `fixtures/` seeded with RFC examples and the MIT cozy-vcard samples
   (android-full, ios-full, ios-complex-types, google-full); you add yours.
 - `docs/plan.md`, `docs/decisions.md`, `docs/interop.md` (research tables).
@@ -1474,7 +1491,8 @@ test + build green, docs updated, then stop for review and commit.
 2. **Pointer, patch, utilities.** JSON Pointer, `applyPatchObject`,
    `localize`, `jsonEqual`, `nextId`/`newUid`, `isListed`,
    `cardDisplayName`, `normalizeCard`; differential tests of patch and
-   localize against `@sdxc/jscontact`. Done 2026-11-22, with the issue
+   localize against `@sdxc/jscontact` (removed on 2026-11-24, with the
+   dependency). Done 2026-11-22, with the issue
    types, the patch codes and the property table (`schema.ts`) the
    validator builds on. Left to checkpoint 3: refining the `value` shape
    of the property table into the types the validator checks; making a

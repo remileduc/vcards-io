@@ -37,7 +37,8 @@ export function excerpt(value: string | Uint8Array): string {
 /**
  * Collects issues with a cap per code: a hostile file can trigger one warning per line, and
  * millions of messages would exhaust memory long before the 64 MiB input cap does. The first
- * occurrence past the cap is replaced by one `issues-truncated` warning for that code.
+ * occurrence past the cap is replaced by one `issues-truncated` warning for that code, on
+ * its line: the notice then sorts where the recording stopped.
  */
 export class IssueCollector implements IssueSink {
 	readonly issues: Issue[] = [];
@@ -56,7 +57,7 @@ export class IssueCollector implements IssueSink {
 			this.issues.push(pushed);
 		} else if (count === this.maxPerCode + 1) {
 			const message = `More than ${this.maxPerCode} "${pushed.code}" issues, further ones not recorded`;
-			this.issues.push(issue("warning", "issues-truncated", message));
+			this.issues.push(issue("warning", "issues-truncated", message, pushed.line));
 		}
 	}
 }

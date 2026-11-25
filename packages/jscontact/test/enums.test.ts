@@ -87,6 +87,36 @@ const LISTS = new Map<string, readonly string[]>([
 	["relation of Relation", RELATION_TYPES],
 ]);
 
+/** The order the README promises, the RFC text's; the registry fixture is sorted and cannot tell. */
+const ORDER = new Map<string, string>([
+	["contexts of Address", "private work billing delivery"],
+	["contexts of Calendar", "private work"],
+	["features of Phone", "mobile voice text video main-number textphone fax pager"],
+	["grammaticalGender of SpeakToAs", "animate common feminine inanimate masculine neuter"],
+	[
+		"kind of AddressComponent",
+		"room apartment floor building number name block subdistrict district locality region postcode country direction landmark postOfficeBox separator",
+	],
+	["kind of Anniversary", "birth death wedding"],
+	["kind of Calendar", "calendar freeBusy"],
+	["kind of Card", "individual group org location device application"],
+	["kind of Directory", "directory entry"],
+	["kind of Link", "contact"],
+	["kind of Media", "photo sound logo"],
+	[
+		"kind of NameComponent",
+		"title given given2 surname surname2 credential generation separator",
+	],
+	["kind of PersonalInfo", "expertise hobby interest"],
+	["kind of Title", "title role"],
+	["level of PersonalInfo", "high medium low"],
+	["phoneticSystem of Address", "ipa jyut piny"],
+	[
+		"relation of Relation",
+		"acquaintance agent child co-resident co-worker colleague contact crush date emergency friend kin me met muse neighbor parent sibling spouse sweetheart",
+	],
+]);
+
 const sorted = (values: readonly string[]): string[] => [...values].sort();
 
 describe("enumerated values", () => {
@@ -100,6 +130,14 @@ describe("enumerated values", () => {
 
 	test.each(tables)("%s holds the registered values", (name, table) => {
 		expect(sorted(LISTS.get(name) ?? [])).toEqual(sorted(table.values));
+	});
+
+	test("every list has an expected order, and every order a list", () => {
+		expect(sorted([...ORDER.keys()])).toEqual(sorted([...LISTS.keys()]));
+	});
+
+	test.each([...LISTS])("%s keeps its order", (name, list) => {
+		expect(list.join(" ")).toBe(ORDER.get(name));
 	});
 
 	test("the versions are the registered ones", () => {

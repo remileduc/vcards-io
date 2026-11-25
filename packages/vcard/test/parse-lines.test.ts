@@ -7,8 +7,8 @@ const utf8 = (s: string) => new TextEncoder().encode(s);
 const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const text = (b: Uint8Array) => decoder.decode(b);
 
-function lines(input: string, issues: Issue[] = [], max?: number, maxLines?: number) {
-	return readLogicalLines(utf8(input), issues, max, maxLines).map((l) => [l.line, text(l.bytes)]);
+function lines(input: string, issues: Issue[] = [], max?: number) {
+	return [...readLogicalLines(utf8(input), issues, max)].map((l) => [l.line, text(l.bytes)]);
 }
 
 describe("readLogicalLines", () => {
@@ -74,15 +74,14 @@ describe("readLogicalLines", () => {
 		]);
 	});
 
-	test("refuses the whole input past the cap on content lines, folds not counted", () => {
-		const input = "A:1\r\n 2\r\nB:3\r\nC:4\r\n";
-		expect(lines(input, [], undefined, 3)).toHaveLength(3);
+	test("gives a line once the next one starts, without reading further", () => {
 		const issues: Issue[] = [];
-		expect(lines(input, issues, undefined, 2)).toEqual([]);
-		expect(issues).toEqual([
-			expect.objectContaining({ severity: "error", code: "too-many-lines" }),
-		]);
-		expect(issues[0]?.line).toBeUndefined();
+		const reader = readLogicalLines(utf8("A:1\r\n 2\r\nB:3\r\n\uFEFFEND:x\r\n"), issues);
+		expect(text(reader.next().value.bytes)).toBe("A:12");
+		// The BOM two lines further is not looked at yet.
+		expect(issues).toEqual([]);
+		expect([...reader]).toHaveLength(2);
+		expect(issues).toEqual([expect.objectContaining({ code: "bom-stripped", line: 4 })]);
 	});
 
 	test("reassembles a UTF-8 sequence split by a careless folder", () => {
@@ -95,7 +94,7 @@ describe("readLogicalLines", () => {
 			0xab,
 			...utf8("\r\nN:x"),
 		]);
-		const out = readLogicalLines(bytes, []);
+		const out = [...readLogicalLines(bytes, [])];
 		expect(text(out[0]?.bytes ?? new Uint8Array())).toBe("FN:Zoë");
 	});
 
@@ -360,9 +359,9 @@ describe("readLogicalLines", () => {
 	});
 
 	test("throws on a nonsensical limit", () => {
+		// At the call, before any line is asked for.
 		expect(() => readLogicalLines(utf8("FN:x"), [], 0)).toThrow(RangeError);
-		expect(() => readLogicalLines(utf8("FN:x"), [], undefined, 0)).toThrow(RangeError);
-		expect(() => readLogicalLines(utf8("FN:x"), [], undefined, 1.5)).toThrow(RangeError);
+		expect(() => readLogicalLines(utf8("FN:x"), [], 1.5)).toThrow(RangeError);
 	});
 
 	test("stays linear on a large folded photo", () => {

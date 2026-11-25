@@ -6,7 +6,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 const [, , inPath, outPath] = process.argv;
-const SALT = "vcards-io-fixture-2026-11-06";
+// Per-run secret, never stored: fakes must not be recomputable from the originals.
+const SALT = crypto.randomBytes(32).toString("hex");
 
 function rng(seed) {
 	let s = crypto.createHash("sha256").update(`${SALT}|${seed}`).digest().readUInt32LE(0);
@@ -252,7 +253,14 @@ function fakeWord(token) {
 	}
 	return applyCase(wordMap.get(key), token);
 }
-const fakeDigits = (run, ctx) => digitsOf(rng(`digits|${ctx}|${run}`), run.length, run.length <= 3);
+// Every original run of 4+ digits: a fake equal to one would read as a leak.
+const origDigitRuns = new Set();
+function fakeDigits(run, ctx) {
+	for (let k = 0; ; k++) {
+		const fake = digitsOf(rng(`digits|${ctx}|${run}|${k}`), run.length, run.length <= 3);
+		if (!origDigitRuns.has(fake)) return fake;
+	}
+}
 function rewriteText(s, ctx, letterFn) {
 	return s.replace(/\p{L}+|\p{N}+/gu, (t) =>
 		/\p{N}/u.test(t) ? fakeDigits(t, ctx) : isStop(t) ? t : letterFn(t),
@@ -261,7 +269,6 @@ function rewriteText(s, ctx, letterFn) {
 const asNames = (s, ctx) => rewriteText(s, ctx, (t) => fakeName(t, "given"));
 const asWords = (s, ctx) => rewriteText(s, ctx, fakeWord);
 
-const origYears = new Set();
 function fakeDate(v) {
 	const r = rng(`date|${v}`);
 	const mm = String(1 + Math.floor(r() * 12)).padStart(2, "0");
@@ -270,7 +277,7 @@ function fakeDate(v) {
 	if (!/^\d{4}-\d\d-\d\d$/.test(v)) throw new Error(`unexpected date ${v}`);
 	let year;
 	do year = String(1940 + Math.floor(r() * 72));
-	while (origYears.has(year));
+	while (origDigitRuns.has(year));
 	return `${year}-${mm}-${dd}`;
 }
 
@@ -298,9 +305,11 @@ function fakeTel(v) {
 			fake = digits.slice(0, cc) + digitsOf(r, digits.length - cc, true);
 		} else fake = digitsOf(r, digits.length, true);
 		if (usedTels.has(fake)) continue;
-		usedTels.add(fake);
 		let i = 0;
-		return v.replace(/\d/g, () => fake[i++]);
+		const out = v.replace(/\d/g, () => fake[i++]);
+		if (out.match(/\d{4,}/g)?.some((run) => origDigitRuns.has(run))) continue;
+		usedTels.add(fake);
+		return out;
 	}
 }
 
@@ -335,120 +344,32 @@ function fakeUrl(v) {
 	return `${m[1]}${host}${asWords(m[3], "url")}`;
 }
 
-// minimal baseline JPEG encoder, DC-only blocks
-function huffTable(bits, vals) {
-	const map = new Map();
-	let code = 0;
-	let k = 0;
-	for (let len = 1; len <= 16; len++) {
-		for (let i = 0; i < bits[len - 1]; i++) map.set(vals[k++], { code: code++, len });
-		code <<= 1;
-	}
-	return map;
-}
-const DC_BITS = [0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0];
-const DC_VALS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const AC_BITS = [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const AC_VALS = [0x00, 0xf0];
-const DC = huffTable(DC_BITS, DC_VALS);
-const AC = huffTable(AC_BITS, AC_VALS);
-function makeJpeg(w, h, colorAt, targetSize) {
-	const seg = (marker, payload) =>
-		Buffer.concat([
-			Buffer.from([0xff, marker, (payload.length + 2) >> 8, (payload.length + 2) & 0xff]),
-			payload,
-		]);
-	const app0 = seg(0xe0, Buffer.from([0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0]));
-	const dqt = seg(0xdb, Buffer.concat([Buffer.from([0]), Buffer.alloc(64, 8)]));
-	const sof = seg(
-		0xc0,
-		Buffer.from([8, h >> 8, h & 0xff, w >> 8, w & 0xff, 3, 1, 0x11, 0, 2, 0x11, 0, 3, 0x11, 0]),
-	);
-	const dht = seg(
-		0xc4,
-		Buffer.from([0x00, ...DC_BITS, ...DC_VALS, 0x10, ...AC_BITS, ...AC_VALS]),
-	);
-	const sos = seg(0xda, Buffer.from([3, 1, 0, 2, 0, 3, 0, 0, 63, 0]));
-	const bytes = [];
-	let cur = 0;
-	let n = 0;
-	const put = (val, len) => {
-		for (let i = len - 1; i >= 0; i--) {
-			cur = (cur << 1) | ((val >> i) & 1);
-			if (++n === 8) {
-				bytes.push(cur);
-				if (cur === 0xff) bytes.push(0);
-				cur = 0;
-				n = 0;
-			}
-		}
-	};
-	const prev = [0, 0, 0];
-	for (let by = 0; by < Math.ceil(h / 8); by++)
-		for (let bx = 0; bx < Math.ceil(w / 8); bx++) {
-			const [r, g, b] = colorAt(bx, by);
-			const ycc = [
-				0.299 * r + 0.587 * g + 0.114 * b,
-				-0.1687 * r - 0.3313 * g + 0.5 * b + 128,
-				0.5 * r - 0.4187 * g - 0.0813 * b + 128,
-			];
-			for (let c = 0; c < 3; c++) {
-				const dc = Math.max(-128, Math.min(127, Math.round(ycc[c]) - 128));
-				const diff = dc - prev[c];
-				prev[c] = dc;
-				const cat = diff === 0 ? 0 : Math.floor(Math.log2(Math.abs(diff))) + 1;
-				put(DC.get(cat).code, DC.get(cat).len);
-				if (cat) put(diff < 0 ? (diff - 1) & ((1 << cat) - 1) : diff, cat);
-				put(AC.get(0).code, AC.get(0).len);
-			}
-		}
-	if (n) put((1 << (8 - n)) - 1, 8 - n);
-	const core = [
-		Buffer.from([0xff, 0xd8]),
-		app0,
-		dqt,
-		sof,
-		dht,
-		sos,
-		Buffer.from(bytes),
-		Buffer.from([0xff, 0xd9]),
-	];
-	const coreLen = core.reduce((a, b) => a + b.length, 0);
-	const pad = targetSize - coreLen;
-	if (pad >= 4 && pad - 2 <= 0xffff) {
-		const note = Buffer.alloc(pad - 4, 0x20);
-		note.write(
-			"vcards-io: synthetic avatar, padding keeps the original byte size",
-			0,
-			"latin1",
-		);
-		core.splice(2, 0, seg(0xfe, note));
-	}
-	return Buffer.concat(core);
-}
+// A 96x96 silhouette, baseline JPEG. A comment segment after its APP0 tags it and pads it
+// to the original size, when one segment can: a smaller or much larger photo changes size.
+const AVATAR = Buffer.from(
+	"/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI" +
+		"CAgICAgICAgICAgICAgICAgICAgICAj/wAARCABgAGADAREAAhEAAxEA/8QAMgAAAQUBAQEBAQEAAAAAAAAAAAEC" +
+		"AwQFBgcICQoLEAACAAAAAAAAAAAAAAAAAAAA8P/aAAwDAQACAAMAAD8AwDpDAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+		"AAAAAAAAAAAAAAAAAAAAAAAAAAAPoMwTaAAAAAAPnw3jFAAAAAAAAAAAAAAPoMwTaAAAAAAPnw3jFAAAAAAAAAAA" +
+		"AAAPoMwTaAAAAAAPnw3jFAAAAAAAAAAAAAAPoMwTaAAAAAAPnw3jFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+		"AAAPoMwTaAAAAAAPnw3jFAAAAAAAAAAAAPoMwTaAAAAAAAAAAPnw3jFAAAAAAAAAAPoMwTaAAAAAAAAAAPnw3jFA" +
+		"AAAAAAAPoMwTaAAAAAAAAAAAAAAPnw3jFAAAAAAPoMwTaAAAAAAAAAAAAAAPnw3jFAAP/9k=",
+	"base64",
+);
+const AVATAR_HEAD = 20;
 function avatar(seedHex, size) {
-	const r = rng(`photo|${seedHex}`);
-	const hue = r() * 360;
-	const hsl = (h, s, l) => {
-		const a = s * Math.min(l, 1 - l);
-		const f = (k) => {
-			const x = (k + h / 30) % 12;
-			return Math.round(255 * (l - a * Math.max(-1, Math.min(x - 3, 9 - x, 1))));
-		};
-		return [f(0), f(8), f(4)];
-	};
-	const bg = hsl(hue, 0.5, 0.42);
-	const fg = hsl(hue, 0.35, 0.9);
-	return makeJpeg(
-		96,
-		96,
-		(bx, by) => {
-			const head = (bx - 5.5) ** 2 + (by - 3.5) ** 2 <= 2.3 ** 2;
-			const body = by >= 7 && Math.abs(bx - 5.5) <= 2.4 + (by - 7) * 0.45;
-			return head || body ? fg : bg;
-		},
-		size,
-	);
+	// A salted tag, not the hash: photos that differed still differ and none can be matched.
+	const tag = digitsOf(rng(`photo|${seedHex}`), 16);
+	const length = Math.min(Math.max(size - AVATAR.length - 2, 2 + tag.length), 0xffff);
+	const note = Buffer.alloc(length - 2, 0x20);
+	note.write(`${tag} vcards-io: synthetic avatar, padded to the original byte size`, "latin1");
+	const comment = Buffer.from([0xff, 0xfe, length >> 8, length & 0xff]);
+	return Buffer.concat([
+		AVATAR.subarray(0, AVATAR_HEAD),
+		comment,
+		note,
+		AVATAR.subarray(AVATAR_HEAD),
+	]);
 }
 
 const compsOf = (it) =>
@@ -461,7 +382,8 @@ for (const it of items) {
 			for (const t of c.match(/\p{L}+/gu) ?? [])
 				if (!isStop(t) && !roleOf.has(fold(t)))
 					roleOf.set(fold(t), i === 0 ? "surname" : "given");
-	for (const c of comps) if (/^\d{4}-\d\d-\d\d$/.test(c)) origYears.add(c.slice(0, 4));
+	for (const t of `${it.head} ${comps.join(" ")}`.match(/\p{N}{4,}/gu) ?? [])
+		origDigitRuns.add(t);
 	if (name === "TEL") usedTels.add(it.value.replace(/\D/g, ""));
 	if (
 		["N", "FN", "ADR", "ORG", "TITLE", "NOTE", "X-ANDROID-CUSTOM", "EMAIL", "URL"].includes(
@@ -554,10 +476,12 @@ for (const it of items) {
 }
 
 const result = serialize(items);
-fs.writeFileSync(outPath, result);
-console.log(`wrote ${outPath}: ${result.length} bytes (original ${orig.length})`);
 
-const reparsed = parse(result.toString("latin1").slice(0, -2).split("\r\n"));
+const outPhys = result.toString("latin1").slice(0, -2).split("\r\n");
+// Photo continuation lines apart: an avatar that could not keep the original size refolds.
+const unfolded = (lines) => lines.filter((line) => !line.startsWith(" ")).length;
+if (unfolded(outPhys) !== unfolded(phys)) throw new Error("physical line count changed");
+const reparsed = parse(outPhys);
 if (!serialize(reparsed).equals(result)) throw new Error("output does not round-trip");
 if (reparsed.length !== items.length) throw new Error("property count changed");
 const decoded = fold(
@@ -574,7 +498,7 @@ const leaks = [...sensitive].filter(
 	(s) => !ALLOW.has(s) && (outTokens.has(s) || (s.includes("@") && decoded.includes(s))),
 );
 console.log(`leak scan: ${sensitive.size} sensitive tokens checked, ${leaks.length} found`);
-if (leaks.length) console.log("LEAKS:", leaks);
-console.log(
-	`same physical line count: ${result.toString("latin1").split("\r\n").length === text.split("\r\n").length}; photos: ${photoCache.size} distinct`,
-);
+if (leaks.length) throw new Error(`leak scan failed, nothing written: ${leaks.join(", ")}`);
+fs.writeFileSync(outPath, result);
+console.log(`wrote ${outPath}: ${result.length} bytes (original ${orig.length})`);
+console.log(`photos: ${photoCache.size} distinct`);

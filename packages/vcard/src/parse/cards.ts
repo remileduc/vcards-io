@@ -42,18 +42,15 @@ interface OpenAgent {
  * value, any other nested BEGIN closes the current card. VERSION may sit anywhere in the
  * card and is consumed here, never kept as a line; without one, 2.1 is assumed when 2.1
  * syntax was seen, 3.0 otherwise. Lines starting with "#" are comments to AOSP and skipped
- * here too.
+ * here too. A card is given as soon as it closes, so its lines can go once it is decoded.
  */
-export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
-	const cards: RawCard[] = [];
+export function* groupCards(lines: Iterable<LogicalLine>, issues: IssueSink): Generator<RawCard> {
 	let card: OpenCard | null = null;
 	let agent: OpenAgent | null = null;
+	/** Cards closed so far: the index of the one that closes next. */
+	let closed = 0;
+	let lastLine: number | undefined;
 
-	const close = (endLine: number): void => {
-		if (card === null) return;
-		cards.push(finish(card, cards.length, endLine, issues));
-		card = null;
-	};
 	const openAgent = (target: RawLine, first: Uint8Array, line: number): OpenAgent => {
 		// Valid 2.1 (versit 2.5.4); the android profile reports the loss later.
 		issues.push(info("agent-inline-vcard", "Nested vCard in AGENT kept as text", line));
@@ -66,6 +63,7 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 	};
 
 	for (const logical of lines) {
+		lastLine = logical.line;
 		if (logical.bytes[0] === HASH) {
 			issues.push(info("comment-skipped", "Line starting with # skipped", logical.line));
 			continue;
@@ -91,17 +89,18 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 						"nested-begin",
 						"BEGIN:VCARD inside a card, previous card closed",
 						raw.line,
-						cards.length,
+						closed,
 					),
 				);
-				close(raw.line);
+				yield finish(card, closed++, raw.line, issues);
 			}
 			card = { lines: [], line: raw.line, versions: [], last: null, legacy: false };
 		} else if (isDelimiter(raw, "END")) {
 			if (card === null) {
 				issues.push(warn("unexpected-end", "END:VCARD outside a card ignored", raw.line));
 			} else {
-				close(raw.line);
+				yield finish(card, closed++, raw.line, issues);
+				card = null;
 			}
 		} else if (card === null) {
 			issues.push(
@@ -125,11 +124,9 @@ export function groupCards(lines: LogicalLine[], issues: IssueSink): RawCard[] {
 		closeAgent();
 	}
 	if (card !== null) {
-		const last = lines.at(-1)?.line;
-		issues.push(warn("missing-end", "Card closed at end of input without END:VCARD", last));
-		close(Number.POSITIVE_INFINITY);
+		issues.push(warn("missing-end", "Card closed at end of input without END:VCARD", lastLine));
+		yield finish(card, closed, Number.POSITIVE_INFINITY, issues);
 	}
-	return cards;
 }
 
 function finish(card: OpenCard, index: number, endLine: number, issues: IssueSink): RawCard {

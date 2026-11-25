@@ -7,7 +7,7 @@ const utf8 = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);
 
 function cards(input: string, issues: Issue[] = []) {
-	return groupCards(readLogicalLines(utf8(input), issues), issues).map((c) => ({
+	return [...groupCards(readLogicalLines(utf8(input), issues), issues)].map((c) => ({
 		version: c.version,
 		versionSource: c.versionSource,
 		line: c.line,
@@ -30,6 +30,15 @@ describe("groupCards", () => {
 			{ version: "2.1", versionSource: "explicit", line: 6, endLine: 9, names: ["FN"] },
 		]);
 		expect(issues).toEqual([]);
+	});
+
+	test("gives a card as soon as it closes, before the lines after it are read", () => {
+		let read = 0;
+		const input = "BEGIN:VCARD\nVERSION:3.0\nFN:A\nEND:VCARD\nBEGIN:VCARD\nFN:B\nEND:VCARD";
+		const lines = readLogicalLines(utf8(input), []).filter(() => ++read > 0);
+		const first = groupCards(lines, []).next().value;
+		expect(first).toMatchObject({ line: 1, endLine: 4 });
+		expect(read).toBe(4);
 	});
 
 	test("skips # comment lines like AOSP, with an info", () => {
@@ -146,7 +155,7 @@ describe("groupCards", () => {
 				"END:VCARD",
 			].join("\r\n");
 			const issues: Issue[] = [];
-			const [card] = groupCards(readLogicalLines(utf8(input), issues), issues);
+			const [card] = [...groupCards(readLogicalLines(utf8(input), issues), issues)];
 			expect(card?.lines.map((l) => l.name)).toEqual(["FN", "AGENT", "NOTE"]);
 			expect(text(card?.lines[1]?.value ?? new Uint8Array())).toBe(
 				"BEGIN:VCARD\nVERSION:2.1\nFN:Assistant\nTEL;WORK:+1\nEND:VCARD",
@@ -170,7 +179,7 @@ describe("groupCards", () => {
 				"END:VCARD",
 			].join("\r\n");
 			const issues: Issue[] = [];
-			const result = groupCards(readLogicalLines(utf8(input), issues), issues);
+			const result = [...groupCards(readLogicalLines(utf8(input), issues), issues)];
 			expect(result).toHaveLength(1);
 			expect(result[0]?.lines.map((l) => l.name)).toEqual(["N", "AGENT", "TEL"]);
 			expect(text(result[0]?.lines[1]?.value ?? new Uint8Array())).toBe(
