@@ -50,6 +50,9 @@ plus `COMMON_ISSUE_CODES` for the per-code cap), so a
 `Record<IssueCode, string>` is a complete string table and `message` is
 only the English fallback. `Issue<Code>` takes another code type for a
 package that adds its own codes to the same shape.
+The parser returns its issues in source order, by `line`; those about the
+whole input have no line and come first. Past 1000 issues of one code, one
+`issues-truncated` warning stands for the rest, on the line of the first.
 `card` is the index of the card the issue is about: in the returned `cards`
 for the parser, in the `cards` argument for the writer. Parser issues about
 a line outside any card or about the whole input have none; `upgradeTo40`

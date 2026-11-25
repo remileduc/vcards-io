@@ -923,13 +923,6 @@
 		},
 		{
 			"severity": "warning",
-			"code": "invalid-property-name",
-			"message": "Property name \"\\NARBITRARY_STRING\" is not valid vCard syntax",
-			"line": 78,
-			"card": 0
-		},
-		{
-			"severity": "warning",
 			"code": "uri-escaped-colon",
 			"message": "Escaped colon in URI repaired",
 			"line": 34,
@@ -966,6 +959,13 @@
 			"message": "Escaped colon in URI repaired",
 			"line": 41,
 			"property": "item7.URL",
+			"card": 0
+		},
+		{
+			"severity": "warning",
+			"code": "invalid-property-name",
+			"message": "Property name \"\\NARBITRARY_STRING\" is not valid vCard syntax",
+			"line": 78,
 			"card": 0
 		}
 	]

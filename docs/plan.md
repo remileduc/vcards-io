@@ -187,7 +187,8 @@ only has to know 4.0; a writer engine with syntax tables for 3.0 and 4.0.
 
 ```ts
 parseVCards(input: string | Uint8Array | ArrayBuffer, opts?: ParseOptions): ParseResult
-// ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card
+// ParseResult = { cards: VCard[]; issues: Issue[] }   // `card` index set on every issue inside a card;
+//                                                     // issues in source order, those without a line first
 // ParseOptions = { defaultCharset?: string /* 'utf-8' */, maxLineLength?: number, maxInputBytes?: number,
 //                  maxContentLines?: number }
 
@@ -275,6 +276,14 @@ writer as unparseable text.
 
 ### Internal pipeline
 
+Steps 2 to 6 run card by card, not stage by stage: the line reader and the
+card grouper are generators, and a card is decoded as soon as it closes.
+Its unfolded lines and lexed headers are garbage from then on, so the
+peak is the input plus the model (4 to 20 times the input, the most for
+text with no photo) and not twice that. The issues are sorted by line
+once the last card is read: source order whichever stage spoke, those
+about the whole input, which have no line, first.
+
 1. **Bytes in.** A `string` input is encoded to UTF-8 bytes so there is one
    code path. BOM sniffing: `EF BB BF` → UTF-8 (strip; we never write one);
    `FF FE`/`FE FF` → transcode UTF-16 to UTF-8 bytes; BOM-less UTF-16
@@ -289,12 +298,16 @@ writer as unparseable text.
 2. **Physical lines.** Split on CRLF, LF or CR at byte level. Track line
    numbers. Enforce `maxLineLength` (default 1 MiB) and `maxInputBytes`
    (default 64 MiB) as `error` issues, not exceptions. Issues themselves are
-   capped at 1000 per code (then one `issues-truncated` warning per code),
+   capped at 1000 per code (then one `issues-truncated` warning per code,
+   on the line of the first issue it replaces),
    since a file that warns on every line would otherwise cost gigabytes.
    `maxContentLines` (default 500 000 unfolded lines, BEGIN and END
    included) caps the model itself: a line costs about a kilobyte of it
    whatever its length, so 4 MiB of `A:` lines took a gigabyte. Past it
    nothing is parsed (`too-many-lines`, an `error`), as for `maxInputBytes`.
+   Reading stops one line past the cap; the cards read until then are
+   dropped, and with them every issue but those about the input as a whole.
+   The card the cap cut is not decoded.
 3. **Logical lines (unfold), version-agnostic.** Join a line starting with SP
    or HTAB to the previous one, dropping exactly one whitespace byte. Two
    extra rules, safe for every version:

@@ -26,7 +26,7 @@ describe("IssueCollector", () => {
 	test("bounds memory on a file that warns on every line", () => {
 		const sink = new IssueCollector();
 		const input = utf8(`BEGIN:VCARD\n${"x\n".repeat(300000)}`);
-		groupCards(readLogicalLines(input, sink), sink);
+		for (const _card of groupCards(readLogicalLines(input, sink), sink));
 		const codes = new Map<string, number>();
 		for (const i of sink.issues) codes.set(i.code, (codes.get(i.code) ?? 0) + 1);
 		expect(Object.fromEntries(codes)).toEqual({

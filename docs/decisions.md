@@ -1280,3 +1280,25 @@ and 18. Nothing read the field. The two counts that are used are two
 facts with one reader each, and stay with it: the 4.0 counts with the
 normaliser that pads to them, the 3.0 counts with the writer that cuts
 to them.
+
+2026-11-24 The reader decodes card by card
+------------------------------------------
+
+`parseVCards` ran stage by stage: every line unfolded, then every header
+lexed, then every value decoded, each stage holding its whole output.
+Measured live, the peak was 10 times the input for a phone export with
+photos and 48 times for text alone, when the model returned is 4 and 20
+times. The line reader and the card grouper are now generators and a card
+is decoded when it closes, so the peak is the input plus the model: half.
+Three things follow. `maxContentLines` moved from the line reader to
+`parseVCards`, which counts the lines as they pass; an input over the cap
+is still refused whole, but only once that many lines were read and the
+cards closed before the cap decoded (the one it cut is not), and of the
+issues raised until then only those about the input as a whole are kept. Issues no longer come stage after stage, so they are
+sorted by line, those without one first: an order that can be stated,
+where the order the stages happen to interleave in could not. The
+`issues-truncated` notice of a code takes the line of the first issue it
+replaces, so the sort leaves it after the last one kept. And the
+second lexing of each header, 15 % of the time, stays: sharing it would
+tie the line reader to the lexer's issues for half a millisecond on a
+real export.
